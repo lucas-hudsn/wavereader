@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSurf - Agentic Surf Forecasting</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🌊 SmartSurf</h1>
+                <p class="tagline">AI-Powered Surf Forecasting</p>
+            </div>
+        </header>
+
+        <main>
+            <section class="search-section">
+                <form id="forecastForm">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="beachInput" 
+                            placeholder="Enter a beach name (e.g., Bells Beach, Sunset Beach, Bells Beach)" 
+                            required
+                        >
+                        <button type="submit">Get Forecast</button>
+                    </div>
+                </form>
+                <p class="help-text">Try: Bells Beach, Sunset Beach, Pipeline, Malibu, Rincon</p>
+            </section>
+
+            <div id="loadingSpinner" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing conditions and generating forecast...</p>
+            </div>
+
+            <div id="errorContainer" class="error hidden"></div>
+
+            <section id="resultsSection" class="results hidden">
+                <div class="results-grid">
+                    <!-- Beach Info Card -->
+                    <div class="card info-card">
+                        <h2 id="beachTitle"></h2>
+                        <div id="descriptionBox" class="description-box"></div>
+                        
+                        <div class="coordinates">
+                            <p><strong>Location:</strong></p>
+                            <p id="coordsDisplay"></p>
+                        </div>
+                    </div>
+
+                    <!-- Weather Data Card -->
+                    <div class="card weather-card">
+                        <h3>Today's Conditions</h3>
+                        <div class="weather-grid">
+                            <div class="weather-item">
+                                <div class="label">Wave Height</div>
+                                <div id="waveHeight" class="value">-</div>
+                            </div>
+                            <div class="weather-item">
+                                <div class="label">Wave Period</div>
+                                <div id="wavePeriod" class="value">-</div>
+                            </div>
+                            <div class="weather-item">
+                                <div class="label">Wind Speed</div>
+                                <div id="windSpeed" class="value">-</div>
+                            </div>
+                            <div class="weather-item">
+                                <div class="label">Wind Direction</div>
+                                <div id="windDirection" class="value">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Container -->
+                    <div class="card chart-container">
+                        <h3>Wave & Wind Profile</h3>
+                        <div id="chartPlaceholder" class="chart-placeholder">
+                            <canvas id="forecastChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Forecast Summary Card -->
+                    <div class="card forecast-card">
+                        <h3>Daily Forecast</h3>
+                        <div id="forecastSummary" class="forecast-text"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>SmartSurf © 2026 | Data from Open-Meteo API</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', path='app.js') }}"></script>
+</body>
+</html>

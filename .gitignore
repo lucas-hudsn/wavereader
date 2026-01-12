@@ -1,0 +1,106 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+*.pot
+
+# OS
+.DS_Store
+Thumbs.db
+.env.swp
+
+# Package manager
+uv.lock
+poetry.lock
+Pipfile.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.cache/
+*.cache
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Node modules (if using frontend build tools in future)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Static file collection
+staticfiles/
+media/
+
+# IDE specific files
+.vscode/settings.json
+.vscode/extensions.json
+
+# MacOS
+.AppleDouble
+.LSOverride
+.localized
+
+# Git
+.git/

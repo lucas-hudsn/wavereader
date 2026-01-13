@@ -11,6 +11,17 @@ let forecastChart = null;
 // Event Listeners
 forecastForm.addEventListener('submit', handleForecastSubmit);
 
+// Initialize - hide results on page load
+document.addEventListener('DOMContentLoaded', () => {
+    resultsSection.classList.add('hidden');
+    loadingSpinner.classList.add('hidden');
+    errorContainer.classList.add('hidden');
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
+    document.head.appendChild(script);
+});
+
 async function handleForecastSubmit(e) {
     e.preventDefault();
     
@@ -235,10 +246,3 @@ function showError(message) {
     errorContainer.textContent = message;
     errorContainer.classList.remove('hidden');
 }
-
-// Load Chart.js from CDN when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
-    document.head.appendChild(script);
-});

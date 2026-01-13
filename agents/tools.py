@@ -66,24 +66,41 @@ def get_beach_coordinates(beach_name: str, context: str = "") -> dict[str, float
 
 def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
     """
-    Fetch swell and wind data from Open-Meteo API
+    Fetch swell data from Marine API and wind data from Weather API (separate endpoints)
     """
     try:
-        # Open-Meteo API endpoint for marine and weather data
-        url = "https://marine-api.open-meteo.com/v1/marine"
-        params = {
+        # Open-Meteo Marine API for swell/wave data
+        marine_url = "https://marine-api.open-meteo.com/v1/marine"
+        marine_params = {
             "latitude": latitude,
             "longitude": longitude,
             "hourly": [
                 "wave_height",
                 "wave_period",
                 "wave_direction",
-                "wind_speed",
-                "wind_direction"
             ],
             "daily": [
                 "wave_height_max",
                 "wave_period_max",
+            ],
+            "timezone": "auto",
+            "forecast_days": 1,
+        }
+        
+        marine_response = requests.get(marine_url, params=marine_params, timeout=10)
+        marine_response.raise_for_status()
+        marine_data = marine_response.json()
+        
+        # Open-Meteo Weather API for wind data
+        weather_url = "https://api.open-meteo.com/v1/forecast"
+        weather_params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "hourly": [
+                "wind_speed_10m",
+                "wind_direction_10m",
+            ],
+            "daily": [
                 "wind_speed_10m_max",
                 "wind_direction_10m_dominant"
             ],
@@ -91,23 +108,33 @@ def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
             "forecast_days": 1,
         }
         
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
+        weather_response = requests.get(weather_url, params=weather_params, timeout=10)
+        weather_response.raise_for_status()
+        weather_data = weather_response.json()
         
-        data = response.json()
+        # Extract daily data
+        marine_daily = marine_data.get("daily", {})
+        weather_daily = weather_data.get("daily", {})
         
-        # Extract today's daily data
-        daily_data = data.get("daily", {})
+        # Merge hourly data from both APIs
+        merged_hourly = {
+            "time": marine_data.get("hourly", {}).get("time", []),
+            "wave_height": marine_data.get("hourly", {}).get("wave_height", []),
+            "wave_period": marine_data.get("hourly", {}).get("wave_period", []),
+            "wave_direction": marine_data.get("hourly", {}).get("wave_direction", []),
+            "wind_speed": weather_data.get("hourly", {}).get("wind_speed_10m", []),
+            "wind_direction": weather_data.get("hourly", {}).get("wind_direction_10m", []),
+        }
         
         return {
             "latitude": latitude,
             "longitude": longitude,
-            "wave_height_max": daily_data.get("wave_height_max", [None])[0],
-            "wave_period_max": daily_data.get("wave_period_max", [None])[0],
-            "wind_speed_max": daily_data.get("wind_speed_10m_max", [None])[0],
-            "wind_direction": daily_data.get("wind_direction_10m_dominant", [None])[0],
-            "hourly": data.get("hourly", {}),
-            "timezone": data.get("timezone", "UTC"),
+            "wave_height_max": marine_daily.get("wave_height_max", [None])[0],
+            "wave_period_max": marine_daily.get("wave_period_max", [None])[0],
+            "wind_speed_max": weather_daily.get("wind_speed_10m_max", [None])[0],
+            "wind_direction": weather_daily.get("wind_direction_10m_dominant", [None])[0],
+            "hourly": merged_hourly,
+            "timezone": marine_data.get("timezone", "UTC"),
         }
     except Exception as e:
         return {

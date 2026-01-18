@@ -3,59 +3,64 @@ Tools for surf forecasting agents
 """
 import requests
 import os
+import json
 from typing import Any
-from langchain_openai import ChatOpenAI
+from google import genai
 from dotenv import load_dotenv
-from openai import OpenAI
 
 # Load environment variables from the .env file
 load_dotenv()
 
-# Initialize LLM
-llm = ChatOpenAI(
-    model="gpt-4o-mini",
-    temperature=0.7,
-)
+# Initialize Gemini client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+MODEL = "gemini-2.5-pro"
+
 
 def get_beach_description(beach_name: str) -> str:
     """
-    Use LLM to get a description of a surf break
+    Use Gemini to get a description of a surf break
     """
-    prompt = f"""Provide a concise 2-3 sentence description of the {beach_name} surf break. 
-Include information about the break type (reef, beach, point), wave characteristics, 
+    prompt = f"""Provide a concise 2-3 sentence description of the {beach_name} surf break.
+Include information about the break type (reef, beach, point), wave characteristics,
 and what conditions it's best for. Be specific and knowledgeable."""
-    
+
     try:
-        message = llm.invoke(prompt)
-        return message.content
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+        )
+        return response.text
     except Exception as e:
         return f"Failed to get description: {str(e)}"
 
+
 def get_beach_coordinates(beach_name: str, context: str = "") -> dict[str, float]:
     """
-    Use LLM to get coordinates for a beach
+    Use Gemini to get coordinates for a beach
     """
     prompt = f"""Get the latitude and longitude coordinates for the {beach_name} surf break.
-    
+
     Context: {context}
-    
+
     Return ONLY a JSON object with "latitude" and "longitude" keys and numeric values.
     Example: {{"latitude": -33.8688, "longitude": 151.2093}}
-    
+
     Do not include any other text."""
-    
+
     try:
-        message = llm.invoke(prompt)
-        response_text = message.content.strip()
-        
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+        )
+        response_text = response.text.strip()
+
         # Extract JSON if wrapped in markdown code blocks
         if "```" in response_text:
             response_text = response_text.split("```")[1]
             if response_text.startswith("json"):
                 response_text = response_text[4:]
             response_text = response_text.strip()
-        
-        import json
+
         coords = json.loads(response_text)
         return {
             "latitude": float(coords["latitude"]),
@@ -63,6 +68,7 @@ def get_beach_coordinates(beach_name: str, context: str = "") -> dict[str, float
         }
     except Exception as e:
         return {"latitude": 0.0, "longitude": 0.0}
+
 
 def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
     """
@@ -86,11 +92,11 @@ def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
             "timezone": "auto",
             "forecast_days": 1,
         }
-        
+
         marine_response = requests.get(marine_url, params=marine_params, timeout=10)
         marine_response.raise_for_status()
         marine_data = marine_response.json()
-        
+
         # Open-Meteo Weather API for wind data
         weather_url = "https://api.open-meteo.com/v1/forecast"
         weather_params = {
@@ -107,15 +113,15 @@ def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
             "timezone": "auto",
             "forecast_days": 1,
         }
-        
+
         weather_response = requests.get(weather_url, params=weather_params, timeout=10)
         weather_response.raise_for_status()
         weather_data = weather_response.json()
-        
+
         # Extract daily data
         marine_daily = marine_data.get("daily", {})
         weather_daily = weather_data.get("daily", {})
-        
+
         # Merge hourly data from both APIs
         merged_hourly = {
             "time": marine_data.get("hourly", {}).get("time", []),
@@ -125,7 +131,7 @@ def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
             "wind_speed": weather_data.get("hourly", {}).get("wind_speed_10m", []),
             "wind_direction": weather_data.get("hourly", {}).get("wind_direction_10m", []),
         }
-        
+
         return {
             "latitude": latitude,
             "longitude": longitude,
@@ -143,23 +149,24 @@ def get_weather_forecast(latitude: float, longitude: float) -> dict[str, Any]:
             "longitude": longitude,
         }
 
+
 def generate_forecast_summary(
     beach_name: str,
     description: str,
     weather_data: dict[str, Any]
 ) -> str:
     """
-    Use LLM to generate a daily forecast summary based on conditions
+    Use Gemini to generate a daily forecast summary based on conditions
     """
     if "error" in weather_data:
         return f"Unable to generate forecast: {weather_data['error']}"
-    
+
     wave_height = weather_data.get("wave_height_max", 0)
     wave_period = weather_data.get("wave_period_max", 0)
     wind_speed = weather_data.get("wind_speed_max", 0)
     wind_direction = weather_data.get("wind_direction", 0)
-    
-    prompt = f"""Based on the following conditions for {beach_name}, provide a daily forecast summary 
+
+    prompt = f"""Based on the following conditions for {beach_name}, provide a daily forecast summary
 for surfers. Be specific and actionable.
 
 Beach Description: {description}
@@ -178,9 +185,12 @@ Provide:
 5. Equipment recommendation (shortboard, fish, etc.)
 
 Be concise and practical."""
-    
+
     try:
-        message = llm.invoke(prompt)
-        return message.content
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt,
+        )
+        return response.text
     except Exception as e:
         return f"Failed to generate forecast: {str(e)}"

@@ -400,3 +400,318 @@ footer {
 .mb-20 {
     margin-bottom: 20px;
 }
+
+/* Header Navigation */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+header:not(:has(.header-nav)) {
+    justify-content: center;
+    text-align: center;
+}
+
+.header-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.header-link:hover {
+    opacity: 0.8;
+}
+
+.header-nav {
+    display: flex;
+    gap: 20px;
+}
+
+.header-nav a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    padding: 8px 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.header-nav a:hover {
+    border-color: var(--secondary-color);
+}
+
+.header-nav a.active {
+    border-color: var(--primary-color);
+    background: rgba(139, 115, 85, 0.1);
+}
+
+/* Landing Page */
+.landing-main {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.hero {
+    text-align: center;
+    padding: 20px;
+}
+
+.hero-text {
+    font-size: 1.2em;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
+.nav-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.nav-card {
+    display: block;
+    background: #fffef9;
+    border: 3px solid var(--border-color);
+    padding: 32px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    box-shadow: 3px 3px 0 rgba(139, 115, 85, 0.15);
+}
+
+.nav-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 5px 5px 0 rgba(139, 115, 85, 0.25);
+    transform: translate(-2px, -2px);
+}
+
+.nav-card-icon {
+    font-size: 2.5em;
+    margin-bottom: 16px;
+}
+
+.nav-card h2 {
+    font-family: 'Courier New', monospace;
+    font-size: 1.5em;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.nav-card p {
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+    line-height: 1.7;
+    margin-bottom: 16px;
+}
+
+.nav-card-action {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--secondary-color);
+}
+
+.features {
+    background: #fffef9;
+    border: 3px solid var(--border-color);
+    padding: 32px;
+}
+
+.features h3 {
+    font-family: 'Courier New', monospace;
+    font-size: 1.3em;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+.feature {
+    text-align: center;
+}
+
+.feature strong {
+    display: block;
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.feature p {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+/* Browse Page */
+.browse-section {
+    margin-bottom: 40px;
+}
+
+.dropdowns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+}
+
+.dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dropdown-group label {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.dropdown-group select {
+    padding: 14px 18px;
+    font-size: 1em;
+    border: 2px solid var(--primary-color);
+    background-color: #fffef9;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dropdown-group select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 4px 4px 0 rgba(168, 153, 104, 0.3);
+}
+
+.dropdown-group select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Break Details */
+.break-details {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.6s ease;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.conditions-card {
+    border-color: var(--secondary-color);
+}
+
+.conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.condition-item {
+    background: #faf7f2;
+    padding: 16px;
+    border: 2px solid var(--border-color);
+}
+
+.condition-label {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.condition-value {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 16px;
+}
+
+.action-btn {
+    display: inline-block;
+    padding: 14px 32px;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    font-weight: 700;
+    background: var(--primary-color);
+    color: #fffef9;
+    text-decoration: none;
+    border: 2px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: -2px -2px 0 var(--secondary-color);
+    background: var(--secondary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-nav {
+        justify-content: center;
+    }
+
+    .dropdowns {
+        grid-template-columns: 1fr;
+    }
+
+    .details-grid,
+    .conditions-grid {
+        grid-template-columns: 1fr;
+    }
+}

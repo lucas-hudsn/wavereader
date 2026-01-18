@@ -1,0 +1,351 @@
+---
+title: "Building an Agentic Surf Forecasting App with LangGraph and Gemini"
+author: "Lucas Hudson"
+date: "2026-01-18"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    highlight-style: github
+categories: [AI, LangGraph, Gemini, FastAPI, Prompt Engineering]
+---
+
+## Introduction
+
+In this article, I walk through the development of **wave~reader**, an AI-powered surf forecasting application that combines agentic workflows with prompt engineering techniques to deliver real-time surf conditions for 50+ Australian beaches.
+
+The project demonstrates several modern AI engineering patterns:
+
+- **Agentic orchestration** using LangGraph's StateGraph
+- **Prompt engineering** with zero-shot and one-shot techniques
+- **Database population** via LLM-generated structured data
+- **Full-stack integration** with FastAPI, PostgreSQL, and vanilla JavaScript
+
+## Architecture Overview
+
+The application consists of three main layers:
+
+```
+┌─────────────────────────────────────────┐
+│           Frontend (HTML/JS)            │
+│  Landing → Browse Breaks → Live Forecast│
+└─────────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────────┐
+│            FastAPI Backend              │
+│   Page Routes + Data APIs + Forecast    │
+└─────────────────────────────────────────┘
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+┌───────────────┐     ┌─────────────────┐
+│  PostgreSQL   │     │ LangGraph Agent │
+│  (Surf Data)  │     │    Pipeline     │
+└───────────────┘     └─────────────────┘
+```
+
+## The Agent Pipeline
+
+The core forecasting functionality uses LangGraph to orchestrate four specialized agents:
+
+```{python}
+#| eval: false
+from langgraph.graph import StateGraph, END
+from typing import TypedDict
+
+class SurfState(TypedDict):
+    beach_name: str
+    description: str | None
+    coordinates: dict[str, float] | None
+    weather_data: dict | None
+    forecast: str | None
+
+graph = StateGraph(SurfState)
+graph.add_node("get_description", node_get_description)
+graph.add_node("get_coordinates", node_get_coordinates)
+graph.add_node("get_weather", node_get_weather)
+graph.add_node("generate_forecast", node_generate_forecast)
+
+graph.set_entry_point("get_description")
+graph.add_edge("get_description", "get_coordinates")
+graph.add_edge("get_coordinates", "get_weather")
+graph.add_edge("get_weather", "generate_forecast")
+graph.add_edge("generate_forecast", END)
+```
+
+Each node performs a specific task:
+
+| Agent | Purpose | Data Source |
+|-------|---------|-------------|
+| Description | Get surf break characteristics | Gemini 2.5 Pro |
+| Coordinates | Obtain latitude/longitude | Gemini 2.5 Pro |
+| Weather | Fetch swell and wind data | Open-Meteo API |
+| Forecast | Synthesize actionable advice | Gemini 2.5 Pro |
+
+## Prompt Engineering: Zero-Shot vs One-Shot
+
+A key part of this project was generating structured data for 50 Australian surf breaks. I experimented with two prompting strategies.
+
+### Zero-Shot Prompting
+
+Zero-shot prompting asks the model to perform a task without examples, relying on explicit instructions:
+
+```{python}
+#| eval: false
+prompt = f"""Provide detailed information about {beach_name} as a surf break.
+
+Return a JSON object with the following fields:
+- "description": A quick 2-3 sentence description of the break
+- "state": The state/region where it's located
+- "coordinates": An object with "latitude" and "longitude" as numbers
+- "wave_direction": Either "left" or "right"
+- "bottom_type": Either "reef" or "sand"
+- "break_type": Either "point" or "beach"
+- "skill_level": Either "beginner", "intermediate", or "advanced"
+- "ideal_wind": Description of ideal wind conditions
+- "ideal_tide": Description of ideal tide conditions
+- "ideal_swell_size": Ideal swell size range in feet (e.g., "3-6 ft")
+
+Return ONLY valid JSON, no markdown or additional text."""
+```
+
+**Key principles used:**
+
+1. **Structured output format** - Explicit JSON field definitions
+2. **Constrained options** - Limited valid values for categorical fields
+3. **Clear output instructions** - "Return ONLY valid JSON"
+4. **Inline examples** - Format hints like `"3-6 ft"`
+
+### One-Shot Prompting
+
+For batch processing 50 beaches, I used one-shot prompting with a validated example:
+
+```{python}
+#| eval: false
+BELLS_BEACH_EXAMPLE = {
+    "name": "Bells Beach",
+    "description": "Bells Beach is a world-renowned right-hand point break...",
+    "state": "Victoria",
+    "coordinates": {"latitude": -38.366, "longitude": 144.279},
+    "wave_direction": "right",
+    "bottom_type": "reef",
+    "break_type": "point",
+    "skill_level": "advanced",
+    "ideal_wind": "Light offshore (NW to N)",
+    "ideal_tide": "Mid to high",
+    "ideal_swell_size": "4-10 ft",
+}
+
+prompt = f"""Provide detailed information about a surf break.
+
+Here is an example for Bells Beach:
+
+Input: Bells Beach
+Output:
+{json.dumps(BELLS_BEACH_EXAMPLE, indent=2)}
+
+Now provide the same information for the following surf break.
+
+Input: {beach_name}
+Output:
+..."""
+```
+
+### Comparison
+
+| Aspect | Zero-Shot | One-Shot |
+|--------|-----------|----------|
+| Examples provided | None | One complete example |
+| Token usage | Lower | Higher |
+| Output consistency | Good with constraints | Better with real example |
+| Best for | Single queries | Batch processing |
+
+The one-shot approach anchored the model's responses to a known-good output, ensuring consistent style and detail level across all 50 beaches.
+
+## Database Design
+
+The generated data is stored in PostgreSQL:
+
+```sql
+CREATE TABLE surf_breaks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT,
+    state VARCHAR(100),
+    latitude DECIMAL(10, 6),
+    longitude DECIMAL(10, 6),
+    wave_direction VARCHAR(20),
+    bottom_type VARCHAR(20),
+    break_type VARCHAR(20),
+    skill_level VARCHAR(20),
+    ideal_wind VARCHAR(255),
+    ideal_tide VARCHAR(255),
+    ideal_swell_size VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+The batch script uses upsert logic to handle reruns:
+
+```{python}
+#| eval: false
+cursor.execute("""
+    INSERT INTO surf_breaks (name, description, state, ...)
+    VALUES (%s, %s, %s, ...)
+    ON CONFLICT (name) DO UPDATE SET
+        description = EXCLUDED.description,
+        state = EXCLUDED.state,
+        ...
+""", (data.get("name"), data.get("description"), ...))
+```
+
+## Frontend Implementation
+
+The app features three pages with a retro monospace aesthetic:
+
+### Landing Page
+
+```html
+<section class="nav-cards">
+    <a href="/browse" class="nav-card">
+        <div class="nav-card-icon">[:::]</div>
+        <h2>Browse Breaks</h2>
+    </a>
+    <a href="/forecast-chat" class="nav-card">
+        <div class="nav-card-icon">~^~</div>
+        <h2>Live Forecast</h2>
+    </a>
+</section>
+```
+
+### Browse Page
+
+The browse page uses cascading dropdowns to filter by state, then by break:
+
+```javascript
+async function handleStateChange() {
+    const state = stateSelect.value;
+    const response = await fetch(`/api/breaks/${encodeURIComponent(state)}`);
+    const data = await response.json();
+
+    data.breaks.forEach(breakName => {
+        const option = document.createElement('option');
+        option.value = breakName;
+        option.textContent = breakName;
+        breakSelect.appendChild(option);
+    });
+}
+```
+
+### Forecast Page
+
+The forecast page displays real-time conditions with Chart.js visualizations:
+
+```javascript
+forecastChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: limitedTimes,
+        datasets: [
+            { label: 'Wave Height (m)', data: limitedWaves, ... },
+            { label: 'Wind Speed (km/h)', data: limitedWinds, ... }
+        ]
+    }
+});
+```
+
+## API Design
+
+The FastAPI backend exposes both page routes and data APIs:
+
+```{python}
+#| eval: false
+# Page routes
+@app.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("landing.html", {"request": request})
+
+@app.get("/browse")
+async def browse(request: Request):
+    return templates.TemplateResponse("browse.html", {"request": request})
+
+# Data APIs
+@app.get("/api/states")
+async def get_states():
+    cursor.execute("SELECT DISTINCT state FROM surf_breaks ORDER BY state")
+    return JSONResponse({"states": [row["state"] for row in cursor.fetchall()]})
+
+@app.get("/api/break/{name}")
+async def get_break_details(name: str):
+    cursor.execute("SELECT * FROM surf_breaks WHERE name = %s", (name,))
+    return JSONResponse(serialize_row(dict(cursor.fetchone())))
+```
+
+Note the `serialize_row` helper to convert PostgreSQL `Decimal` types to JSON-serializable floats:
+
+```{python}
+#| eval: false
+def serialize_row(row: dict) -> dict:
+    return {
+        key: float(value) if isinstance(value, Decimal) else value
+        for key, value in row.items()
+    }
+```
+
+## Using the Google Gemini SDK
+
+The project uses the updated `google-genai` SDK:
+
+```{python}
+#| eval: false
+from google import genai
+
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+response = client.models.generate_content(
+    model="gemini-2.5-pro",
+    contents=prompt,
+)
+return response.text
+```
+
+Key differences from the older SDK:
+
+| Old SDK | New SDK |
+|---------|---------|
+| `google-generativeai` | `google-genai` |
+| `genai.configure(api_key=...)` | `client = genai.Client(api_key=...)` |
+| `model.generate_content(prompt)` | `client.models.generate_content(model, contents)` |
+
+## Lessons Learned
+
+### 1. Prompt Engineering Matters
+
+The difference between zero-shot and one-shot prompting was significant for batch consistency. A single well-crafted example anchored all subsequent outputs.
+
+### 2. Type Serialization
+
+PostgreSQL's `DECIMAL` type doesn't serialize to JSON automatically. Always check for type mismatches at API boundaries.
+
+### 3. Agent Orchestration
+
+LangGraph's StateGraph provides clean separation of concerns. Each agent has a single responsibility, making the pipeline easy to debug and extend.
+
+### 4. Database-First for Static Data
+
+Using PostgreSQL for surf break metadata (vs. calling the LLM each time) dramatically improves response times and reduces API costs.
+
+## Conclusion
+
+wave~reader demonstrates how modern AI tooling—LangGraph for orchestration, Gemini for generation, and prompt engineering for data quality—can combine to create practical applications.
+
+The full source code is available in the project repository.
+
+## Tech Stack
+
+- **Backend**: FastAPI, Uvicorn
+- **AI/ML**: LangGraph, Google Gemini 2.5 Pro
+- **Database**: PostgreSQL
+- **Frontend**: Vanilla HTML/CSS/JS, Chart.js
+- **APIs**: Open-Meteo (weather), Google Gemini

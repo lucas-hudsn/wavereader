@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Breaks - wave~reader</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1><a href="/" class="header-link">wave~reader</a></h1>
+                <p class="tagline">Browse Surf Breaks</p>
+            </div>
+            <nav class="header-nav">
+                <a href="/">Home</a>
+                <a href="/browse" class="active">Browse</a>
+                <a href="/forecast-chat">Forecast</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="browse-section">
+                <div class="dropdowns">
+                    <div class="dropdown-group">
+                        <label for="stateSelect">Select State</label>
+                        <select id="stateSelect">
+                            <option value="">-- Choose a state --</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="breakSelect">Select Surf Break</label>
+                        <select id="breakSelect" disabled>
+                            <option value="">-- Choose a surf break --</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <div id="loadingSpinner" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+
+            <div id="errorContainer" class="error hidden"></div>
+
+            <section id="breakDetails" class="break-details hidden">
+                <div class="card info-card">
+                    <h2 id="breakName"></h2>
+                    <div id="breakDescription" class="description-box"></div>
+
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">State</span>
+                            <span id="breakState" class="detail-value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Coordinates</span>
+                            <span id="breakCoords" class="detail-value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Wave Direction</span>
+                            <span id="breakWaveDir" class="detail-value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Bottom Type</span>
+                            <span id="breakBottom" class="detail-value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Break Type</span>
+                            <span id="breakType" class="detail-value"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Skill Level</span>
+                            <span id="breakSkill" class="detail-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card conditions-card">
+                    <h3>Ideal Conditions</h3>
+                    <div class="conditions-grid">
+                        <div class="condition-item">
+                            <span class="condition-label">Wind</span>
+                            <span id="breakWind" class="condition-value"></span>
+                        </div>
+                        <div class="condition-item">
+                            <span class="condition-label">Tide</span>
+                            <span id="breakTide" class="condition-value"></span>
+                        </div>
+                        <div class="condition-item">
+                            <span class="condition-label">Swell Size</span>
+                            <span id="breakSwell" class="condition-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a id="forecastLink" href="/forecast-chat" class="action-btn">
+                        Get Live Forecast →
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>wave~reader © 2026 | Data from Open-Meteo API</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', path='browse.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>wave~reader - Agentic Surf Forecasting</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>wave~reader</h1>
+                <p class="tagline">Read the Waves</p>
+            </div>
+        </header>
+
+        <main class="landing-main">
+            <section class="hero">
+                <p class="hero-text">
+                    Your AI-powered surf forecasting companion. Get detailed conditions,
+                    wave analysis, and personalized recommendations for Australian surf breaks.
+                </p>
+            </section>
+
+            <section class="nav-cards">
+                <a href="/browse" class="nav-card">
+                    <div class="nav-card-icon">[:::]</div>
+                    <h2>Browse Breaks</h2>
+                    <p>Explore 50+ Australian surf breaks by state. View detailed information including wave direction, bottom type, skill level, and ideal conditions.</p>
+                    <span class="nav-card-action">Browse →</span>
+                </a>
+
+                <a href="/forecast-chat" class="nav-card">
+                    <div class="nav-card-icon">~^~</div>
+                    <h2>Live Forecast</h2>
+                    <p>Get real-time surf forecasts powered by AI. Enter any beach name and receive current conditions, wave predictions, and surfing recommendations.</p>
+                    <span class="nav-card-action">Get Forecast →</span>
+                </a>
+            </section>
+
+            <section class="features">
+                <h3>Features</h3>
+                <div class="features-grid">
+                    <div class="feature">
+                        <strong>Real-time Data</strong>
+                        <p>Wave height, period, wind speed and direction from Open-Meteo API</p>
+                    </div>
+                    <div class="feature">
+                        <strong>AI Analysis</strong>
+                        <p>Intelligent forecasts that consider break characteristics and conditions</p>
+                    </div>
+                    <div class="feature">
+                        <strong>50+ Breaks</strong>
+                        <p>Comprehensive database of Australia's best surf spots</p>
+                    </div>
+                    <div class="feature">
+                        <strong>Skill Matching</strong>
+                        <p>Find breaks suited to your experience level</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>wave~reader © 2026 | Data from Open-Meteo API</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Breaks - wave~reader</title>
+    <title>Surf Break Details - wave~reader</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
@@ -11,37 +11,14 @@
         <header>
             <div class="header-content">
                 <h1><a href="/" class="header-link">wave~reader</a></h1>
-                <p class="tagline">Browse Surf Breaks</p>
+                <p class="tagline">Surf Break Details</p>
             </div>
-            <nav class="header-nav">
-                <a href="/">Home</a>
-                <a href="/browse" class="active">Browse</a>
-                <a href="/forecast-chat">Forecast</a>
-            </nav>
         </header>
 
         <main>
-            <section class="browse-section">
-                <div class="dropdowns">
-                    <div class="dropdown-group">
-                        <label for="stateSelect">Select State</label>
-                        <select id="stateSelect">
-                            <option value="">-- Choose a state --</option>
-                        </select>
-                    </div>
-
-                    <div class="dropdown-group">
-                        <label for="breakSelect">Select Surf Break</label>
-                        <select id="breakSelect" disabled>
-                            <option value="">-- Choose a surf break --</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-
-            <div id="loadingSpinner" class="loading hidden">
+            <div id="loadingSpinner" class="loading">
                 <div class="spinner"></div>
-                <p>Loading...</p>
+                <p>Loading break details...</p>
             </div>
 
             <div id="errorContainer" class="error hidden"></div>
@@ -49,6 +26,7 @@
             <section id="breakDetails" class="break-details hidden">
                 <div class="card info-card">
                     <h2 id="breakName"></h2>
+                    <a id="backLink" href="/" class="action-btn" style="margin-bottom: 16px;">← Back to Breaks</a>
                     <div id="breakDescription" class="description-box"></div>
 
                     <div class="details-grid">
@@ -97,10 +75,35 @@
                     </div>
                 </div>
 
-                <div class="action-buttons">
-                    <a id="forecastLink" href="/forecast-chat" class="action-btn">
-                        Get Live Forecast →
-                    </a>
+                <div class="card chart-card">
+                    <h3>Weekly Conditions</h3>
+                    <div id="chartLoading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Loading conditions...</p>
+                    </div>
+                    <div id="chartContainer" class="lofi-chart hidden">
+                        <div class="chart-section">
+                            <div class="chart-label">Wave Height (m)</div>
+                            <div class="swell-chart-container">
+                                <div class="swell-line-chart" id="swellChart"></div>
+                            </div>
+                        </div>
+                        <div class="chart-section">
+                            <div class="chart-label">Wind (km/h)</div>
+                            <div class="wind-chart-container" id="windChart"></div>
+                        </div>
+                        <div class="chart-times" id="chartTimes"></div>
+                    </div>
+                </div>
+
+                <div class="card forecast-card">
+                    <h3>Daily Surf Report</h3>
+                    <div id="forecastLoading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Generating forecast...</p>
+                    </div>
+                    <div id="forecastContent" class="forecast-text hidden"></div>
+                    <div id="forecastError" class="error hidden"></div>
                 </div>
             </section>
         </main>
@@ -110,6 +113,6 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', path='browse.js') }}"></script>
+    <script src="{{ url_for('static', path='break.js') }}"></script>
 </body>
 </html>

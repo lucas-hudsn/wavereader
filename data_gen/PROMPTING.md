@@ -1,27 +1,35 @@
-# Prompt Engineering Documentation
+# Prompt Engineering for Surf Break Data Generation
 
-## Zero Shot Prompting
+This document covers the prompting techniques used to populate the wave~reader database with 50+ Australian surf breaks.
 
-Zero-shot prompting involves asking the model to perform a task without providing any examples. The model relies entirely on its pre-trained knowledge and the instructions provided in the prompt.
+## Overview
 
-### Principles Used
+Two prompting strategies were developed:
 
-**1. Structured Output Format**
+1. **Zero-shot** - Explicit instructions without examples
+2. **One-shot** - Single validated example to anchor output
 
-We specified the exact JSON structure we wanted returned, listing each field explicitly:
+## Zero-Shot Prompting
+
+Zero-shot prompting asks the model to perform a task using only instructions, relying on its pre-trained knowledge.
+
+### Principles
+
+**1. Structured Output**
+
+Define the exact JSON schema:
 
 ```
 Return a JSON object with the following fields:
-- "description": A quick 2-3 sentence description of the break
+- "description": A quick 2-3 sentence description
 - "state": The state/region where it's located
+- "coordinates": Object with "latitude" and "longitude"
 ...
 ```
 
-This removes ambiguity about what format the response should take.
-
 **2. Constrained Options**
 
-For fields with limited valid values, we explicitly listed the allowed options:
+Limit valid values for categorical fields:
 
 ```
 - "wave_direction": Either "left" or "right"
@@ -29,31 +37,23 @@ For fields with limited valid values, we explicitly listed the allowed options:
 - "skill_level": Either "beginner", "intermediate", or "advanced"
 ```
 
-This prevents the model from inventing its own categories and ensures consistent, parseable data.
+**3. Format Examples**
 
-**3. Clear Output Instructions**
+Provide inline hints for ambiguous fields:
 
-We added explicit formatting constraints at the end of the prompt:
+```
+- "ideal_swell_size": Ideal swell size range (e.g., "3-6 ft")
+```
+
+**4. Clear Output Instructions**
+
+Prevent markdown wrapping or explanatory text:
 
 ```
 Return ONLY valid JSON, no markdown or additional text.
 ```
 
-This reduces the chance of the model wrapping the response in markdown code blocks or adding explanatory text that would break JSON parsing.
-
-**4. Inline Examples**
-
-For less obvious fields, we provided example formats:
-
-```
-- "ideal_swell_size": Ideal swell size range in feet (e.g., "3-6 ft")
-```
-
-This guides the model toward the expected format without providing a full few-shot example.
-
-### Results
-
-Using these principles, the model returned well-structured data for Bells Beach:
+### Example Output
 
 ```json
 {
@@ -70,23 +70,23 @@ Using these principles, the model returned well-structured data for Bells Beach:
 }
 ```
 
-The response followed all specified constraints and returned valid, parseable JSON.
-
 ## One-Shot Prompting
 
-One-shot prompting provides the model with a single example of the desired input-output pair before asking it to perform the task. This helps the model understand not just the format but also the style, tone, and level of detail expected.
+One-shot prompting provides a single example input-output pair before the actual request.
 
-### Why One-Shot Over Zero-Shot?
+### Why One-Shot?
 
-When scaling to many similar requests (e.g., 50 surf breaks), one-shot prompting offers advantages:
+When generating data for 50 surf breaks, one-shot offers advantages:
 
-1. **Consistency** - The example anchors the model's responses to a known-good output
-2. **Implicit style guide** - The example demonstrates the expected level of detail and writing style
-3. **Reduced ambiguity** - The model can infer expectations that are hard to specify explicitly
+| Benefit | Description |
+|---------|-------------|
+| Consistency | Output anchored to known-good example |
+| Style matching | Tone and detail level preserved |
+| Reduced ambiguity | Model infers unstated expectations |
 
 ### Implementation
 
-We used the validated Bells Beach result from zero-shot prompting as our example:
+Use a validated result as the example:
 
 ```python
 BELLS_BEACH_EXAMPLE = {
@@ -94,42 +94,75 @@ BELLS_BEACH_EXAMPLE = {
     "description": "Bells Beach is a world-renowned right-hand point break...",
     "state": "Victoria",
     "coordinates": {"latitude": -38.366, "longitude": 144.279},
-    ...
+    "wave_direction": "right",
+    "bottom_type": "reef",
+    "break_type": "point",
+    "skill_level": "advanced",
+    "ideal_wind": "Light offshore (NW to N)",
+    "ideal_tide": "Mid to high",
+    "ideal_swell_size": "4-10 ft",
 }
-```
 
-The prompt structure follows an Input/Output pattern:
+prompt = f"""Provide detailed information about a surf break.
 
-```
 Here is an example for Bells Beach:
 
 Input: Bells Beach
 Output:
-{json example}
+{json.dumps(BELLS_BEACH_EXAMPLE, indent=2)}
 
-Now provide the same information for the following surf break.
+Now provide the same information for:
 
 Input: {beach_name}
-Output:
+Output:"""
 ```
 
-### Key Differences from Zero-Shot
+### Input/Output Pattern
+
+The prompt follows a clear structure:
+
+1. Task description
+2. Example (Input → Output)
+3. Actual request (Input → ...)
+
+This pattern helps the model understand exactly what format to produce.
+
+## Comparison
 
 | Aspect | Zero-Shot | One-Shot |
 |--------|-----------|----------|
-| Examples provided | None | One complete example |
 | Token usage | Lower | Higher (includes example) |
-| Output consistency | Good with constraints | Better with real example |
-| Use case | Single queries | Batch processing |
+| Consistency | Good with constraints | Excellent |
+| Style matching | Variable | Anchored to example |
+| Best for | Single queries | Batch processing |
 
-### Scaling Considerations
+## Batch Processing
 
-When processing 50 surf breaks:
+The one-shot script processes all 50 breaks with:
 
-1. **Database storage** - Results are saved to PostgreSQL with upsert logic to handle reruns
-2. **Error handling** - Individual failures don't stop the batch
-3. **Progress tracking** - Console output shows progress through the list
+- **Database storage** - PostgreSQL upsert for reruns
+- **Error handling** - Individual failures don't stop batch
+- **Progress tracking** - Console output shows progress
 
-### Script
+```python
+AUSTRALIAN_SURF_BREAKS = [
+    "Snapper Rocks", "Kirra", "Burleigh Heads", "Noosa",
+    "North Narrabeen", "Bondi Beach", "Bells Beach", "Margaret River",
+    # ... 50 total
+]
 
-See `generate_australia_surfbreaks_oneshot.py` for the full implementation.
+for i, beach in enumerate(AUSTRALIAN_SURF_BREAKS, 1):
+    print(f"[{i}/50] Fetching {beach}...")
+    try:
+        details = get_beach_details(beach)
+        save_to_database(cursor, conn, details)
+    except Exception as e:
+        print(f"  Error: {e}")
+```
+
+## Scripts
+
+| Script | Approach | Purpose |
+|--------|----------|---------|
+| `generate_bellsbeach_data_zeroshot.py` | Zero-shot | Single break example |
+| `generate_australia_surfbreaks_oneshot.py` | One-shot | Batch generation (50 breaks) |

@@ -102,5 +102,17 @@ media/
 .LSOverride
 .localized
 
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Quarto
+.quarto/
+_site/
+_freeze/
+*_files/
+*.html
+!templates/*.html
+
 # Git
 .git/

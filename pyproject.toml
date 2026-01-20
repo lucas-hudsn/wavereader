@@ -11,3 +11,9 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "google-genai>=1.0.0",
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.8.0",
+    "mypy>=1.14.0",
+]

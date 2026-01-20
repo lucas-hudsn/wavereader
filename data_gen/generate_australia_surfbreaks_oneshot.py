@@ -2,6 +2,7 @@
 Script to generate surf break data using Google Gemini API with one-shot prompting.
 Uses Bells Beach as the example, then iterates through 50 popular Australian surf breaks.
 """
+
 import os
 import json
 import psycopg2

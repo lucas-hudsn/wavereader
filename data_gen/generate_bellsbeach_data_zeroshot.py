@@ -1,6 +1,7 @@
 """
 Script to generate surf break data using Google Gemini API
 """
+
 import os
 import json
 from google import genai

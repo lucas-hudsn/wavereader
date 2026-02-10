@@ -1,10 +1,13 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
+import { STORAGE_KEY } from '../constants'
+import Toast from '../components/Toast'
+import useToast from '../hooks/useToast'
 
 const FavoritesContext = createContext()
 
-const STORAGE_KEY = 'wavereader_favorites'
-
 export function FavoritesProvider({ children }) {
+  const { toast, show: showToast, hide: hideToast } = useToast()
+
   const [favorites, setFavorites] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
@@ -18,30 +21,38 @@ export function FavoritesProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites))
   }, [favorites])
 
-  const addFavorite = (breakName) => {
+  const addFavorite = useCallback((breakName) => {
     setFavorites(prev => {
       if (prev.includes(breakName)) return prev
       return [...prev, breakName]
     })
-  }
+  }, [])
 
-  const removeFavorite = (breakName) => {
+  const removeFavorite = useCallback((breakName) => {
     setFavorites(prev => prev.filter(name => name !== breakName))
-  }
+  }, [])
 
-  const toggleFavorite = (breakName) => {
-    if (favorites.includes(breakName)) {
-      removeFavorite(breakName)
-    } else {
-      addFavorite(breakName)
-    }
-  }
+  const toggleFavorite = useCallback((breakName) => {
+    setFavorites(prev => {
+      const removing = prev.includes(breakName)
+      showToast(removing ? `Removed ${breakName} from favorites` : `Added ${breakName} to favorites`)
+      return removing
+        ? prev.filter(name => name !== breakName)
+        : [...prev, breakName]
+    })
+  }, [showToast])
 
-  const isFavorite = (breakName) => favorites.includes(breakName)
+  const isFavorite = useCallback((breakName) => favorites.includes(breakName), [favorites])
+
+  const value = useMemo(
+    () => ({ favorites, addFavorite, removeFavorite, toggleFavorite, isFavorite }),
+    [favorites, addFavorite, removeFavorite, toggleFavorite, isFavorite]
+  )
 
   return (
-    <FavoritesContext.Provider value={{ favorites, addFavorite, removeFavorite, toggleFavorite, isFavorite }}>
+    <FavoritesContext.Provider value={value}>
       {children}
+      <Toast message={toast.message} visible={toast.visible} onHide={hideToast} />
     </FavoritesContext.Provider>
   )
 }

@@ -1,8 +1,13 @@
+import logging
 import os
-from google import genai
 
-GEMINI_CLIENT = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-REPORT_MODEL = "gemma-3-27b-it"
+from google import genai
+from google.genai import types
+
+logger = logging.getLogger(__name__)
+
+GEMINI_CLIENT = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+REPORT_MODEL = os.getenv("GEMINI_MODEL", "gemma-3-27b-it")
 
 
 def generate_forecast(break_info: dict, weather_data: dict) -> str:
@@ -56,8 +61,15 @@ Create a daily surf report with:
 
 Be specific and practical."""
 
-    response = GEMINI_CLIENT.models.generate_content(
-        model=REPORT_MODEL,
-        contents=prompt,
-    )
-    return response.text if response.text else ""
+    try:
+        response = GEMINI_CLIENT.models.generate_content(
+            model=REPORT_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                http_options=types.HttpOptions(timeout=30_000),
+            ),
+        )
+        return response.text if response.text else ""
+    except Exception:
+        logger.exception("Gemini API call failed for %s", break_info.get("name"))
+        return ""

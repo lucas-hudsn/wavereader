@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchBreaks, fetchStates } from '../api'
+import useBreakFilters from '../hooks/useBreakFilters'
 import SearchBar from '../components/SearchBar'
 import StateFilter from '../components/StateFilter'
 import SkillFilter from '../components/SkillFilter'
@@ -12,53 +13,42 @@ export default function Landing() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const [search, setSearch] = useState('')
-  const [selectedState, setSelectedState] = useState('')
-  const [selectedSkill, setSelectedSkill] = useState('')
+  const {
+    search, setSearch,
+    selectedState, setSelectedState,
+    selectedSkill, setSelectedSkill,
+    filteredBreaks,
+    groupedBreaks,
+  } = useBreakFilters(breaks)
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const [breaksData, statesData] = await Promise.all([
+        fetchBreaks(),
+        fetchStates(),
+      ])
+      setBreaks(breaksData)
+      setStates(statesData)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true)
-        const [breaksData, statesData] = await Promise.all([
-          fetchBreaks(),
-          fetchStates(),
-        ])
-        setBreaks(breaksData)
-        setStates(statesData)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
     loadData()
   }, [])
-
-  const filteredBreaks = useMemo(() => {
-    return breaks.filter(b => {
-      const matchesSearch = !search ||
-        b.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.state.toLowerCase().includes(search.toLowerCase())
-      const matchesState = !selectedState || b.state === selectedState
-      const matchesSkill = !selectedSkill || b.skill_level === selectedSkill
-      return matchesSearch && matchesState && matchesSkill
-    })
-  }, [breaks, search, selectedState, selectedSkill])
-
-  const groupedBreaks = useMemo(() => {
-    const groups = {}
-    filteredBreaks.forEach(b => {
-      if (!groups[b.state]) groups[b.state] = []
-      groups[b.state].push(b)
-    })
-    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]))
-  }, [filteredBreaks])
 
   if (error) {
     return (
       <div className="card error-card animate-fade-in">
         <p>Failed to load breaks: {error}</p>
+        <button className="retry-btn" onClick={loadData} style={{ marginTop: 12 }}>
+          Try Again
+        </button>
       </div>
     )
   }

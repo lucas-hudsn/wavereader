@@ -1,45 +1,24 @@
-import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { fetchBreakDetail } from '../api'
+import DOMPurify from 'dompurify'
 import { useFavorites } from '../context/FavoritesContext'
+import { capitalize } from '../utils/formatters'
+import useBreakDetail from '../hooks/useBreakDetail'
 import WeatherChart from '../components/WeatherChart'
 import { BreakDetailSkeleton } from '../components/Skeleton'
 
-function capitalize(str) {
-  if (!str) return '-'
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
-
 function formatForecast(text) {
   if (!text) return ''
-  return text
+  const raw = text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>')
+  return DOMPurify.sanitize(raw, { ALLOWED_TAGS: ['strong', 'br'] })
 }
 
 export default function BreakDetail() {
-  const { state, breakName } = useParams()
+  const { breakName } = useParams()
   const decodedBreakName = decodeURIComponent(breakName)
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { data, loading, error, retry } = useBreakDetail(decodedBreakName)
   const { isFavorite, toggleFavorite } = useFavorites()
-
-  useEffect(() => {
-    async function loadBreak() {
-      try {
-        setLoading(true)
-        setError(null)
-        const breakData = await fetchBreakDetail(decodedBreakName)
-        setData(breakData)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadBreak()
-  }, [decodedBreakName])
 
   if (loading) {
     return (
@@ -60,6 +39,9 @@ export default function BreakDetail() {
         </Link>
         <div className="card error-card animate-fade-in">
           <p>Failed to load break: {error}</p>
+          <button className="retry-btn" onClick={retry} style={{ marginTop: 12 }}>
+            Try Again
+          </button>
         </div>
       </div>
     )

@@ -1,4 +1,4 @@
-const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced']
+import { SKILL_LEVELS } from '../constants'
 
 export default function SkillFilter({ selectedSkill, onChange }) {
   return (

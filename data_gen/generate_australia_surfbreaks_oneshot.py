@@ -3,15 +3,19 @@ Script to generate surf break data using Google Gemini API with one-shot prompti
 Uses Bells Beach as the example, then iterates through 50 popular Australian surf breaks.
 """
 
-import os
 import json
-import psycopg2
-from google import genai
+import os
+import sqlite3
+from pathlib import Path
+
 from dotenv import load_dotenv
+from google import genai
 
 load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+DB_PATH = Path(__file__).parent.parent / "data" / "wavereader.db"
 
 # 50 most popular surf breaks in Australia
 AUSTRALIAN_SURF_BREAKS = [
@@ -131,33 +135,30 @@ Return ONLY valid JSON, no markdown or additional text."""
 
 def init_database():
     """
-    Initialize PostgreSQL database and create surf_breaks table.
+    Initialize SQLite database and create surf_breaks table.
     """
-    conn = psycopg2.connect(
-        host=os.getenv("POSTGRES_HOST", "localhost"),
-        port=os.getenv("POSTGRES_PORT", "5432"),
-        database=os.getenv("POSTGRES_DB", "wavereader"),
-        user=os.getenv("POSTGRES_USER", "postgres"),
-        password=os.getenv("POSTGRES_PASSWORD", ""),
-    )
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS surf_breaks (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(255) UNIQUE NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
             description TEXT,
-            state VARCHAR(100),
-            latitude DECIMAL(10, 6),
-            longitude DECIMAL(10, 6),
-            wave_direction VARCHAR(20),
-            bottom_type VARCHAR(20),
-            break_type VARCHAR(20),
-            skill_level VARCHAR(20),
-            ideal_wind VARCHAR(255),
-            ideal_tide VARCHAR(255),
-            ideal_swell_size VARCHAR(50),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            state TEXT,
+            latitude REAL,
+            longitude REAL,
+            wave_direction TEXT CHECK(wave_direction IN ('left', 'right')),
+            bottom_type TEXT CHECK(bottom_type IN ('reef', 'sand')),
+            break_type TEXT CHECK(break_type IN ('point', 'beach')),
+            skill_level TEXT CHECK(skill_level IN ('beginner', 'intermediate', 'advanced')),
+            ideal_wind TEXT,
+            ideal_tide TEXT,
+            ideal_swell_size TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
@@ -167,7 +168,7 @@ def init_database():
 
 def save_to_database(cursor, conn, data: dict):
     """
-    Save surf break data to PostgreSQL database.
+    Save surf break data to SQLite database.
     """
     cursor.execute(
         """
@@ -175,19 +176,20 @@ def save_to_database(cursor, conn, data: dict):
             name, description, state, latitude, longitude,
             wave_direction, bottom_type, break_type, skill_level,
             ideal_wind, ideal_tide, ideal_swell_size
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (name) DO UPDATE SET
-            description = EXCLUDED.description,
-            state = EXCLUDED.state,
-            latitude = EXCLUDED.latitude,
-            longitude = EXCLUDED.longitude,
-            wave_direction = EXCLUDED.wave_direction,
-            bottom_type = EXCLUDED.bottom_type,
-            break_type = EXCLUDED.break_type,
-            skill_level = EXCLUDED.skill_level,
-            ideal_wind = EXCLUDED.ideal_wind,
-            ideal_tide = EXCLUDED.ideal_tide,
-            ideal_swell_size = EXCLUDED.ideal_swell_size
+            description = excluded.description,
+            state = excluded.state,
+            latitude = excluded.latitude,
+            longitude = excluded.longitude,
+            wave_direction = excluded.wave_direction,
+            bottom_type = excluded.bottom_type,
+            break_type = excluded.break_type,
+            skill_level = excluded.skill_level,
+            ideal_wind = excluded.ideal_wind,
+            ideal_tide = excluded.ideal_tide,
+            ideal_swell_size = excluded.ideal_swell_size,
+            updated_at = CURRENT_TIMESTAMP
         """,
         (
             data.get("name"),

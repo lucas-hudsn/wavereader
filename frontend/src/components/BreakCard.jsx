@@ -1,35 +1,24 @@
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useFavorites } from '../context/FavoritesContext'
-
-function capitalize(str) {
-  if (!str) return str
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
+import { capitalize } from '../utils/formatters'
 
 export default function BreakCard({ breakData, animationDelay = 0 }) {
-  const navigate = useNavigate()
   const { isFavorite, toggleFavorite } = useFavorites()
   const favorite = isFavorite(breakData.name)
-
-  const handleClick = () => {
-    const stateSlug = encodeURIComponent(breakData.state)
-    const breakSlug = encodeURIComponent(breakData.name)
-    navigate(`/${stateSlug}/${breakSlug}`)
-  }
+  const stateSlug = encodeURIComponent(breakData.state)
+  const breakSlug = encodeURIComponent(breakData.name)
 
   const handleFavoriteClick = (e) => {
+    e.preventDefault()
     e.stopPropagation()
     toggleFavorite(breakData.name)
   }
 
   return (
-    <div
+    <Link
+      to={`/${stateSlug}/${breakSlug}`}
       className="break-card animate-fade-in"
-      style={{ animationDelay: `${animationDelay}ms` }}
-      onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      style={{ animationDelay: `${animationDelay}ms`, textDecoration: 'none', color: 'inherit' }}
     >
       <button
         className={`favorite-btn ${favorite ? 'active' : ''}`}
@@ -49,6 +38,6 @@ export default function BreakCard({ breakData, animationDelay = 0 }) {
           </span>
         )}
       </div>
-    </div>
+    </Link>
   )
 }

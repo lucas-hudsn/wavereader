@@ -21,9 +21,11 @@ export default function SearchBar({ value, onChange, placeholder = 'Search break
 
   return (
     <div className="search-container">
+      <label htmlFor="search-breaks" className="sr-only">Search surf breaks</label>
       <span className="search-icon">/</span>
       <input
         ref={inputRef}
+        id="search-breaks"
         type="text"
         className="search-input"
         placeholder={placeholder}

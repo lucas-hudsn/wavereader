@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -37,34 +37,37 @@ function getWindDirection(degrees) {
   return directions[index]
 }
 
+const CHART_HEIGHT = 120
+const PADDING = { top: 20, bottom: 20, left: 5, right: 5 }
+const INNER_HEIGHT = CHART_HEIGHT - PADDING.top - PADDING.bottom
+
 export default function WeatherChart({ hourlyData }) {
   const [tooltip, setTooltip] = useState({ visible: false, content: '', x: 0, y: 0 })
   const swellContainerRef = useRef(null)
   const windContainerRef = useRef(null)
 
-  if (!hourlyData) return null
+  const dailyData = useMemo(() => hourlyData ? processHourlyData(hourlyData) : [], [hourlyData])
+  const maxWaveHeight = useMemo(() => Math.max(...dailyData.map(d => d.waveHeight).filter(v => v != null), 1), [dailyData])
+  const maxWindSpeed = useMemo(() => Math.max(...dailyData.map(d => d.maxWindSpeed).filter(v => v != null), 1), [dailyData])
 
-  const dailyData = processHourlyData(hourlyData)
-  const maxWaveHeight = Math.max(...dailyData.map(d => d.waveHeight).filter(v => v != null), 1)
-  const maxWindSpeed = Math.max(...dailyData.map(d => d.maxWindSpeed).filter(v => v != null), 1)
+  const { points, linePath, areaPath } = useMemo(() => {
+    if (dailyData.length === 0) return { points: [], linePath: '', areaPath: '' }
+    const pts = dailyData.map((d, i) => {
+      const x = PADDING.left + (i / Math.max(dailyData.length - 1, 1)) * (100 - PADDING.left - PADDING.right)
+      const normalizedValue = d.waveHeight != null ? d.waveHeight / maxWaveHeight : 0
+      const y = PADDING.top + INNER_HEIGHT - (normalizedValue * INNER_HEIGHT)
+      return { x, y, value: d.waveHeight, time: d.time }
+    })
+    const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+    const area = `${line} L ${pts[pts.length - 1].x} ${CHART_HEIGHT - PADDING.bottom} L ${pts[0].x} ${CHART_HEIGHT - PADDING.bottom} Z`
+    return { points: pts, linePath: line, areaPath: area }
+  }, [dailyData, maxWaveHeight])
+
+  if (!hourlyData) return null
 
   const today = new Date().toDateString()
 
-  const height = 120
-  const padding = { top: 20, bottom: 20, left: 5, right: 5 }
-  const chartHeight = height - padding.top - padding.bottom
-
-  const points = dailyData.map((d, i) => {
-    const x = padding.left + (i / (dailyData.length - 1)) * (100 - padding.left - padding.right)
-    const normalizedValue = d.waveHeight != null ? d.waveHeight / maxWaveHeight : 0
-    const y = padding.top + chartHeight - (normalizedValue * chartHeight)
-    return { x, y, value: d.waveHeight, time: d.time }
-  })
-
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding.bottom} L ${points[0].x} ${height - padding.bottom} Z`
-
-  const handleSwellHover = (point, e) => {
+  const handleSwellHover = (point) => {
     if (!swellContainerRef.current) return
     const rect = swellContainerRef.current.getBoundingClientRect()
     const date = new Date(point.time)
@@ -79,7 +82,7 @@ export default function WeatherChart({ hourlyData }) {
     })
   }
 
-  const handleWindHover = (data, index, e) => {
+  const handleWindHover = (data, index) => {
     if (!windContainerRef.current) return
     const rect = windContainerRef.current.getBoundingClientRect()
     const barWidth = rect.width / dailyData.length
@@ -108,7 +111,7 @@ export default function WeatherChart({ hourlyData }) {
           <div className={`chart-tooltip ${tooltip.visible ? 'visible' : ''}`} style={{ left: tooltip.x, top: tooltip.y }}>
             {tooltip.content}
           </div>
-          <svg viewBox={`0 0 100 ${height}`} preserveAspectRatio="none">
+          <svg viewBox={`0 0 100 ${CHART_HEIGHT}`} preserveAspectRatio="none">
             <path className="swell-area" d={areaPath} />
             <path className="swell-line" d={linePath} />
             {points.map((p, i) => (
@@ -118,7 +121,7 @@ export default function WeatherChart({ hourlyData }) {
                 cx={p.x}
                 cy={p.y}
                 r="4"
-                onMouseEnter={(e) => handleSwellHover(p, e)}
+                onMouseEnter={() => handleSwellHover(p)}
                 onMouseLeave={hideTooltip}
               />
             ))}
@@ -139,7 +142,7 @@ export default function WeatherChart({ hourlyData }) {
               <div
                 key={i}
                 className="wind-bar"
-                onMouseEnter={(e) => handleWindHover(d, i, e)}
+                onMouseEnter={() => handleWindHover(d, i)}
                 onMouseLeave={hideTooltip}
               >
                 <div className="wind-arrow-container" style={{ height: `${heightPct}%` }}>

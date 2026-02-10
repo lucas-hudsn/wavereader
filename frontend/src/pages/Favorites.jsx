@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useFavorites } from '../context/FavoritesContext'
 import { fetchBreaks } from '../api'
 import BreakCard from '../components/BreakCard'
@@ -8,20 +8,26 @@ export default function Favorites() {
   const { favorites } = useFavorites()
   const [breaks, setBreaks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const loadBreaks = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const allBreaks = await fetchBreaks()
+      setBreaks(allBreaks.filter(b => favorites.includes(b.name)))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [favorites])
 
   useEffect(() => {
-    async function loadBreaks() {
-      try {
-        const allBreaks = await fetchBreaks()
-        setBreaks(allBreaks.filter(b => favorites.includes(b.name)))
-      } catch (err) {
-        console.error('Failed to load breaks:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
+    document.title = 'Favorites | wavereader'
     loadBreaks()
-  }, [favorites])
+    return () => { document.title = 'wavereader' }
+  }, [loadBreaks])
 
   if (loading) {
     return (
@@ -33,6 +39,22 @@ export default function Favorites() {
           {[...Array(3)].map((_, i) => (
             <BreakCardSkeleton key={i} />
           ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="animate-fade-in">
+        <div className="section-header">
+          <h2>Favorites</h2>
+        </div>
+        <div className="card error-card animate-fade-in">
+          <p>Failed to load favorites: {error}</p>
+          <button className="retry-btn" onClick={loadBreaks} style={{ marginTop: 12 }}>
+            Try Again
+          </button>
         </div>
       </div>
     )

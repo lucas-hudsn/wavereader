@@ -2,10 +2,11 @@
 Script to generate surf break data using Google Gemini API
 """
 
-import os
 import json
-from google import genai
+import os
+
 from dotenv import load_dotenv
+from google import genai
 
 load_dotenv()
 

@@ -1,4 +1,4 @@
-const API_BASE = '/api'
+import { API_BASE } from '../constants'
 
 export async function fetchStates() {
   const response = await fetch(`${API_BASE}/states`)

@@ -82,8 +82,8 @@ Pipfile.lock
 build/
 *.egg-info/
 
-# Frontend build (keep frontend/dist for deployment)
-!/frontend/dist/
+# Frontend build (built in CI/deploy, not tracked)
+frontend/dist/
 
 # Node modules (if using frontend build tools in future)
 node_modules/

@@ -1,17 +1,19 @@
 from pathlib import Path
-from fastapi import FastAPI, Request
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 
 from routes.states import router as states_router
 from routes.breaks import router as breaks_router
 
 BASE_DIR = Path(__file__).parent
+FRONTEND_DIR = BASE_DIR / "frontend" / "dist"
 
 app = FastAPI()
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 app.include_router(states_router)
 app.include_router(breaks_router)
@@ -22,13 +24,11 @@ async def health():
     return {"status": "ok"}
 
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    return templates.TemplateResponse("landing.html", {"request": request})
+# Serve React frontend static files
+if FRONTEND_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
 
-
-@app.get("/{state}/{break_name}", response_class=HTMLResponse)
-async def get_break_page(request: Request, state: str, break_name: str):
-    return templates.TemplateResponse(
-        "break.html", {"request": request, "state": state, "break_name": break_name}
-    )
+    @app.get("/{full_path:path}")
+    async def serve_react(full_path: str):
+        # Serve index.html for all non-API routes (SPA routing)
+        return FileResponse(str(FRONTEND_DIR / "index.html"))

@@ -14,7 +14,6 @@ venv/
 ENV/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -81,8 +80,10 @@ Pipfile.lock
 
 # Build artifacts
 build/
-dist/
 *.egg-info/
+
+# Frontend build (keep frontend/dist for deployment)
+!/frontend/dist/
 
 # Node modules (if using frontend build tools in future)
 node_modules/
@@ -113,6 +114,11 @@ _freeze/
 *_files/
 *.html
 !templates/*.html
+!frontend/*.html
+!frontend/dist/**/*.html
 
 # Git
 .git/
+
+# Data
+data/surf_breaks.csv

@@ -1,0 +1,2902 @@
+[
+  {
+    "name": "Bondi Beach",
+    "region": "NSW",
+    "short_description": "Famous urban beach break in Sydney, renowned for its consistent, beginner-friendly waves and iconic status as one of Australia\u2019s most accessible and crowded surf spots.",
+    "coordinates": {
+      "lat": -33.8917,
+      "lng": 151.2767
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 5,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "strong rips, crowded lineup, rocky ends, occasional jellyfish",
+      "other_notes": "Extremely popular with tourists and locals; lifeguards on duty year-round; excellent public transport and amenities; surf schools abound. Waves are often smaller and less powerful than reef breaks, making it ideal for learning. The northern end near Bondi Icebergs can have more consistent, slightly steeper waves."
+    }
+  },
+  {
+    "name": "Bronte Beach",
+    "region": "NSW",
+    "short_description": "Popular urban beach break in Sydney\u2019s eastern suburbs, known for its consistent waves, ocean pool, and vibrant local surf culture. Popular with beginners to intermediates, but can get crowded and hazardous in larger swells.",
+    "coordinates": {
+      "lat": -33.9075,
+      "lng": 151.2656
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand over rock",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Winter (June\u2013August) for most consistent swells, though summer (Dec\u2013Feb) also offers good conditions",
+      "hazards": "crowds, rips, rocks near the pool, strong currents at high tide",
+      "other_notes": "Located just east of Bondi, adjacent to the famous Bronte Ocean Pool; waves break over a sandy bottom with occasional rock outcrops. Best conditions occur with SE swells and light offshore W/NW winds. Winter months (especially July) offer the highest percentage of clean, surfable waves. Very popular on weekends and holidays."
+    }
+  },
+  {
+    "name": "Tamarama",
+    "region": "NSW",
+    "short_description": "Exposed reef break nestled between Bondi and Bronte, known for consistent left-hand waves during winter and spring, popular with intermediate to advanced surfers.",
+    "coordinates": {
+      "lat": -33.9017,
+      "lng": 151.2656
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW"
+    },
+    "ideal_tide": "all tides",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left",
+      "break_surface": "reef",
+      "bottom_type": "rocky reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "Winter to Spring (June\u2013November)",
+      "hazards": "strong rip current, sharp reef, rocks",
+      "other_notes": "Small, scenic beach with limited parking; easily accessible via short walk from Tamarama Road. Surf lifesaving services active. Water quality generally good. 3/2mm wetsuit recommended in cooler months. Crowds moderate to high during peak conditions."
+    }
+  },
+  {
+    "name": "Manly Beach",
+    "region": "NSW",
+    "short_description": "Popular, sheltered beach break on Sydney's Northern Beaches, known for consistent but moderate surf, ideal for beginners to intermediates, and a hub for surf lessons and local culture.",
+    "coordinates": {
+      "lat": -33.7997,
+      "lng": 151.2845
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to September (autumn/winter SE swells)",
+      "hazards": "shallow sandbars, rip currents, crowds",
+      "other_notes": "Highly accessible with lifeguards, surf schools, and amenities; surf quality varies with sand movement and is less affected by direct ocean swells; best on SE groundswells with SW winds. Not known for large waves, but reliable for learning and casual surfing."
+    }
+  },
+  {
+    "name": "North Narrabeen",
+    "region": "NSW",
+    "short_description": "Exposed beach and sandbar break on Sydney\u2019s Northern Beaches, renowned for its consistency and versatility across all tide stages, popular with surfers of all levels.",
+    "coordinates": {
+      "lat": -33.795,
+      "lng": 151.275
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 8,
+      "direction": "ENE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "beach/sandbar",
+      "break_direction": "left",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to September (autumn to winter)",
+      "hazards": "strong rips, crowded lineups",
+      "other_notes": "Highly consistent and accessible via North Narrabeen Beach Park with parking and amenities; often crowded due to reliability and proximity to Sydney; best waves occur with ENE groundswells and NW offshore winds."
+    }
+  },
+  {
+    "name": "Avalon Beach",
+    "region": "NSW",
+    "short_description": "Popular northern Sydney beach break with consistent waves, favored by locals and visitors alike, located on the Northern Beaches between Palm Beach and Cowan Creek.",
+    "coordinates": {
+      "lat": -33.7083,
+      "lng": 151.2833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach break",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand over rock",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September to May)",
+      "hazards": "shallow sandbars, rips, occasional shark sightings",
+      "other_notes": "Popular with surf schools due to its forgiving waves; excellent views and easy access via Avalon Parade; live surf cams available; best swell comes from E/SE swells with offshore W/SW winds; tide sensitivity is moderate \u2014 waves peel better on mid to high tide."
+    }
+  },
+  {
+    "name": "Palm Beach",
+    "region": "NSW",
+    "short_description": "Long, sandy beach break on the Northern Beaches of Sydney, popular for consistent waves and beginner-to-intermediate surfers, with multiple peaks along its 2km stretch.",
+    "coordinates": {
+      "lat": -33.7333,
+      "lng": 151.2833
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE to E"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW to W"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "lefts and rights (varies by section)",
+      "break_surface": "sandbar",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "September to March (summer/autumn SE swells)",
+      "hazards": "rips, sharks (rare), strong currents, crowded lineups",
+      "other_notes": "Part of Sydney's Northern Beaches, easily accessible with parking and amenities; popular with locals and tourists; best waves often found at the northern end near the headland. Water quality is generally good, but can degrade after heavy rain."
+    }
+  },
+  {
+    "name": "Cronulla - Voodoo",
+    "region": "NSW",
+    "short_description": "A heavy, powerful reef break located off Potters Point at Cronulla, known for its fast, barreling left-hand waves over rocky reef. Popular with experienced surfers but hazardous due to shallow reef, urchins, and strong rips.",
+    "coordinates": {
+      "lat": -34.0167,
+      "lng": 151.15
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "low to mid tide",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left",
+      "break_surface": "rocky reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "advanced to expert",
+      "best_season": "Autumn to Winter (March\u2013August)",
+      "hazards": "shallow reef, urchins, strong rips, potential sewage runoff, rocky bottom",
+      "other_notes": "Access is via a 300\u2013500m paddle from Potters Point car park or a 4WD track from Kurnell. Not for beginners. Known for hollow, fast barrels when conditions align. Often overlooked due to pollution risks but can deliver world-class waves. Consistency is moderate (~50 days/year of surfable conditions)."
+    }
+  },
+  {
+    "name": "Shark Island",
+    "region": "NSW",
+    "short_description": "A notorious, exposed reef break located at the entrance to Botany Bay, near Cronulla in southern Sydney. Known for powerful, fast, and hollow waves, it's a favorite among experienced surfers despite its hazardous conditions and strong currents.",
+    "coordinates": {
+      "lat": -34.0167,
+      "lng": 151.15
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW to W"
+    },
+    "ideal_tide": "low to mid-tide",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left and right (depending on swell and tide)",
+      "break_surface": "reef",
+      "bottom_type": "rock and coral",
+      "skill_level": "expert",
+      "best_season": "Autumn to Winter (March\u2013August)",
+      "hazards": "strong rips, shallow reef, shark activity, crowded lineups",
+      "other_notes": "Famous for its heavy, barreling waves and remote, exposed location. Often referred to as one of Sydney's most challenging and dangerous breaks. Despite its name, shark incidents are rare but the area is monitored under NSW's shark safety program. Access is via a steep walk from Cronulla or Sutherland. Not recommended for beginners."
+    }
+  },
+  {
+    "name": "Maroubra Beach",
+    "region": "NSW",
+    "short_description": "Popular, consistent beach break in Sydney\u2019s eastern suburbs, known for long left-hand peeling waves and strong rips; a favorite among intermediate to advanced surfers.",
+    "coordinates": {
+      "lat": -33.9503,
+      "lng": 151.2497
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SSE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left",
+      "break_surface": "sand",
+      "bottom_type": "sand over reef patches",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "strong rips, reef patches, rocks, crowded conditions",
+      "other_notes": "Highly accessible via public transport and parking; lifeguards on duty during peak times; popular for swimming and sunbathing \u2014 surfers should respect other beach users. Consistent swell exposure from the south and southeast, with occasional ENE swells. Onshore winds in the afternoon can degrade quality."
+    }
+  },
+  {
+    "name": "Long Reef",
+    "region": "NSW",
+    "short_description": "A consistent, exposed point reef break on the Northern Beaches of Sydney, known for its long right-hand waves and reliable swell exposure, popular with locals and intermediate surfers.",
+    "coordinates": {
+      "lat": -33.795,
+      "lng": 151.285
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NNE to E"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef",
+      "skill_level": "intermediate",
+      "best_season": "Autumn to Winter (March\u2013August)",
+      "hazards": "reef, rocks, strong rips, crowded",
+      "other_notes": "Located in Collaroy, just north of Sydney; accessible via a short walk from Long Reef Golf Club; often has long, peeling rights when swell aligns; can be affected by local wind and tide; popular with surf schools due to its manageable size and consistency."
+    }
+  },
+  {
+    "name": "Dee Why",
+    "region": "NSW",
+    "short_description": "Popular beach and surf break in Sydney's Northern Beaches, known for its long sandy shoreline, family-friendly atmosphere, and a consistent right-hand point break at Dee Why Point.",
+    "coordinates": {
+      "lat": -33.7667,
+      "lng": 151.2833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 7,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point/reef and sandbar",
+      "break_direction": "right",
+      "break_surface": "sandbar and rocky point",
+      "bottom_type": "sand over rock",
+      "skill_level": "intermediate",
+      "best_season": "Spring to Autumn (September\u2013May)",
+      "hazards": "riptides, rocks at point, crowds",
+      "other_notes": "Dee Why Point is the main surf break, offering long right-hand rides over a rocky point with sandbar sections. The beach is heavily used by families and swimmers; the southern rockpool is a popular non-surfing attraction. Surfing is most consistent during E/SE swells with light offshore winds. Historically hosted events like the Coca-Cola Surfabout."
+    }
+  },
+  {
+    "name": "Curl Curl",
+    "region": "NSW",
+    "short_description": "Popular beach break on Sydney's Northern Beaches, known for consistent waves and family-friendly atmosphere, often surfed by beginners to intermediates.",
+    "coordinates": {
+      "lat": -33.8256,
+      "lng": 151.2783
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Winter (June\u2013August), especially July",
+      "hazards": "riptides, crowded lineups, occasional shark sightings",
+      "other_notes": "Located between Dee Why and Narrabeen; excellent for longboarders and learners; good parking and facilities; water quality generally good but check NSW Health advisories after rain."
+    }
+  },
+  {
+    "name": "Freshwater Beach",
+    "region": "NSW",
+    "short_description": "Popular beginner-to-intermediate surf break on Sydney's Northern Beaches, known for its consistent, forgiving waves and scenic location near the northern end of Bondi Beach.",
+    "coordinates": {
+      "lat": -33.8472,
+      "lng": 151.2456
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "N/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach/point",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand over rock",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September\u2013May)",
+      "hazards": "shallow sandbars, rip currents, crowded conditions",
+      "other_notes": "Located at the northern end of the Northern Beaches, adjacent to Harbord Beach; popular with locals and tourists; excellent for learning; patrolled; good facilities including parking, showers, and cafes. Often has smaller, user-friendly waves compared to nearby breaks like Bondi or Bronte."
+    }
+  },
+  {
+    "name": "Bilgola Beach",
+    "region": "NSW",
+    "short_description": "Popular beach break on Sydney's Northern Beaches, known for consistent summer swells and family-friendly vibe, often surfed by beginners to intermediates.",
+    "coordinates": {
+      "lat": -33.7556,
+      "lng": 151.2756
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "December to March (summer)",
+      "hazards": "shallow sandbars, rips, crowds during peak season",
+      "other_notes": "Popular with locals and tourists; good for longboarding and learning; parking available but limited; water quality generally good; often crowded on weekends and holidays."
+    }
+  },
+  {
+    "name": "Whale Beach",
+    "region": "NSW",
+    "short_description": "A popular, consistent beach break on Sydney\u2019s Northern Beaches, known for fun, peeling right-handers and occasional lefts, favored by locals and visitors alike for its accessibility and reliable surf.",
+    "coordinates": {
+      "lat": -33.7583,
+      "lng": 151.2833
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/WNW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "primarily right, sometimes left",
+      "break_surface": "sand",
+      "bottom_type": "sandbar",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September\u2013May)",
+      "hazards": "shallow sandbars, rips, occasional crowds",
+      "other_notes": "Often produces clean, rideable waves with SE swells and offshore W/WNW winds; best at mid-to-high tide when sandbars form consistent peaks. Popular with families and learners due to gentle shorebreak, but can get crowded on weekends. Water quality generally good. Parking available on Whale Beach Road."
+    }
+  },
+  {
+    "name": "Merewether Beach",
+    "region": "NSW",
+    "short_description": "Iconic National Surfing Reserve in Newcastle, NSW, known for its long, consistent sand-bottomed right-hand point break and strong local surf culture; home to multiple Australian champions.",
+    "coordinates": {
+      "lat": -32.9167,
+      "lng": 151.6333
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "SE"
+    },
+    "ideal_tide": "mid to high incoming tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "intermediate",
+      "best_season": "Autumn to Winter (March\u2013August) for consistent S swells",
+      "hazards": "crowds, rips, occasional reef patches near the point",
+      "other_notes": "One of Australia's 10 National Surfing Reserves; popular with locals and tourists; excellent beach access, ocean baths nearby, and live surf cams available. Parking can be limited on weekends. Water temperature ranges from 18\u00b0C (64\u00b0F) in summer to 14\u00b0C (57\u00b0F) in winter \u2014 3/2mm wetsuit recommended year-round."
+    }
+  },
+  {
+    "name": "Redhead Beach",
+    "region": "NSW",
+    "short_description": "A popular, consistent beach break in Lake Macquarie, known for its reliable waves and family-friendly atmosphere, popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -33.0167,
+      "lng": 151.6333
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September to May)",
+      "hazards": "rip currents, occasional shark sightings (rare), crowded on weekends",
+      "other_notes": "Located in Lake Macquarie, near Newcastle; popular with surf schools and families; good parking and amenities; often has clean, manageable waves when offshore winds blow from the west; part of a vibrant local surf community."
+    }
+  },
+  {
+    "name": "Nobbys Beach",
+    "region": "NSW",
+    "short_description": "Popular urban beach and surf break at the northern end of Newcastle, NSW, known for its consistent reef break off Nobbys Head, popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -32.9333,
+      "lng": 151.7833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N to NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left and right",
+      "break_surface": "reef",
+      "bottom_type": "rock/reef",
+      "skill_level": "intermediate",
+      "best_season": "March to October (autumn to spring)",
+      "hazards": "reef, strong rips, crowded conditions",
+      "other_notes": "Located at the mouth of the Hunter River, adjacent to Nobbys Head Lighthouse; often affected by river outflow; popular for both surfing and snorkeling; frequently surfed by locals and featured in regional surf competitions. Surf conditions vary significantly with tide and swell direction, with best waves on S/SE swells at mid-high tide."
+    }
+  },
+  {
+    "name": "Bar Beach",
+    "region": "NSW",
+    "short_description": "A popular beach break located in Narooma, on the South Coast of New South Wales, known for consistent waves suitable for beginners to intermediate surfers, with a sandy bottom and a relaxed vibe.",
+    "coordinates": {
+      "lat": -35.7083,
+      "lng": 150.1456
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September to May)",
+      "hazards": "shallow sandbars, occasional rips",
+      "other_notes": "Located just south of Narooma\u2019s town center, Bar Beach is sheltered by a rocky headland to the north, offering protection from strong winds. Popular with locals and tourists alike; often less crowded than nearby spots like Montague Island breaks. Surf cams and daily forecasts available via Surfline and WillyWeather."
+    }
+  },
+  {
+    "name": "Crescent Head",
+    "region": "NSW",
+    "short_description": "Famous long right-hand point break with consistent, rideable waves, popular for both longboarding and shortboarding, located just north of Port Macquarie.",
+    "coordinates": {
+      "lat": -30.945,
+      "lng": 152.995
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/SW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "rocky headland, strong rips, shallow reef",
+      "other_notes": "One of Australia's most consistent point breaks; accessible via a short walk from town; popular with longboarders; best waves occur when SE groundswells wrap into the headland with offshore W/SW winds; parking available but can be busy in peak season."
+    }
+  },
+  {
+    "name": "South West Rocks",
+    "region": "NSW",
+    "short_description": "Popular surf spot on the Mid North Coast of New South Wales, known for consistent beach and reef breaks, family-friendly waves, and proximity to Trial Bay and the iconic 'Boomerang' reef break.",
+    "coordinates": {
+      "lat": -30.5583,
+      "lng": 152.9833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach/reef",
+      "break_direction": "left and right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "beginner to intermediate",
+      "best_season": "September to March (summer/autumn swells)",
+      "hazards": "reef, rips, occasional shark presence",
+      "other_notes": "Main breaks include 'The Boomerang' (reef break) and 'Cathedral Beach' (beach break); popular with locals and tourists; good parking and amenities nearby; water quality generally good; less crowded than northern NSW hotspots."
+    }
+  },
+  {
+    "name": "Boomerang Beach",
+    "region": "NSW",
+    "short_description": "A popular, consistent beach break on the Mid-North Coast of New South Wales, known for its long, gentle right-hand waves ideal for beginners and intermediates, with more challenging sections for advanced surfers during larger swells.",
+    "coordinates": {
+      "lat": -31.4583,
+      "lng": 152.9417
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "right (primary), left (secondary)",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to advanced",
+      "best_season": "Summer (December\u2013February) for consistent, smaller waves; Autumn/Winter for larger swells",
+      "hazards": "rip currents, shifting sandbars, occasional shark presence",
+      "other_notes": "Often crowded, especially on weekends and holidays; the northern end is more beginner-friendly, while the southern end can hold better waves during larger swells. Known for its scenic backdrop and proximity to the Myall Lakes National Park."
+    }
+  },
+  {
+    "name": "Diamond Head",
+    "region": "NSW",
+    "short_description": "A right-hand point break located within Crowdy Bay National Park on the Mid North Coast of New South Wales, near Laurieton and about 40 km south of Port Macquarie. Known for consistent waves suitable for all skill levels, with a mix of sand and rock bottom.",
+    "coordinates": {
+      "lat": -31.7094,
+      "lng": 152.7883
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "sand/rock",
+      "bottom_type": "mixed sand and rock",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September to May)",
+      "hazards": "rocky sections, occasional strong rips",
+      "other_notes": "Located within Crowdy Bay National Park; accessible via a short walk from the car park. Often less crowded than nearby breaks. Works well on a range of tides but performs most consistently at mid to high tide. Popular for longboarders and beginners due to its forgiving, peeling waves."
+    }
+  },
+  {
+    "name": "Seal Rocks",
+    "region": "NSW",
+    "short_description": "A sheltered point break near Port Macquarie, known for consistent, manageable waves ideal for intermediate surfers, with reliable swell and good wind shelter.",
+    "coordinates": {
+      "lat": -31.4333,
+      "lng": 152.9167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 7,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW"
+    },
+    "ideal_tide": "mid tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "left and right",
+      "break_surface": "rock",
+      "bottom_type": "rock and reef",
+      "skill_level": "intermediate",
+      "best_season": "Autumn to Spring (March\u2013November)",
+      "hazards": "reef, rocks, occasional strong rips",
+      "other_notes": "Sheltered from NE winds, making it a reliable spot when other breaks are blown out; good for longboarders and shortboarders; parking available at the headland; nearby surf cams and tide stations provide real-time data; not as crowded as major breaks but can get busy on good days."
+    }
+  },
+  {
+    "name": "Sawtell",
+    "region": "NSW",
+    "short_description": "A reliable beach break on the Mid North Coast of New South Wales, known for consistent waves and a mix of left and right-handers, popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -30.7167,
+      "lng": 152.9833
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Autumn and Winter (March to August)",
+      "hazards": "rip currents, shifting sandbars",
+      "other_notes": "Sawtell is part of a chain of beach breaks along the Mid North Coast, with nearby breaks including The Island and Coffs Harbour. It\u2019s known for its consistent, user-friendly waves, especially during SE swells with W/SW offshore winds. The break can hold up to overhead conditions and is less crowded than nearby Coffs Harbour. Tide sensitivity is moderate \u2014 best at mid to high tide when the sandbars form more defined peaks."
+    }
+  },
+  {
+    "name": "Angourie Point",
+    "region": "NSW",
+    "short_description": "A world-class, exposed right-hand point break on the Mid North Coast of New South Wales, renowned for its long, peeling waves and consistent swell, attracting surfers from around the globe.",
+    "coordinates": {
+      "lat": -29.4583,
+      "lng": 153.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 12,
+      "direction": "E-NE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to expert",
+      "best_season": "Spring to Autumn (September to May)",
+      "hazards": "rocks, strong rip currents, sharks, localism",
+      "other_notes": "Famous for its long, hollow right-handers that can ride for over 300 meters; often crowded during good swell events; best conditions occur with E-NE groundswells and light SW offshore winds; tidal window is critical\u2014waves perform best on mid to high tide; part of the Angourie Surfing Reserve."
+    }
+  },
+  {
+    "name": "Yamba - Pippi Beach",
+    "region": "NSW",
+    "short_description": "A popular, family-friendly beach break in Yamba, known for consistent, manageable waves ideal for beginners and intermediate surfers, with scenic coastal views and nearby wildlife.",
+    "coordinates": {
+      "lat": -28.8583,
+      "lng": 153.5333
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Winter (June\u2013August), with July being most consistent",
+      "hazards": "rip currents, occasional shark sightings (rare), rocky sections at ends",
+      "other_notes": "Popular for surf lessons and longboarders; calm waters make it great for swimming too. Part of the Yamba coastal strip with good facilities, parking, and access via a short walk from the car park. Nearby breaks include Yamba Main Beach and Iluka Beach."
+    }
+  },
+  {
+    "name": "Ballina - Lighthouse Beach",
+    "region": "NSW",
+    "short_description": "A popular, consistent beach break at the northern end of Ballina, near the Ballina Light (Lighthouse), known for its long right-hand waves and family-friendly vibe.",
+    "coordinates": {
+      "lat": -28.8856,
+      "lng": 153.5278
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 7,
+      "direction": "E-SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W-NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to May and September to November",
+      "hazards": "rip currents, shifting sandbars, occasional shark sightings",
+      "other_notes": "Popular with locals and tourists; often less crowded than nearby Lennox Head; great for longboarders and learners; adjacent to Ballina CBD and the iconic Ballina Lighthouse; tidal and swell-dependent \u2014 best on E-SE swells with offshore winds."
+    }
+  },
+  {
+    "name": "Lennox Head",
+    "region": "NSW",
+    "short_description": "World-class right-hand point break on the NSW north coast, renowned for long, peeling waves and consistent swells; often considered a quieter alternative to nearby Byron Bay.",
+    "coordinates": {
+      "lat": -28.675,
+      "lng": 153.6167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 10,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "reef, strong rip currents, crowded during peak swells",
+      "other_notes": "Famous for long, rideable walls on clean SW offshore days; popular with locals and visitors alike; excellent water quality; parking available at the headland and beach access points; often less crowded than Byron Bay."
+    }
+  },
+  {
+    "name": "Byron Bay - The Pass",
+    "region": "NSW",
+    "short_description": "Famous right-hand point break at the easternmost tip of Australia, known for long, fast, and powerful waves ideal for experienced surfers; a consistent and iconic Australian surf spot.",
+    "coordinates": {
+      "lat": -28.645,
+      "lng": 153.615
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 6,
+      "direction": "NE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "NW/W"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef and rock ledge",
+      "skill_level": "intermediate to expert",
+      "best_season": "March to May (autumn)",
+      "hazards": "shallow water, rocks, strong rip currents near the channel",
+      "other_notes": "Easy access via short walk from The Avenue car park; popular and often crowded, especially on good days; best morning sessions with offshore winds; water quality generally good, but avoid after heavy rain."
+    }
+  },
+  {
+    "name": "Wategos Beach",
+    "region": "NSW",
+    "short_description": "Beautiful, sheltered beach break on the southern end of Byron Bay, known for consistent, user-friendly waves ideal for beginners and intermediates, with a scenic backdrop and proximity to town.",
+    "coordinates": {
+      "lat": -28.5425,
+      "lng": 153.6158
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "October to April (summer/autumn SE swells)",
+      "hazards": "shallow sandbars, occasional rips, high foot traffic",
+      "other_notes": "Popular with locals and tourists; often crowded on weekends and holidays; best conditions after a few days of consistent swell; easily accessible via a short walk from Byron Bay town center."
+    }
+  },
+  {
+    "name": "Broken Head",
+    "region": "NSW",
+    "short_description": "A consistent, reef-based right-hand point break on the Far North Coast of New South Wales, known for its long, peeling waves and scenic coastal setting near Byron Bay.",
+    "coordinates": {
+      "lat": -28.6583,
+      "lng": 153.6167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE to E"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "NNE to E"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to October (southeast swells)",
+      "hazards": "reef, strong currents, occasional rips",
+      "other_notes": "Famous for long, glassy right-handers that can peel for over 300 meters; popular with locals and visitors alike; less crowded than nearby Byron Bay but still busy on good days; best accessed via a short walk from the car park off Broken Head Road."
+    }
+  },
+  {
+    "name": "Kingscliff",
+    "region": "NSW",
+    "short_description": "Popular beach break located on the NSW North Coast, known for consistent, user-friendly waves ideal for beginners to intermediates, with a long sandy bottom and multiple peaks along the beach.",
+    "coordinates": {
+      "lat": -28.1667,
+      "lng": 153.5667
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E to NE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW to W"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to October (late autumn through spring)",
+      "hazards": "rip currents, occasional shark sightings (rare), crowded during holidays",
+      "other_notes": "Kingscliff Beach is long and often has multiple peaks, making it easy to find space. Popular with locals and tourists alike; good parking and amenities nearby. Best swell comes from easterly to northeasterly swells, often generated by Tasman Sea systems. Summer (Dec-Feb) can be smaller and more crowded, while autumn and spring offer the most consistent conditions. Surfline and LazySurfer report reliable daily forecasts with live cams available."
+    }
+  },
+  {
+    "name": "Cabarita Beach - Norries Headland",
+    "region": "NSW",
+    "short_description": "A consistent right-hand point break at Norries Headland, Cabarita, popular with local surfers and visitors on the Northern Rivers coast. Known for long, peeling waves and a relaxed vibe compared to busier breaks nearby.",
+    "coordinates": {
+      "lat": -28.5833,
+      "lng": 153.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/SW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to September (autumn to winter)",
+      "hazards": "rips, rocks, occasional sharks",
+      "other_notes": "Crowded on good days, especially weekends; parking available near Norries Headland; water quality generally good; often less crowded than nearby Lennox Head or Snapper Rocks. Best waves occur with SE groundswells and light offshore W/SW winds."
+    }
+  },
+  {
+    "name": "Snapper Rocks",
+    "region": "QLD",
+    "short_description": "World-famous right-hand point break at the southern end of the Gold Coast, renowned as the starting point of the legendary Superbank \u2014 a 2km+ wave formed by the convergence of sandbanks and reef. Hosts the annual Quiksilver Pro and Roxy Pro.",
+    "coordinates": {
+      "lat": -28.0083,
+      "lng": 153.5475
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "sand point",
+      "break_direction": "right",
+      "break_surface": "sand over reef",
+      "bottom_type": "sand/reef transition",
+      "skill_level": "advanced",
+      "best_season": "February to April (summer/early autumn)",
+      "hazards": "shallow reef, strong rip currents, crowded lineups",
+      "other_notes": "The Superbank forms when optimal sandbank conditions align with SE swells, creating one of the longest rides in the world. Peak crowds during contest season (usually April). Best accessed via Snapper Rocks Surf Club or Greenmount Beach."
+    }
+  },
+  {
+    "name": "Rainbow Bay",
+    "region": "QLD",
+    "short_description": "Popular surf beach on the Gold Coast, known for consistent, user-friendly waves ideal for beginners and intermediates, with a long, sandy bottom and gentle peelers.",
+    "coordinates": {
+      "lat": -28.0167,
+      "lng": 153.5167
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach break",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Summer (December\u2013February), especially March",
+      "hazards": "shallow sandbars, occasional rips, crowds during holidays",
+      "other_notes": "Part of the Gold Coast\u2019s famous surf strip, adjacent to Coolangatta; often less crowded than nearby Snapper Rocks; waves are forgiving and long-peeling, making it ideal for learning and longboarding."
+    }
+  },
+  {
+    "name": "Greenmount",
+    "region": "QLD",
+    "short_description": "A consistent right-hand point break wrapping around the Greenmount headland on the southern Gold Coast, popular among locals and known for its reliable waves and scenic setting near Coolangatta.",
+    "coordinates": {
+      "lat": -28.1456,
+      "lng": 153.5453
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE, S, E"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef and rock ledge",
+      "skill_level": "intermediate to advanced",
+      "best_season": "February to April (summer/early autumn swells)",
+      "hazards": "rocks near headland, strong rips, crowded conditions",
+      "other_notes": "Highly consistent break, part of the Gold Coast's famous surf corridor including Coolangatta and Rainbow Bay; easily accessible via Greenmount Beach with parking and amenities; can get very busy during peak swell events."
+    }
+  },
+  {
+    "name": "Kirra",
+    "region": "QLD",
+    "short_description": "A renowned point/groyne break on the Gold Coast, known for long, peeling right-hand waves and consistent swell exposure, especially in autumn and winter.",
+    "coordinates": {
+      "lat": -28.0083,
+      "lng": 153.5417
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "S"
+    },
+    "ideal_tide": "all tides",
+    "additional_details": {
+      "break_type": "point/groyne",
+      "break_direction": "right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "local currents, rip zones",
+      "other_notes": "Famous for long, barreling right-handers; historically one of Australia\u2019s most iconic waves; access via Kirra Point with parking and amenities nearby; less affected by tide than most Gold Coast breaks."
+    }
+  },
+  {
+    "name": "Duranbah",
+    "region": "QLD",
+    "short_description": "A consistent river mouth break on the Gold Coast, known for long, rideable left and right-hand waves, popular with locals and visitors alike, especially during south-southeast swells.",
+    "coordinates": {
+      "lat": -28.075,
+      "lng": 153.555
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SSE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "WSW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "river mouth",
+      "break_direction": "both left and right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "intermediate",
+      "best_season": "autumn (March\u2013May)",
+      "hazards": "rip currents, shifting sandbars, occasional shark activity",
+      "other_notes": "Famous for long, peeling waves and consistent swell; often less crowded than nearby Snapper Rocks; best when south-southeast groundswells combine with light WSW winds; tidal influence is moderate but surfable at most stages."
+    }
+  },
+  {
+    "name": "Currumbin Alley",
+    "region": "QLD",
+    "short_description": "A beginner-friendly point break on the Gold Coast, known for consistent, manageable waves and being one of the most popular learn-to-surf locations in Australia.",
+    "coordinates": {
+      "lat": -28.0025,
+      "lng": 153.4208
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 5,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "beginner to intermediate",
+      "best_season": "year-round, with best conditions in spring and summer (Sept\u2013Feb)",
+      "hazards": "shallow reef sections, occasional crowds",
+      "other_notes": "Home to multiple surf schools; waves break in three distinct sections along the point; very accessible with parking, showers, and lifeguards. Popular with learners due to gentle, forgiving waves and low power compared to nearby breaks like Burleigh or Snapper."
+    }
+  },
+  {
+    "name": "Burleigh Heads",
+    "region": "QLD",
+    "short_description": "Famous left-hand reef break on the Gold Coast, known for powerful, barreling waves and consistent performance during easterly swells; a favorite among experienced surfers.",
+    "coordinates": {
+      "lat": -28.0667,
+      "lng": 153.4333
+    },
+    "ideal_swell": {
+      "size_ft_min": 4,
+      "size_ft_max": 8,
+      "direction": "E"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "S"
+    },
+    "ideal_tide": "high to mid-outgoing",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "intermediate to expert",
+      "best_season": "November to April (summer/easterly swell season)",
+      "hazards": "shallow reef, strong rips, crowded lineups",
+      "other_notes": "Highly consistent and powerful wave, especially on high outgoing tide; popular with locals and tourists, leading to crowded conditions during peak swells; lifeguard patrols and easy beach access via Burleigh Heads Park."
+    }
+  },
+  {
+    "name": "Coolangatta Beach",
+    "region": "QLD",
+    "short_description": "A popular, consistent beach break on the southern Gold Coast, known for its long, forgiving waves ideal for beginners and intermediates, and its proximity to the NSW border at Point Danger.",
+    "coordinates": {
+      "lat": -28.1772,
+      "lng": 153.5456
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Year-round, with best conditions in autumn and winter (April\u2013September) when SE swells are most consistent",
+      "hazards": "Rip currents, occasional shark sightings, crowded during holidays",
+      "other_notes": "Part of the Gold Coast surf scene, adjacent to Rainbow Bay and Snapper Rocks; popular with tourists and locals alike; often less crowded than northern Gold Coast breaks; water temperature ranges from 21\u00b0C in winter to 27\u00b0C in summer."
+    }
+  },
+  {
+    "name": "Mooloolaba",
+    "region": "QLD",
+    "short_description": "Popular beach break on the Sunshine Coast, known for consistent, user-friendly waves ideal for beginners and intermediates, with a lively coastal vibe and easy access.",
+    "coordinates": {
+      "lat": -26.6167,
+      "lng": 153.1167
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sandbar",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "June to August (austral winter)",
+      "hazards": "rip currents, occasional shark sightings (rare), crowded during holidays",
+      "other_notes": "Easy access via Mooloolaba Esplanade with ample parking; popular with lessons and families; waves are generally forgiving but can get punchy on larger E/SE swells. Best conditions often occur after offshore NW winds following an E/SE swell. Nearby breaks like The Spit and Caloundra offer more advanced options."
+    }
+  },
+  {
+    "name": "Alexandra Headland",
+    "region": "QLD",
+    "short_description": "Exposed beach and point break on Queensland's Sunshine Coast, known for consistent, rideable waves and easy access, popular with locals and tourists alike.",
+    "coordinates": {
+      "lat": -26.7333,
+      "lng": 153.0833
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach/point",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand over reef patches",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to August (autumn to early winter)",
+      "hazards": "strong rips, rocks, jellyfish, occasional shark activity",
+      "other_notes": "Highly accessible with ample parking and lifeguard patrols; often crowded due to reliability and proximity to Noosa and Maroochydore. Best conditions occur with SE groundswells and SW offshore winds."
+    }
+  },
+  {
+    "name": "Caloundra - Kings Beach",
+    "region": "QLD",
+    "short_description": "Popular urban beach break in Caloundra on the Sunshine Coast, known for consistent, beginner-friendly waves and a relaxed vibe, often surfed during mid to high tides.",
+    "coordinates": {
+      "lat": -26.8333,
+      "lng": 153.1167
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 5,
+      "direction": "E/SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "October to April (summer months with SE swells and onshore winds)",
+      "hazards": "shallow sandbars, rip currents, occasional jellyfish",
+      "other_notes": "Part of the Caloundra surf scene with easy beach access, patrolled by lifeguards, and popular with locals and tourists. Waves are generally mellow but can get punchy during larger SE swells. Often has good longboard conditions."
+    }
+  },
+  {
+    "name": "Noosa - First Point",
+    "region": "QLD",
+    "short_description": "Renowned right-hand point break on the Sunshine Coast, known for long, peeling waves ideal for longboarding and high-performance surfing, often considered one of Australia\u2019s most consistent and beautiful breaks.",
+    "coordinates": {
+      "lat": -26.295,
+      "lng": 153.105
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "April to June (autumn)",
+      "hazards": "reef patches, crowds during peak season",
+      "other_notes": "Famous for long, glassy rides and is a favorite among longboarders; often has clean conditions due to offshore easterly winds; very popular with locals and tourists, so can get crowded on good days. Part of the Noosa Heads surf zone, with First Point being the most consistent and iconic section."
+    }
+  },
+  {
+    "name": "Noosa - Tea Tree Bay",
+    "region": "QLD",
+    "short_description": "Exposed point break near Noosa Heads, known for reliable, user-friendly waves popular with locals and tourists; part of the Noosa Surfing Reserve.",
+    "coordinates": {
+      "lat": -26.295,
+      "lng": 153.095
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 5,
+      "direction": "ENE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "SE"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "left and right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef and sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "October to March (summer ENE swells)",
+      "hazards": "rocks, sea urchins, sharks, jellyfish (especially in warmer months)",
+      "other_notes": "Highly accessible via the Noosa Heads boardwalk or nearby parking; often crowded due to consistency and proximity to town; part of the Noosa Surfing Reserve with protected status. Secondary swells from NE can also produce good conditions. Regularly featured on Surfline and Surf-Forecast."
+    }
+  },
+  {
+    "name": "Sunshine Beach",
+    "region": "QLD",
+    "short_description": "Exposed beach break with consistent, user-friendly waves, popular among intermediate surfers and located near the Sunshine Coast.",
+    "coordinates": {
+      "lat": -26.6583,
+      "lng": 153.0756
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 8,
+      "direction": "E"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W"
+    },
+    "ideal_tide": "any tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "both left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "October to April (summer months with E swells)",
+      "hazards": "rips, strong currents, occasional shark activity",
+      "other_notes": "Consistent year-round surf with good wave quality on E swells; can get crowded on peak days; easy beach access with amenities nearby including cafes, parking, and lifeguards."
+    }
+  },
+  {
+    "name": "Point Lookout",
+    "region": "QLD",
+    "short_description": "Popular surf break on North Stradbroke Island, known for consistent right-hand point breaks and reef sections, favored by intermediate to advanced surfers. Offers scenic coastal views and is accessible via a short drive from the ferry terminal.",
+    "coordinates": {
+      "lat": -27.575,
+      "lng": 153.433
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/sand",
+      "skill_level": "intermediate to advanced",
+      "best_season": "January to March (summer/autumn SE swells)",
+      "hazards": "reef, strong rips, marine life (jellyfish in summer)",
+      "other_notes": "One of Queensland\u2019s most consistent breaks; best conditions occur during SE swells with light easterly winds. Popular with locals and visitors; parking available but can fill up on weekends. Water quality generally good. Nearby breaks include The Gutter and Cylinder Beach."
+    }
+  },
+  {
+    "name": "Bells Beach",
+    "region": "VIC",
+    "short_description": "Iconic right-hand point/reef break near Torquay, Victoria, famous as the home of the world's longest-running professional surf contest, the Rip Curl Pro.",
+    "coordinates": {
+      "lat": -38.3697,
+      "lng": 144.2814
+    },
+    "ideal_swell": {
+      "size_ft_min": 4,
+      "size_ft_max": 12,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "limestone reef",
+      "skill_level": "intermediate to expert",
+      "best_season": "April to October (autumn and winter)",
+      "hazards": "reef, strong currents, rocks, crowded conditions during contests",
+      "other_notes": "Hosts the annual Rip Curl Pro, typically held around Easter, drawing global surfers and massive crowds. Best waves come from long-period Southern Ocean swells refracting around the Otway Ranges. The Bowl and Winkipop are nearby sections with similar conditions. Public access via car park and cliffside paths; water quality generally good."
+    }
+  },
+  {
+    "name": "Winkipop",
+    "region": "VIC",
+    "short_description": "Powerful, hollow right-hand reef break located immediately next to Bells Beach on the Great Ocean Road, known for its raw, uncrowded waves and advanced-level conditions.",
+    "coordinates": {
+      "lat": -38.3685,
+      "lng": 144.2802
+    },
+    "ideal_swell": {
+      "size_ft_min": 6,
+      "size_ft_max": 12,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "advanced",
+      "best_season": "March to August (autumn/winter SW swells)",
+      "hazards": "sharp reef, strong currents, rocks",
+      "other_notes": "Located within Australia's first Surfing Recreation Reserve; accessed via the same parking area as Bells Beach; often less crowded than Bells but significantly more dangerous; best when swell is 6ft+ and winds are light NW; highly regarded by locals for its intensity and quality."
+    }
+  },
+  {
+    "name": "Torquay Point",
+    "region": "VIC",
+    "short_description": "Exposed reef and point break near Torquay, Victoria, known for consistent year-round surf and both left and right-hand rides.",
+    "coordinates": {
+      "lat": -38.375,
+      "lng": 144.275
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "reef/point",
+      "break_direction": "both left and right",
+      "break_surface": "reef",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "reef exposure, strong currents",
+      "other_notes": "Highly reliable break with consistent surf year-round; popular due to easy access and parking nearby; can be crowded; water quality varies\u2014check local reports before entering."
+    }
+  },
+  {
+    "name": "Jan Juc",
+    "region": "VIC",
+    "short_description": "Popular beach break on Victoria\u2019s Great Ocean Road, known for consistent, user-friendly waves and a less crowded alternative to nearby Bells Beach.",
+    "coordinates": {
+      "lat": -38.3833,
+      "lng": 144.2667
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W to NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach break",
+      "break_direction": "both left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand over reef patches",
+      "skill_level": "beginner to advanced",
+      "best_season": "March to September (autumn/winter swells)",
+      "hazards": "strong rips, reef patches near ends, occasional rocks",
+      "other_notes": "Easily accessible via Great Ocean Road with parking, cafes, and lifeguards in peak season; often less crowded than Bells Beach; good for beginners on smaller days (2\u20134 ft), becomes more powerful and barreling with larger SW swells."
+    }
+  },
+  {
+    "name": "13th Beach",
+    "region": "VIC",
+    "short_description": "Long, sandy beach break on the Bellarine Peninsula, known for consistent waves and beginner-to-intermediate friendly surf, popular with locals and surf schools.",
+    "coordinates": {
+      "lat": -38.2583,
+      "lng": 144.3583
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sandbar",
+      "skill_level": "beginner to intermediate",
+      "best_season": "September to April (spring/summer swells)",
+      "hazards": "shallow sandbars, rip currents, occasional shark warnings",
+      "other_notes": "Part of the Barwon Heads area; often less crowded than Bells Beach; popular for longboarding and lessons; patrolled in peak season; access via multiple car parks along the beach."
+    }
+  },
+  {
+    "name": "Point Impossible",
+    "region": "VIC",
+    "short_description": "Exposed reef and point break on the Great Ocean Road near Queenscliff, known for consistent right-hand waves, especially during winter swells. Popular with experienced surfers due to reef hazards and strong currents.",
+    "coordinates": {
+      "lat": -38.3056,
+      "lng": 144.4333
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "WNW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "reef/point",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "intermediate to expert",
+      "best_season": "Winter (June\u2013August)",
+      "hazards": "reef, strong currents, rocks, occasional rips",
+      "other_notes": "Reliable swell catcher with clean conditions during offshore WNW winds; tends to get crowded on good days. Parking available at the beach access, but facilities are basic. Water quality generally good. Best wave quality occurs at mid-to-high tide. Summer is often flat."
+    }
+  },
+  {
+    "name": "Anglesea",
+    "region": "VIC",
+    "short_description": "A reliable beach break on the Surf Coast near the Great Ocean Road, known for consistent surf year-round and popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -38.3956,
+      "lng": 144.3442
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SSE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "right",
+      "break_surface": "sand",
+      "bottom_type": "sand with occasional reef/rock outcrops",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Year-round, best in autumn and winter (SSE groundswells)",
+      "hazards": "rips, submerged rocks, shifting sandbars",
+      "other_notes": "Easy access from the town of Anglesea with parking and boardwalks to the beach; frequently works even in modest swells; popular for longboarders and beginners due to its forgiving nature, but caution advised near rock outcrops at low tide."
+    }
+  },
+  {
+    "name": "Aireys Inlet",
+    "region": "VIC",
+    "short_description": "A coastal surf spot near Torquay, Victoria, known for its reef and beach breaks, particularly Sunnymead, offering consistent waves for intermediate surfers with good swell direction and offshore winds.",
+    "coordinates": {
+      "lat": -38.395,
+      "lng": 144.265
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S/SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW/W/N"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "reef and beach break",
+      "break_direction": "left and right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "intermediate",
+      "best_season": "March to September (autumn to winter)",
+      "hazards": "reef, rocks, strong rips, occasional surge",
+      "other_notes": "Sunnymead is the most well-known break here \u2014 a reliable reef break that works best on mid to high tide with S/SW swells and NW/W winds. Other breaks include The Gully and The Boneyard. Access is via stairs from the cliff top; parking available. Less crowded than Bells Beach but still popular on good days."
+    }
+  },
+  {
+    "name": "Johanna Beach",
+    "region": "VIC",
+    "short_description": "Powerful, remote beach and reef break on Victoria's Great Ocean Road, known for heavy, consistent left and right-hand waves; a favorite among experienced surfers and a backup venue for the Rip Curl Pro at Bells Beach.",
+    "coordinates": {
+      "lat": -38.7333,
+      "lng": 143.7167
+    },
+    "ideal_swell": {
+      "size_ft_min": 5,
+      "size_ft_max": 15,
+      "direction": "W to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach/reef",
+      "break_direction": "left and right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "advanced to expert",
+      "best_season": "March to September (autumn to winter)",
+      "hazards": "strong rips, rocks, remote location, cold water",
+      "other_notes": "Located on the Great Ocean Road near Cape Otway; accessible via a steep track; no facilities on-site; part of the Great Ocean Walk; often uncrowded but can get powerful quickly; water quality generally good; popular with locals and serious surfers; not recommended for beginners."
+    }
+  },
+  {
+    "name": "Cape Otway - Crayfish Bay",
+    "region": "VIC",
+    "short_description": "A secluded, reef-based surf break near Cape Otway on the Great Ocean Road, known for its powerful, hollow waves and remote access. Popular with experienced surfers seeking uncrowded conditions.",
+    "coordinates": {
+      "lat": -38.645,
+      "lng": 143.755
+    },
+    "ideal_swell": {
+      "size_ft_min": 5,
+      "size_ft_max": 12,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left and right (depending on swell angle)",
+      "break_surface": "reef",
+      "bottom_type": "rock and reef",
+      "skill_level": "advanced to expert",
+      "best_season": "March to September (autumn to winter SW swells)",
+      "hazards": "sharp reef, strong rips, remote location, limited access, no lifeguard services",
+      "other_notes": "Accessible via a 45-minute walk from Cape Otway Lighthouse along the Great Ocean Walk, or a rough 4WD track off Blanket Bay Road. No facilities on-site. Best when swell is 5ft+ with clean offshore winds. Often uncrowded due to difficulty of access. Popular for snorkeling and diving when conditions are flat."
+    }
+  },
+  {
+    "name": "Phillip Island - Woolamai",
+    "region": "VIC",
+    "short_description": "Exposed beach break on the eastern tip of Phillip Island, known for consistent waves, long right-hand rides, and occasional lefts, popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -38.545,
+      "lng": 145.215
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "right (primary), left (secondary)",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "intermediate",
+      "best_season": "Year-round, best in autumn and winter (March\u2013August)",
+      "hazards": "shallow sandbars, rips, occasional rocks at ends",
+      "other_notes": "Long, peeling right-handers are the hallmark; can get crowded on good days. Accessible via a short walk from the car park. Often works when other breaks are flat due to its exposure to open ocean swells."
+    }
+  },
+  {
+    "name": "Phillip Island - Smiths Beach",
+    "region": "VIC",
+    "short_description": "A fairly exposed beach and point break on Phillip Island, known for inconsistent but sometimes high-quality surf with both left and right-hand waves, including a left-hand point break section. Popular with locals and less crowded than mainland breaks.",
+    "coordinates": {
+      "lat": -38.5583,
+      "lng": 145.125
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N to NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach/point",
+      "break_direction": "both left and right",
+      "break_surface": "sand/reef patches",
+      "bottom_type": "sand with occasional reef patches",
+      "skill_level": "intermediate",
+      "best_season": "Autumn and winter (March\u2013August) for consistent SW swells, though surf can occur year-round",
+      "hazards": "shallow sandbars, rip currents, occasional reef patches",
+      "other_notes": "Surf is inconsistent and highly tide- and swell-dependent; best quality occurs with distant groundswells and light northerly winds. Parking available near the beach, but access can be slippery on cliff paths. Nearby breaks include Cowes and Ventnor for alternatives."
+    }
+  },
+  {
+    "name": "Gunnamatta",
+    "region": "VIC",
+    "short_description": "Exposed beach break on the Mornington Peninsula, known for consistent surf with both left and right-breaking waves, popular with locals and accessible year-round.",
+    "coordinates": {
+      "lat": -38.2583,
+      "lng": 145.0167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NE"
+    },
+    "ideal_tide": "all tides",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to August (autumn/winter SW swells)",
+      "hazards": "rip currents, occasional shark advisories",
+      "other_notes": "Easy access via beachside parking and walking paths; flatter in summer but reliable during swell events; popular local spot with consistent wave frequency."
+    }
+  },
+  {
+    "name": "Portsea",
+    "region": "VIC",
+    "short_description": "A classic, consistent beach break on the Mornington Peninsula, known for its long, peeling waves and strong surf lifesaving presence. Popular with locals and a regional favorite for all levels.",
+    "coordinates": {
+      "lat": -38.395,
+      "lng": 144.725
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand with occasional rocks",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Autumn to Winter (March\u2013August)",
+      "hazards": "rip currents, rocks near southern end, strong shore break",
+      "other_notes": "Access via Portsea Back Beach Road with steep walk down; patrolled by Portsea SLSC (highest rescue count in Victoria). Waves can range from 50\u2013150m in length. Works best with SW swell and NE offshore winds. Can be surfed at all tides but mid-to-high tide offers the most consistent rides. Nearby breaks include Point Leo and Shelly Beach."
+    }
+  },
+  {
+    "name": "Point Leo",
+    "region": "VIC",
+    "short_description": "A consistent, reef-based right-hand point break on the Mornington Peninsula, popular for long rides and beginner-to-intermediate surfers, located near the town of Point Leo on the western shore of Western Port Bay.",
+    "coordinates": {
+      "lat": -38.345,
+      "lng": 145.105
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "NNE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Autumn to Winter (March\u2013August) for consistent SW swells",
+      "hazards": "reef, rocks, occasional strong currents near the point",
+      "other_notes": "Known for long, peeling right-handers, especially on mid-to-high tides; less crowded than nearby breaks like Bells Beach; popular for longboarding; access via a short walk from Point Leo Road; water temperature varies seasonally, often requiring a 3/2mm wetsuit in winter."
+    }
+  },
+  {
+    "name": "Ocean Grove",
+    "region": "VIC",
+    "short_description": "Family-friendly, sandy beach break popular for beginners and longboarders, located on the Bellarine Peninsula near Geelong. Known for its gentle waves, patrolled swimming areas, and easy access.",
+    "coordinates": {
+      "lat": -38.2167,
+      "lng": 144.3333
+    },
+    "ideal_swell": {
+      "size_ft_min": 1,
+      "size_ft_max": 4,
+      "direction": "S/SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "N/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right (variable)",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "October to April (summer/autumn swells)",
+      "hazards": "rip currents, shifting sandbars, occasional jellyfish",
+      "other_notes": "Patrolled by Surf Life Saving Australia during peak season; excellent for learners, longboarding, and bodyboarding. Wide foreshore with parking, amenities, and boardwalk access. Not known for powerful surf \u2014 best on small to moderate SW swells with light onshore or offshore winds."
+    }
+  },
+  {
+    "name": "Margaret River - Main Break",
+    "region": "WA",
+    "short_description": "Renowned high-performance beach break known for powerful, long right-hand waves; part of a region with Australia\u2019s highest surf-related fatality rate due to strong rips, shallow reef, and persistent great white shark presence.",
+    "coordinates": {
+      "lat": -34.4833,
+      "lng": 115.0333
+    },
+    "ideal_swell": {
+      "size_ft_min": 4,
+      "size_ft_max": 15,
+      "direction": "SW/W"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SE"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "right",
+      "break_surface": "sand over reef",
+      "bottom_type": "reef/rock with shifting sand",
+      "skill_level": "advanced to expert",
+      "best_season": "March to October (southern winter)",
+      "hazards": "strong rips, shallow reef, great white sharks, remote location, no lifeguards",
+      "other_notes": "Easy access via short walk from car park; always surf with a buddy, carry a PLB, and check local shark advisories. Part of the Margaret River Pro surf competition circuit. Waves can hold up to 20+ ft in major swells."
+    }
+  },
+  {
+    "name": "Margaret River - The Box",
+    "region": "WA",
+    "short_description": "Infamous right-hand reef break known for its thick, square-shaped barrels that explode over a shallow, jagged reef. One of Australia\u2019s most dangerous and powerful waves, suited only for elite surfers.",
+    "coordinates": {
+      "lat": -34.4833,
+      "lng": 115.0333
+    },
+    "ideal_swell": {
+      "size_ft_min": 6,
+      "size_ft_max": 18,
+      "direction": "SW to SSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "low to mid-tide (incoming tide often best)",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "right",
+      "break_surface": "shallow reef",
+      "bottom_type": "sharp reef/rock",
+      "skill_level": "expert only",
+      "best_season": "March to September (southern hemisphere autumn/winter)",
+      "hazards": "shallow reef, powerful hydraulic drops, strong rip currents, shark risk (great white, bull, and tiger sharks common in region)",
+      "other_notes": "Famous for its rare, square-shaped barrels that form only under perfect conditions: large, long-period swells (12s+) from the SW/SSW, low tide, and light offshore winds. Extremely tide-sensitive \u2014 can be flat at high tide and barreling at low. Often described as one of the most intense and dangerous waves in the world. No lifeguards; remote location. Access via cliff path; not recommended for beginners or even intermediate surfers."
+    }
+  },
+  {
+    "name": "North Point",
+    "region": "WA",
+    "short_description": "A remote, exposed point break on the southwest coast of Western Australia, known for powerful, long right-hand waves that peel over reef and rock, favored by experienced surfers.",
+    "coordinates": {
+      "lat": -34.5833,
+      "lng": 115.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 5,
+      "size_ft_max": 15,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "expert",
+      "best_season": "April to September (autumn to winter)",
+      "hazards": "sharp reef, strong rips, remote location, cold water",
+      "other_notes": "Extremely remote; access requires a 4WD and significant hike. No facilities. Often uncrowded due to isolation. Part of the rugged Margaret River region surf circuit. Check local conditions and tide charts carefully before paddling out."
+    }
+  },
+  {
+    "name": "Yallingup",
+    "region": "WA",
+    "short_description": "Popular surf break on the South Coast of Western Australia, known for consistent right-hand point breaks and reef breaks, popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -34.1583,
+      "lng": 115.3417
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to October (autumn to spring)",
+      "hazards": "reef, rocks, strong rips",
+      "other_notes": "Yallingup has multiple breaks including Yallingup Main Break, The Box, and Smiths Beach; known for clean, powerful waves during SW swells; popular with both longboarders and shortboarders; often less crowded than nearby Margaret River but can get busy on weekends and holidays."
+    }
+  },
+  {
+    "name": "Injidup",
+    "region": "WA",
+    "short_description": "A powerful, reef-based right-hand point break on Western Australia's remote Southwest Coast, known for long, hollow rides and consistent swells during winter. Popular with experienced surfers seeking uncrowded, high-performance waves.",
+    "coordinates": {
+      "lat": -34.5583,
+      "lng": 115.2083
+    },
+    "ideal_swell": {
+      "size_ft_min": 4,
+      "size_ft_max": 12,
+      "direction": "WSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef",
+      "skill_level": "advanced to expert",
+      "best_season": "April to September (winter swell season)",
+      "hazards": "shallow reef, strong rips, remote location with limited access",
+      "other_notes": "Access requires a 4WD or long walk; often uncrowded due to its remoteness. Best when paired with a solid WSW swell and light offshore NW winds. Tide sensitivity is high \u2014 avoid low tide due to dangerous reef exposure. Nearby breaks include Gnaraloo and The Box."
+    }
+  },
+  {
+    "name": "Gracetown - South Point",
+    "region": "WA",
+    "short_description": "A reliable, high-quality point break in the Augusta-Margaret River region of Western Australia, known for clean, long right-hand waves and relatively uncrowded conditions compared to nearby breaks.",
+    "coordinates": {
+      "lat": -34.3583,
+      "lng": 115.0756
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "WSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "ESE"
+    },
+    "ideal_tide": "mid-tide, though works well across all tides",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef",
+      "skill_level": "intermediate to expert",
+      "best_season": "June to August (winter)",
+      "hazards": "rocky reef, sharks",
+      "other_notes": "Access is via a short, rocky walk from Gracetown with parking available nearby; crowds are generally low except during school holidays. Check local shark advisories and surf reports before entering the water. Often considered one of WA's hidden gems for consistent, high-quality waves."
+    }
+  },
+  {
+    "name": "Cowaramup Bay",
+    "region": "WA",
+    "short_description": "A sheltered point break in the Margaret River region, known for its left-hand waves and accessible location, popular among locals and intermediate surfers.",
+    "coordinates": {
+      "lat": -34.1667,
+      "lng": 115.0167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "N/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "left",
+      "break_surface": "reef/rock",
+      "bottom_type": "rock",
+      "skill_level": "intermediate",
+      "best_season": "May to August (autumn/winter swells)",
+      "hazards": "reef, rocks, occasional strong currents",
+      "other_notes": "Often referred to as 'South Point' locally; easily accessible via a carpark above the beach; less crowded than nearby Main Break or Surfers Point; best during clean NW winds and consistent SW swells. Popular with locals and longboarders."
+    }
+  },
+  {
+    "name": "Prevelly",
+    "region": "WA",
+    "short_description": "Famous reef and beach break in Prevelly, near Margaret River, known for consistent, high-quality waves and hosting professional surf competitions. Offers both left and right-hand breaks over a sandy-reef bottom.",
+    "coordinates": {
+      "lat": -34.425,
+      "lng": 115.083
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 12,
+      "direction": "WSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "reef/beach hybrid",
+      "break_direction": "left and right",
+      "break_surface": "reef/sandbar",
+      "bottom_type": "reef with sandy patches",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to October (autumn to spring)",
+      "hazards": "reef, strong rips, occasional shark activity",
+      "other_notes": "Popular with locals and pros alike; features large car parks and viewing areas. Hosts events like the Margaret River Pro. Consistent year-round but most powerful during winter swells. Accessible via the Cape to Cape Track."
+    }
+  },
+  {
+    "name": "Gnarabup",
+    "region": "WA",
+    "short_description": "An exposed beach break near Margaret River, Western Australia, known for its consistent left-hand waves during winter swells and low crowd levels compared to nearby breaks.",
+    "coordinates": {
+      "lat": -34.4167,
+      "lng": 115.05
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "W"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "ENE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "intermediate",
+      "best_season": "April to September (winter)",
+      "hazards": "shallow sandbars, occasional rips",
+      "other_notes": "Less crowded than nearby Margaret River breaks; ideal for longboarders and intermediate surfers. Groundswells produce the best waves, with ENE winds providing clean conditions. Popular for relaxed sessions rather than competitions."
+    }
+  },
+  {
+    "name": "Trigg Beach",
+    "region": "WA",
+    "short_description": "Popular beach break on Perth\u2019s northern coast, known for consistent waves and strong rip currents, favored by intermediate to advanced surfers.",
+    "coordinates": {
+      "lat": -31.8333,
+      "lng": 115.7667
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "S, SW, W"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E, NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach break",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "intermediate to advanced",
+      "best_season": "June to September (winter)",
+      "hazards": "strong rips, shallow sandbars, crowds",
+      "other_notes": "Located just north of Perth, Trigg is one of Western Australia\u2019s most consistent and popular surf spots. Waves can vary from mellow to powerful depending on swell direction and tide. Lifesavers are present in peak seasons. Nearby breaks include City Beach and North Beach."
+    }
+  },
+  {
+    "name": "Scarborough Beach",
+    "region": "WA",
+    "short_description": "Popular urban beach break on Perth\u2019s northern coast, known for consistent beach swell and beginner-friendly waves, especially during autumn.",
+    "coordinates": {
+      "lat": -31.9333,
+      "lng": 115.8167
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "S/SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "March to May (autumn)",
+      "hazards": "rip currents, occasional shark sightings (rare), crowded during summer",
+      "other_notes": "Popular with locals and tourists; lifeguards on duty in peak season; consistent but often small-to-moderate swells; best waves occur after S/SW swells and light offshore northerlies. Nearby Scarborough Surf Club offers lessons."
+    }
+  },
+  {
+    "name": "City Beach",
+    "region": "WA",
+    "short_description": "Popular urban surf break in the suburb of Cambridge, near Perth, known for consistent WSW swells and both left and right-hand breaks, popular with intermediate to advanced surfers.",
+    "coordinates": {
+      "lat": -31.9583,
+      "lng": 115.8167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 7,
+      "direction": "WSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E/SE"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "beach/reef",
+      "break_direction": "left and right",
+      "break_surface": "sand/reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "April to September (autumn/winter)",
+      "hazards": "strong rips, occasional shark presence",
+      "other_notes": "Easy access via City Beach Road with parking, amenities, and lifeguard patrols; groyne helps shape waves; often crowded on weekends and during swell events; surf between the flags for safety."
+    }
+  },
+  {
+    "name": "Denmark - Ocean Beach",
+    "region": "WA",
+    "short_description": "A popular, consistent beach break near Denmark, Western Australia, offering both left and right-hand waves with year-round surf, ideal for intermediate surfers and known for its scenic coastal setting.",
+    "coordinates": {
+      "lat": -35.045,
+      "lng": 117.785
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "all tides",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "intermediate",
+      "best_season": "year-round, peak in autumn and winter",
+      "hazards": "rip currents, occasional shark presence",
+      "other_notes": "Located between Wilson Inlet and the Southern Ocean; easily accessible from Denmark town; popular for fishing and camping nearby; surf forecasts regularly updated with swell period and tide data."
+    }
+  },
+  {
+    "name": "Esperance - Wharton Beach",
+    "region": "WA",
+    "short_description": "A world-renowned, 4.5 km long south-facing beach near Esperance, WA, famed for its squeaky white sand, consistent swells, and relaxed vibe. Ranked among the top beaches globally, it offers powerful right-hand point breaks ideal for experienced surfers.",
+    "coordinates": {
+      "lat": -33.9167,
+      "lng": 122.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 5,
+      "size_ft_max": 12,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef with sandy patches",
+      "skill_level": "intermediate to expert",
+      "best_season": "April to October (autumn to spring)",
+      "hazards": "strong rips, exposed reef, remote access",
+      "other_notes": "Located ~60 km west of Esperance; requires 4WD or high-clearance vehicle for access. Popular for its pristine sand, minimal crowds (outside holidays), and world-class longboard waves. No lifeguards \u2014 surf at your own risk. Ranked among top global beaches by Beach Verdict 2026."
+    }
+  },
+  {
+    "name": "Lancelin",
+    "region": "WA",
+    "short_description": "Exposed reef break near Lancelin, Western Australia, known for reliable year-round surf, often producing a long right-hand reef wave; popular with locals and visitors due to its consistency and proximity to Perth.",
+    "coordinates": {
+      "lat": -30.7167,
+      "lng": 115.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "WSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E"
+    },
+    "ideal_tide": "mid-tide",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "right",
+      "break_surface": "reef",
+      "bottom_type": "reef/rock",
+      "skill_level": "intermediate to advanced",
+      "best_season": "Year-round, best in autumn and winter",
+      "hazards": "shallow reef, crowds (can be hazardous during peak conditions)",
+      "other_notes": "Can also function as a beach break when swell is smaller; easily accessible from the road; often crowded during good conditions; popular day-trip destination from Perth (~1.5 hours drive)."
+    }
+  },
+  {
+    "name": "Rottnest Island - Strickland Bay",
+    "region": "WA",
+    "short_description": "A sheltered, beginner-friendly beach break on the eastern side of Rottnest Island, known for consistent small to medium waves and gentle surf, ideal for learners and longboarders.",
+    "coordinates": {
+      "lat": -32.0017,
+      "lng": 115.5458
+    },
+    "ideal_swell": {
+      "size_ft_min": 1,
+      "size_ft_max": 4,
+      "direction": "S/SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/SE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "October to April (summer/autumn swells)",
+      "hazards": "shallow sandbars, occasional rocks near edges, strong currents during large swells",
+      "other_notes": "Accessible via ferry to Rottnest Island, then a short walk or bike ride; popular with families and surf schools due to its calm, forgiving waves. Less crowded than mainland breaks. Best conditions occur with low to moderate SW swells and light offshore easterlies."
+    }
+  },
+  {
+    "name": "Kalbarri",
+    "region": "WA",
+    "short_description": "Remote beach break destination in Western Australia, known for consistent SW swells and rugged coastal conditions, popular with experienced surfers on road trips.",
+    "coordinates": {
+      "lat": -28.7556,
+      "lng": 114.6778
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 10,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E/SE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "mostly left and right (variable)",
+      "break_surface": "sand",
+      "bottom_type": "sand with rocky patches near river mouth",
+      "skill_level": "intermediate to advanced",
+      "best_season": "June to August (winter), with reliable conditions also in autumn and spring",
+      "hazards": "strong rips, rocky sections near the Murchison River mouth, limited lifeguard presence",
+      "other_notes": "Minimal infrastructure; small local surf scene with limited gear shops. Best accessed via car from Perth (approx. 600km). Conditions highly tide- and swell-dependent. Popular with dedicated surfers on WA coastal road trips."
+    }
+  },
+  {
+    "name": "Middleton Point",
+    "region": "SA",
+    "short_description": "A consistent beach and reef break near Middleton, South Australia, known for beginner-friendly waves and quality lefts and rights during south swells, popular with locals and visitors alike.",
+    "coordinates": {
+      "lat": -35.5833,
+      "lng": 138.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "S"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach/reef",
+      "break_direction": "lefts and rights",
+      "break_surface": "sand and reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "beginner to intermediate",
+      "best_season": "April to September (winter/spring south swells)",
+      "hazards": "reef patches, occasional rips",
+      "other_notes": "Offers reliable, forgiving waves for learners; parking and basic facilities available near the beach. Crowded on good swell days, especially weekends. Located 15 km north of Victor Harbor. Water temperatures range from 14\u00b0C (winter) to 19\u00b0C (summer)."
+    }
+  },
+  {
+    "name": "Waitpinga Beach",
+    "region": "SA",
+    "short_description": "Remote, high-quality surf break on the southern coast of South Australia, known for powerful, clean waves during winter swells and favored by experienced surfers seeking solitude.",
+    "coordinates": {
+      "lat": -36.0333,
+      "lng": 139.75
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 12,
+      "direction": "SW/S"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W/NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "point/reef",
+      "break_direction": "left and right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef and rock ledge",
+      "skill_level": "intermediate to expert",
+      "best_season": "May to August (winter)",
+      "hazards": "strong rips, rocky outcrops, cold water, remote location",
+      "other_notes": "Accessed via gravel road off Coorong Highway followed by a short walk; rarely crowded due to isolation. Surf forecasts from Surfline and Stormrider are reliable for planning. Winter water temperatures can drop below 14\u00b0C\u2014wetsuit recommended."
+    }
+  },
+  {
+    "name": "Chiton Rocks",
+    "region": "SA",
+    "short_description": "Exposed reef break on the Fleurieu Peninsula near Hayborough, known for consistent, uncrowded waves and rocky hazards; part of a longer south-facing beach stretching from Boomer Beach to Watsons Gap.",
+    "coordinates": {
+      "lat": -35.5833,
+      "lng": 138.5833
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SSE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left and right",
+      "break_surface": "reef",
+      "bottom_type": "rock",
+      "skill_level": "intermediate to advanced",
+      "best_season": "April to September (autumn to winter)",
+      "hazards": "sharp rocks, strong rips, offshore currents",
+      "other_notes": "Part of the 3.6 km long Chiton Rocks-Boomer Beach stretch; patrolled by Hayborough Surf Life Saving Club; generally uncrowded despite consistency; access via Goolwa-Victor Harbour Road with short walk to the rocks. Not suitable for beginners due to reef and rips."
+    }
+  },
+  {
+    "name": "Southport",
+    "region": "SA",
+    "short_description": "A modest beach break on the eastern shore of Gulf St Vincent, near Adelaide, known for inconsistent but occasionally rideable waves, popular with locals and beginners.",
+    "coordinates": {
+      "lat": -34.9583,
+      "lng": 138.5167
+    },
+    "ideal_swell": {
+      "size_ft_min": 1,
+      "size_ft_max": 4,
+      "direction": "W/SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Autumn to Winter (March\u2013August) when SW swells are more frequent",
+      "hazards": "shallow sandbars, rip currents, occasional debris",
+      "other_notes": "Waves are generally small and inconsistent due to exposure and lack of offshore reef or point structure; best after a strong SW swell and light easterly winds. Often overshadowed by better breaks further south like Grange or Semaphore. Not a major surf destination but reliable for casual sessions."
+    }
+  },
+  {
+    "name": "Boomer Beach",
+    "region": "SA",
+    "short_description": "A powerful and consistent reef break located near Port Elliot on South Australia\u2019s Fleurieu Peninsula, known for fast, heavy waves that break over a rocky reef \u2014 favored by experienced surfers.",
+    "coordinates": {
+      "lat": -35.5833,
+      "lng": 138.5667
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left and right (closeout common)",
+      "break_surface": "reef",
+      "bottom_type": "rock",
+      "skill_level": "advanced",
+      "best_season": "April to September (autumn to winter)",
+      "hazards": "shallow reef, strong rips, rocks",
+      "other_notes": "Accessible via a short walk down wooden steps from a car park above; facilities include toilets. Known for its consistency and power, but waves often close out on larger swells. Not recommended for beginners. Popular with local surfers and part of the Fleurieu Coast\u2019s renowned surf scene."
+    }
+  },
+  {
+    "name": "Cactus Beach - Point Sinclair",
+    "region": "SA",
+    "short_description": "A powerful, consistent right-hand reef break near Point Sinclair on South Australia\u2019s remote Eyre Peninsula, known for long, barreling waves and a rugged, uncrowded surf environment.",
+    "coordinates": {
+      "lat": -34.7833,
+      "lng": 135.5167
+    },
+    "ideal_swell": {
+      "size_ft_min": 5,
+      "size_ft_max": 12,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "right",
+      "break_surface": "reef over sand",
+      "bottom_type": "reef",
+      "skill_level": "advanced to expert",
+      "best_season": "Autumn (March\u2013May), especially April",
+      "hazards": "sharp reef, strong rips, remote location with limited access",
+      "other_notes": "Often referred to locally as 'Supertubes' due to its barrel quality; water temps range from 15\u00b0C in winter to 20\u00b0C in summer \u2014 3/2 or 4/3 wetsuit recommended. Access requires a 4WD and a long drive; no facilities on-site. Clean waves occur ~42% of the time in peak season, but it\u2019s frequently blown out by onshore winds."
+    }
+  },
+  {
+    "name": "Pondalowie Bay",
+    "region": "SA",
+    "short_description": "A fairly exposed reef break on the Yorke Peninsula, known for consistent left-hand waves and occasional right-hand sections, popular among local surfers and less crowded than major breaks.",
+    "coordinates": {
+      "lat": -35.0833,
+      "lng": 137.75
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "WSW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "ESE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "left (primary), right (secondary)",
+      "break_surface": "reef",
+      "bottom_type": "rock reef",
+      "skill_level": "intermediate to advanced",
+      "best_season": "December to March (summer)",
+      "hazards": "reef, rips, strong currents",
+      "other_notes": "Access is via a boardwalk from the car park; the break can be crowded on good days due to its reliability. Offers both fast lefts and longer rights depending on swell and tide. Part of the remote and scenic Yorke Peninsula coastline."
+    }
+  },
+  {
+    "name": "Shipstern Bluff",
+    "region": "TAS",
+    "short_description": "One of the world's most dangerous big-wave surf breaks, located on Tasmania's remote southeastern coast. Known for its shallow, jagged reef, powerful barreling waves, and extreme hazards \u2014 only surfed by elite big-wave surfers with full safety support.",
+    "coordinates": {
+      "lat": -43.3667,
+      "lng": 147.4167
+    },
+    "ideal_swell": {
+      "size_ft_min": 8,
+      "size_ft_max": 20,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N/NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "reef",
+      "break_direction": "right",
+      "break_surface": "shallow reef",
+      "bottom_type": "jagged rock ledge",
+      "skill_level": "elite/professional only",
+      "best_season": "March to September (autumn/winter)",
+      "hazards": "shallow reef, powerful currents, freezing water, sharks, no rescue access, steep cliff drop-off ('The Step')",
+      "other_notes": "No road access; requires 4WD and 30\u201345 minute hike through rugged bushland. Surfers must have jet ski support and safety crew. Most visitors observe from the cliff top. Considered one of the most lethal surf breaks on Earth."
+    }
+  },
+  {
+    "name": "Clifton Beach",
+    "region": "TAS",
+    "short_description": "Hobart's most accessible surf beach, located 25 km southeast of the city, facing southeast into Storm Bay with consistent beach break waves in a scenic, undeveloped setting.",
+    "coordinates": {
+      "lat": -42.9583,
+      "lng": 147.5417
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE to E"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W to NW"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "intermediate to advanced",
+      "best_season": "March to May (autumn)",
+      "hazards": "cold water year-round, rip currents, occasional rocks at ends",
+      "other_notes": "Popular with locals due to proximity to Hobart; surf life saving club active since 1963. Best swell comes from SE to E groundswells. Water temperatures range from 10\u201316\u00b0C; wetsuit essential. Wave quality improves at mid to high tide, with clean conditions most common in autumn."
+    }
+  },
+  {
+    "name": "Cloudy Bay",
+    "region": "TAS",
+    "short_description": "A remote, exposed beach break at the southern tip of Bruny Island, Tasmania, known for powerful Southern Ocean swells and pristine natural surroundings. Popular with experienced surfers seeking solitude and big wave conditions.",
+    "coordinates": {
+      "lat": -43.6833,
+      "lng": 147.3333
+    },
+    "ideal_swell": {
+      "size_ft_min": 6,
+      "size_ft_max": 15,
+      "direction": "S to SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "E to NE"
+    },
+    "ideal_tide": "mid to high tide",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand over reef patches",
+      "skill_level": "advanced to expert",
+      "best_season": "March to August (autumn to winter)",
+      "hazards": "sharks (including white sharks), strong rips, remote access, rocks near headland",
+      "other_notes": "Access requires a 4WD and a long drive on unsealed roads; hike or walk to the beach. Part of South Bruny National Park. One of Tasmania\u2019s most dramatic and isolated surf breaks. Crowds are rare, but conditions can be dangerous. Cloudy Bay Lagoon lies inland and feeds into the ocean via Inlet Beach. Best swell months are March and April, though consistent swells occur through autumn and winter."
+    }
+  },
+  {
+    "name": "Marion Bay",
+    "region": "TAS",
+    "short_description": "A coastal village in southeastern Tasmania with a well-known surf break called 'Boneyard' at its southern end, offering a powerful right-hand point break that performs best under perfect swell and wind conditions.",
+    "coordinates": {
+      "lat": -42.9583,
+      "lng": 147.7583
+    },
+    "ideal_swell": {
+      "size_ft_min": 5,
+      "size_ft_max": 12,
+      "direction": "SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "point",
+      "break_direction": "right",
+      "break_surface": "reef/rock",
+      "bottom_type": "reef",
+      "skill_level": "advanced",
+      "best_season": "March to September (autumn to winter)",
+      "hazards": "sharp reef, strong rips, cold water, remote location",
+      "other_notes": "Boneyard is the main surf break here \u2014 it\u2019s highly inconsistent and requires near-perfect SW swell with light easterly winds to fire. When it works, it\u2019s considered one of Australia\u2019s best right-handers. Public access is via Marion Bay Road with limited parking and no facilities. Surf conditions are often overshadowed by the region\u2019s inconsistent swell patterns. Not a beginner spot."
+    }
+  },
+  {
+    "name": "Eaglehawk Neck",
+    "region": "TAS",
+    "short_description": "A coastal beach break near the historic Eaglehawk Neck isthmus, known for its rugged scenery and consistent Southern Ocean swells, popular with local surfers seeking quieter sessions away from tourist crowds.",
+    "coordinates": {
+      "lat": -42.9167,
+      "lng": 147.9667
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "W"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "shifting sand over rock",
+      "skill_level": "intermediate",
+      "best_season": "March to September (autumn to winter)",
+      "hazards": "shifting sandbars, rocks, strong rips, cold water",
+      "other_notes": "Access is via multiple points along Pirates Bay; parking is limited and the area is remote. Water is cold year-round \u2014 full wetsuit recommended. Less crowded than Hobart-area breaks, but conditions can be choppy with onshore winds. Nearby landmarks include the Tessellated Pavement and historic penal colony sites."
+    }
+  },
+  {
+    "name": "Fingal Head",
+    "region": "NSW",
+    "short_description": "A right-hand reef/sand break at the northern tip of New South Wales, known for its powerful, barreling waves and proximity to the Queensland border. Popular with advanced surfers and part of the Gold Coast surf circuit.",
+    "coordinates": {
+      "lat": -28.2833,
+      "lng": 153.6167
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "W/WNW"
+    },
+    "ideal_tide": "medium to high tide",
+    "additional_details": {
+      "break_type": "reef/sand",
+      "break_direction": "right",
+      "break_surface": "reef with sand patches",
+      "bottom_type": "reef",
+      "skill_level": "advanced",
+      "best_season": "Spring to Autumn (September\u2013April)",
+      "hazards": "reef, strong rips, shallow rocks",
+      "other_notes": "Often works in tandem with nearby Snapper Rocks and Rainbow Bay; popular during swells from the southeast. Accessible via a short walk from Fingal Head Lighthouse. Can get crowded on good days."
+    }
+  },
+  {
+    "name": "North Cronulla",
+    "region": "NSW",
+    "short_description": "An exposed beach break just north of Cronulla Beach in Sydney's Sutherland Shire, known for consistent surf, long right-hand rides, and a popular local spot for beginners to intermediates.",
+    "coordinates": {
+      "lat": -34.025,
+      "lng": 151.155
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach",
+      "break_direction": "right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Spring to Autumn (September\u2013May)",
+      "hazards": "shallow sandbars, rip currents, occasional crowds",
+      "other_notes": "Works well on both groundswells and local windswells; consistent but not powerful; popular with longboarders and learners. Parking available at North Cronulla Beach car park. Water quality generally good, but check after heavy rain."
+    }
+  },
+  {
+    "name": "Warriewood Beach",
+    "region": "NSW",
+    "short_description": "Exposed beach and point break with reliable surf, especially in autumn and winter; known for consistent waves but often flat in summer.",
+    "coordinates": {
+      "lat": -33.7583,
+      "lng": 151.2856
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 8,
+      "direction": "ESE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "SSW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach/point",
+      "break_direction": "left and right",
+      "break_surface": "sand/rock",
+      "bottom_type": "sand over rock",
+      "skill_level": "intermediate",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "rips, rocky sections near the point",
+      "other_notes": "Surf is most consistent during ESE swells; summer often flat; popular with locals; easy beach access but caution advised near the rocky point; daily surf forecasts available."
+    }
+  },
+  {
+    "name": "Bar Beach Merimbula",
+    "region": "NSW",
+    "short_description": "Popular beach and reef break at the mouth of Merimbula Lake, known for consistent swells and a mix of bar and reef setups. A local favorite with good wave variety, especially during autumn and winter.",
+    "coordinates": {
+      "lat": -36.875,
+      "lng": 149.875
+    },
+    "ideal_swell": {
+      "size_ft_min": 3,
+      "size_ft_max": 10,
+      "direction": "SE"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 15,
+      "direction": "N/NW"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach/reef",
+      "break_direction": "left and right",
+      "break_surface": "sand and reef",
+      "bottom_type": "sand over reef",
+      "skill_level": "intermediate",
+      "best_season": "March to August (autumn/winter)",
+      "hazards": "strong rips, rocky bottom, submerged bars",
+      "other_notes": "Easy access from town center; popular with locals and visitors. Waves can vary from gentle rollers to powerful walls depending on swell and tide. Check local forecasts\u2014conditions change rapidly due to the bar setup. Surfline and local surf reports are reliable sources."
+    }
+  },
+  {
+    "name": "Pambula Beach",
+    "region": "NSW",
+    "short_description": "A long, sandy ocean beach on the south coast of New South Wales, popular for family-friendly surfing, bodyboarding, and swimming, with consistent but generally mellow waves.",
+    "coordinates": {
+      "lat": -37.0583,
+      "lng": 149.9583
+    },
+    "ideal_swell": {
+      "size_ft_min": 2,
+      "size_ft_max": 6,
+      "direction": "S/SW"
+    },
+    "ideal_wind": {
+      "strength_kt_max": 10,
+      "direction": "E/NE"
+    },
+    "ideal_tide": "mid to high",
+    "additional_details": {
+      "break_type": "beach break",
+      "break_direction": "left and right",
+      "break_surface": "sand",
+      "bottom_type": "sand",
+      "skill_level": "beginner to intermediate",
+      "best_season": "Autumn to Spring (March\u2013November)",
+      "hazards": "rip currents, shifting sandbars",
+      "other_notes": "Often less crowded than southern NSW hotspots; popular with locals and families; nearby Pambula River mouth can create variable conditions; lifeguards patrolled in peak season."
+    }
+  }
+]

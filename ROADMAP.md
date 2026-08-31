@@ -8,7 +8,7 @@ openness to ML work/research in Berlin.
 
 Decisions locked: 8-day build to Mon Sep 7 · HF Inference + NVIDIA NIM behind
 one client · surf cams are stretch-only · demo lives on a HF Space ·
-FastAPI + hand-rolled agent loop + Gradio + daggr (no LangChain, no htmx).
+FastAPI + smolagents CodeAgent + Gradio + daggr (no LangChain, no htmx).
 
 ---
 
@@ -39,7 +39,7 @@ FastAPI + hand-rolled agent loop + Gradio + daggr (no LangChain, no htmx).
 - 📹 **Capture:** score table / heatmap clip.
 
 ### Wed Sep 2 — Agent core
-- `agent.py`: hand-rolled tool loop, streaming, trace capture; HF⇄NIM switch
+- `agent.py`: smolagents CodeAgent, streaming, trace capture; HF⇄NIM switch
   via env vars. `tools.py`: 5 tools wired (get_forecast, score_week,
   find_spots, get_spot_knowledge, rank_spots_this_week).
 - System prompt contract: numbers come from tools; the model explains.

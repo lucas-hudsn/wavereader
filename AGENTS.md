@@ -25,9 +25,10 @@ The product promises (see README.md):
   `>=3.14` — downgrade it; 3.14 has unnecessary lib-compatibility risk for a
   one-week build.
 - **Package manager:** uv (`uv add ...`, `uv sync`).
-- **No LangChain / no agent frameworks.** The tool loop is hand-rolled
-  (~100 lines, in `agent.py`). Remove `langchain-community` from deps when
-  touched. `ddgs` stays (used by `data/generate_data.py`).
+- **Agent framework:** smolagents (CodeAgent). The tool loop uses smolagents'
+  CodeAgent with InferenceClientModel for Hugging Face / NVIDIA NIM. Remove
+  `langchain-community` from deps when touched. `ddgs` stays (used by
+  `data/generate_data.py`).
 - **Provider-agnostic LLM client:** one OpenAI-compatible client class; the
   base URL + key come from env vars (`HF_TOKEN`, `NVIDIA_API_KEY`). Default
   model: `Qwen/Qwen3-Next-80B-A3B-Instruct` — chosen because it is the only
@@ -51,7 +52,7 @@ wavereader/
   spots.py          # load + validate + search breaks (name/city/region/skill)
   forecasts.py      # Open-Meteo Marine + weather client; hourly, 7-day; disk cache
   scoring.py        # deterministic 0–10 surf-quality score/hour + component breakdown
-  agent.py          # hand-rolled tool loop; streaming; trace capture; HF⇄NIM switch
+  agent.py          # smolagents CodeAgent; streaming; trace capture; HF⇄NIM switch
   tools.py          # get_forecast, score_week, find_spots, get_spot_knowledge,
                     # rank_spots_this_week
   api.py            # FastAPI endpoints

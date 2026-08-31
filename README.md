@@ -15,7 +15,7 @@ The agent calls real forecast tools, scores every spot with a deterministic surf
 
 |                                    |                                                                                                                                                                                |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 🤖 **Agentic answers**             | Hand-rolled tool-calling loop (no framework) over Qwen3-Next-80B — the LLM interprets, deterministic tools own the data.                                                       |
+| 🤖 **Agentic answers**             | smolagents CodeAgent over Qwen3-Next-80B — the LLM interprets, deterministic tools own the data.                                                       |
 | 📊 **Interactive forecast graphs** | Whenever the agent surfaces wind, swell or wave data, it renders as interactive charts (seaborn-styled): hourly wave height, period, wind speed and direction.                 |
 | 🗺️ **Australia break map**         | The home page is a map of Australia: pick your break directly, or search by city/suburb and let the agent rank nearby spots for your skill level.                              |
 | 🧠 **Break knowledge base**        | 101 breaks with coordinates, ideal swell/wind/tide, break type, skill level and hazards — generated with an open model, web-grounded, published as an open dataset.            |
@@ -33,7 +33,7 @@ The agent calls real forecast tools, scores every spot with a deterministic surf
 ┌──────────────────────────────▼─────────────  FastAPI  ────────────────┐
 │  /spots  /forecast  /score  /ask                                      │
 ├───────────────────────────────────────────────────────────────────────┤
-│  agent.py — hand-rolled tool loop (streaming + trace)                  │
+│  agent.py — smolagents CodeAgent (streaming + trace)                   │
 │      ↳ tools: get_forecast · score_week · find_spots(near/skill)       │
 │               get_spot_knowledge · rank_spots_this_week                │
 ├───────────────────────────────────────────────────────────────────────┤

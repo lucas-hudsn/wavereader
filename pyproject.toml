@@ -13,6 +13,7 @@ dependencies = [
     "huggingface-hub>=1.29.0",
     "openai",
     "pydantic",
+    "smolagents>=1.26.0",
 ]
 
 [dependency-groups]

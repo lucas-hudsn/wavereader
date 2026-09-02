@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+from smolagents.agents import ToolOutput
+from smolagents.memory import FinalAnswerStep, ToolCall as SmolToolCall
+from smolagents.models import ChatMessageStreamDelta
 
 from wavereader.agent import (
     AgentTrace,
@@ -118,9 +120,9 @@ class TestScoreWeekTool:
     def test_forward_spot_not_found(self):
         tool = ScoreWeekTool()
         with patch("wavereader.agent.score_week") as mock_score:
-            mock_score.return_value = []
+            mock_score.return_value = {"error": "Spot 'Bad' (XX) not found"}
             result = tool.forward("Bad", "XX")
-            assert result == []
+            assert "error" in result
 
 
 class TestFindSpotsTool:
@@ -253,93 +255,106 @@ class TestSurfAgentRun:
         assert agent.trace.question == "What's the surf like?"
         assert agent.trace.provider == PROVIDER_HF
 
-    def test_run_stream_yields_chunks(self, mock_build_model):
+    def test_run_stream_yields_deltas_and_final(self, mock_build_model):
+        events = [
+            ChatMessageStreamDelta(content="Hello "),
+            ChatMessageStreamDelta(content="world"),
+            FinalAnswerStep(output="Hello world"),
+        ]
         mock_agent = MagicMock()
-        mock_agent.run.return_value = iter(["chunk1", "chunk2", "chunk3"])
+        mock_agent.run.return_value = iter(events)
 
         with patch("wavereader.agent.CodeAgent", return_value=mock_agent):
             agent = SurfAgent(provider=PROVIDER_HF)
             chunks = list(agent.run_stream("Test question"))
 
-        assert chunks == ["chunk1", "chunk2", "chunk3"]
+        assert chunks == [
+            ("model", "Hello "),
+            ("model", "world"),
+            ("final", "Hello world"),
+        ]
         assert agent.trace is not None
+        final_events = [e for e in agent.trace.events if e.type == "final_answer"]
+        assert len(final_events) == 1
+        assert final_events[0].data["answer"] == "Hello world"
 
     def test_run_stream_captures_tool_calls_in_trace(self, mock_build_model):
-        """Verify trace captures tool calls during streaming."""
-        from smolagents.memory import ActionStep, ToolCall
-        from smolagents.monitoring import Timing
+        """Trace captures tool calls/results flowing through _step_stream.
 
-        # Create a proper ActionStep-like object with tool_calls
-        tool_call = ToolCall(name="get_forecast", arguments={"spot_name": "Snapper", "region": "QLD"}, id="call-1")
-        memory_step_with_tool = ActionStep(
-            step_number=1,
-            timing=Timing(start_time=0, end_time=0),
-            tool_calls=[tool_call],
-            observations="forecast data",
+        Mirrors real smolagents: _run_stream yields whatever _step_stream
+        yields, so tool events surface via the wrapped generator.
+        """
+        tool_call = SmolToolCall(
+            name="get_forecast",
+            arguments={"spot_name": "Snapper Rocks", "region": "QLD"},
+            id="call-1",
+        )
+        tool_output = ToolOutput(
+            id="call-1",
+            output={"hourly": []},
             is_final_answer=False,
-        )
-        memory_step_without_tool = ActionStep(
-            step_number=2,
-            timing=Timing(start_time=0, end_time=0),
-            tool_calls=[],
-            observations="",
-            is_final_answer=True,
+            observation="forecast data",
+            tool_call=tool_call,
         )
 
-        call_count = {"count": 0}
-        step_results = [memory_step_with_tool, memory_step_without_tool]
-
-        def mock_step(memory_step, *args, **kwargs):
-            result = step_results[call_count["count"]]
-            call_count["count"] += 1
-            return result
-
-        # Use a real object instead of MagicMock so step can be dynamically replaced
-        class MockAgent:
-            def __init__(self):
-                self.step = mock_step
+        class FakeAgent:
+            def _step_stream(self, memory_step):
+                yield tool_call
+                yield tool_output
 
             def run(self, question, stream=False):
-                if stream:
-                    # Call step through self.step (which will be wrapped by traced_step)
-                    self.step(memory_step_with_tool)
-                    yield "chunk 1"
-                    self.step(memory_step_without_tool)
-                    yield "chunk 2"
-                return "final answer"
+                for output in self._step_stream(None):
+                    yield output
+                yield FinalAnswerStep(output="done")
 
-        mock_agent = MockAgent()
-
-        with patch("wavereader.agent.CodeAgent", return_value=mock_agent):
+        with patch("wavereader.agent.CodeAgent", return_value=FakeAgent()):
             agent = SurfAgent(provider=PROVIDER_HF)
-            list(agent.run_stream("Test"))
+            results = list(agent.run_stream("Test"))
 
+        assert ("final", "done") in results
         trace = agent.trace
         tool_call_events = [e for e in trace.events if e.type == "tool_call"]
         tool_result_events = [e for e in trace.events if e.type == "tool_result"]
 
         assert len(tool_call_events) == 1
         assert tool_call_events[0].data["name"] == "get_forecast"
-        # observations is a string, so traced_step iterates character by character
-        # "forecast data" = 12 chars + 1 space = 13 events
-        assert len(tool_result_events) == 13
-        # First and last character events
-        assert tool_result_events[0].data["observation"] == "f"
-        assert tool_result_events[-1].data["observation"] == "a"
+        assert tool_call_events[0].data["arguments"] == {
+            "spot_name": "Snapper Rocks",
+            "region": "QLD",
+        }
+        assert len(tool_result_events) == 1
+        assert tool_result_events[0].data["observation"] == "forecast data"
+        assert tool_result_events[0].data["name"] == "get_forecast"
 
-    def test_run_stream_captures_llm_chunks(self, mock_build_model):
-        mock_agent = MagicMock()
-        mock_agent.step = MagicMock(return_value=MagicMock(tool_calls=[], observations=[]))
-        mock_agent.run.return_value = iter(["hello", " world"])
+    def test_run_captures_tool_calls_in_trace(self, mock_build_model):
+        """The non-streaming run() path also captures tool activity."""
+        tool_call = SmolToolCall(name="find_spots", arguments={"region": "QLD"}, id="call-2")
+        tool_output = ToolOutput(
+            id="call-2",
+            output=[],
+            is_final_answer=False,
+            observation="2 spots",
+            tool_call=tool_call,
+        )
 
-        with patch("wavereader.agent.CodeAgent", return_value=mock_agent):
+        class FakeAgent:
+            def _step_stream(self, memory_step):
+                yield tool_call
+                yield tool_output
+
+            def run(self, question, stream=False):
+                list(self._step_stream({"step": 1}))
+                return "answer"
+
+        with patch("wavereader.agent.CodeAgent", return_value=FakeAgent()):
             agent = SurfAgent(provider=PROVIDER_HF)
-            list(agent.run_stream("Test"))
+            result = agent.run("Test")
 
-        llm_events = [e for e in agent.trace.events if e.type == "llm_chunk"]
-        assert len(llm_events) == 2
-        assert llm_events[0].data["chunk"] == "hello"
-        assert llm_events[1].data["chunk"] == " world"
+        assert result == "answer"
+        tool_call_events = [e for e in agent.trace.events if e.type == "tool_call"]
+        tool_result_events = [e for e in agent.trace.events if e.type == "tool_result"]
+        assert tool_call_events[0].data["name"] == "find_spots"
+        assert tool_result_events[0].data["observation"] == "2 spots"
 
 
 # ---------------------------------------------------------------------------
@@ -357,13 +372,17 @@ def test_run_agent_function(mock_build_model):
 
 
 def test_run_agent_stream_function(mock_build_model):
+    events = [
+        ChatMessageStreamDelta(content="stream"),
+        FinalAnswerStep(output="streaming done"),
+    ]
     mock_agent = MagicMock()
-    mock_agent.run.return_value = iter(["stream", "ing"])
+    mock_agent.run.return_value = iter(events)
 
     with patch("wavereader.agent.CodeAgent", return_value=mock_agent):
         result = list(run_agent_stream("Test question", provider=PROVIDER_HF))
 
-    assert result == ["stream", "ing"]
+    assert result == [("model", "stream"), ("final", "streaming done")]
 
 
 # ---------------------------------------------------------------------------

@@ -83,8 +83,8 @@ def test_swell_size_outside_low():
         "ideal_swell": {"size_ft_min": 4, "size_ft_max": 5, "direction": "SE"},
         "ideal_wind": {"strength_kt_max": 10, "direction": "S"},
     }
-    # just below the extended cutoff (~0.92 m)
-    s = score_hour(0.8, 10, 5, 135, spot)["components"]["swell_size"]
+    # inside the decay band below the ideal range (~0.91-1.22 m)
+    s = score_hour(1.0, 10, 5, 135, spot)["components"]["swell_size"]
     assert s < 10.0 and s > 0.0
 
 
@@ -93,16 +93,24 @@ def test_swell_size_outside_high():
         "ideal_swell": {"size_ft_min": 4, "size_ft_max": 5, "direction": "SE"},
         "ideal_wind": {"strength_kt_max": 10, "direction": "S"},
     }
-    # just above the extended cutoff (~1.82 m)
-    s = score_hour(1.8, 10, 5, 135, spot)["components"]["swell_size"]
+    # inside the decay band above the ideal range (~1.52-1.83 m)
+    s = score_hour(1.7, 10, 5, 135, spot)["components"]["swell_size"]
     assert s < 10.0 and s > 0.0
 
 
-def test_swell_size_far_outside_zero():
+def test_swell_size_decay_is_continuous():
+    """Score falls smoothly through the lower edge of the ideal range."""
     spot = {
         "ideal_swell": {"size_ft_min": 4, "size_ft_max": 5, "direction": "SE"},
         "ideal_wind": {"strength_kt_max": 10, "direction": "S"},
     }
+    inside = score_hour(1.3, 10, 5, 135, spot)["components"]["swell_size"]
+    edge = score_hour(1.21, 10, 5, 135, spot)["components"]["swell_size"]
+    below = score_hour(1.1, 10, 5, 135, spot)["components"]["swell_size"]
+    assert inside == 10.0
+    assert edge <= 10.0
+    assert 0.0 < below < edge
+    # far outside the decay band → 0
     assert score_hour(3.0, 10, 5, 135, spot)["components"]["swell_size"] == 0.0
 
 
@@ -116,7 +124,8 @@ def test_swell_direction_perfect_match():
         "ideal_wind": {"strength_kt_max": 10, "direction": "S"},
     }
     # SE = 135°
-    assert score_hour(1.5, 10, 5, 135, spot)["components"]["swell_direction"] == 10.0
+    result = score_hour(1.5, 10, 5, 135, spot, wave_direction_deg=135)
+    assert result["components"]["swell_direction"] == 10.0
 
 
 def test_swell_direction_opposite():
@@ -125,7 +134,8 @@ def test_swell_direction_opposite():
         "ideal_wind": {"strength_kt_max": 10, "direction": "S"},
     }
     # SE (135) vs NW (315) → 180° diff → 0
-    assert score_hour(1.5, 10, 5, 315, spot)["components"]["swell_direction"] == 0.0
+    result = score_hour(1.5, 10, 5, 315, spot, wave_direction_deg=315)
+    assert result["components"]["swell_direction"] == 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -175,8 +185,9 @@ def test_period_great():
 
 
 def test_period_too_long():
-    # Very long periods (storm swells) still score high but not perfect
+    # 14 s+ is a perfect 10 (no falloff for very long periods)
     assert _score_period(14.0) == 10.0
+    assert _score_period(20.0) == 10.0
     assert _score_period(8.0) > _score_period(5.0)
 
 
@@ -193,7 +204,26 @@ def test_score_hour_shape():
     }
     assert 0 <= result["score"] <= 10
     for v in result["components"].values():
-        assert 0 <= v <= 10
+        assert v is None or 0 <= v <= 10
+
+
+def test_score_hour_missing_wave_direction():
+    """Unknown swell direction → component None, weight redistributed, no wind substitution."""
+    result = score_hour(1.5, 10, 5, 135, _SPOT, wave_direction_deg=None)
+    assert result["components"]["swell_direction"] is None
+    assert result["wave_direction_deg"] is None
+    # Direction was NOT silently replaced with wind direction (135 ≠ 0 → not perfect)
+    assert result["components"]["swell_direction"] != 10.0
+    assert 0 <= result["score"] <= 10
+    # With redistributed weights the remaining components still dominate
+    assert result["score"] > 0
+
+
+def test_score_hour_missing_direction_differs_from_wind_substitution():
+    """Score without swell direction must differ from one scoring wind as swell."""
+    with_dir = score_hour(1.5, 10, 5, 135, _SPOT, wave_direction_deg=0)
+    without_dir = score_hour(1.5, 10, 5, 135, _SPOT, wave_direction_deg=None)
+    assert without_dir["score"] != with_dir["score"]
 
 
 def test_score_hour_contains_raw_inputs():
@@ -274,6 +304,43 @@ def test_score_week_has_time_and_score():
     results = score_week(forecast, _SPOT)
     assert results[0]["time"] == "2024-01-01T00:00"
     assert "score" in results[0]
+
+
+def test_score_week_skips_null_hours():
+    """Open-Meteo returns null marine hours beyond the horizon — skip, don't crash."""
+    forecast = {
+        "hourly": [
+            {
+                "time": "2024-01-01T00:00",
+                "wave_height": 1.5,
+                "wave_period": 10,
+                "wind_speed_10m": 10,
+                "wind_direction_10m": 135,
+                "wave_direction": 130,
+            },
+            {
+                "time": "2024-01-01T01:00",
+                "wave_height": None,
+                "wave_period": None,
+                "wind_speed_10m": 10,
+                "wind_direction_10m": 135,
+                "wave_direction": None,
+            },
+        ]
+    }
+    results = score_week(forecast, _SPOT)
+    assert len(results) == 1
+    assert results[0]["time"] == "2024-01-01T00:00"
+
+
+def test_score_week_all_null_returns_empty():
+    forecast = {
+        "hourly": [
+            {"time": "2024-01-01T00:00", "wave_height": None, "wave_period": None,
+             "wind_speed_10m": None, "wind_direction_10m": None}
+        ]
+    }
+    assert score_week(forecast, _SPOT) == []
 
 
 # ---------------------------------------------------------------------------

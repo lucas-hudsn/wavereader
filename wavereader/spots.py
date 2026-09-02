@@ -52,11 +52,6 @@ class IdealSwell(BaseModel):
     size_ft_max: float
     direction: str
 
-    @field_validator("size_ft_min")
-    @classmethod
-    def size_min_lt_max(cls, v: float) -> float:
-        return v
-
     @model_validator(mode="after")
     def check_swell_sizes(self) -> "IdealSwell":
         if self.size_ft_min >= self.size_ft_max:
@@ -122,10 +117,6 @@ class Break(BaseModel):
                     f"coords ({v.lat}, {v.lng}) outside plausible range for {region}"
                 )
         return v
-
-
-def _load_raw() -> list[dict]:
-    return json.loads(DATA_PATH.read_text(encoding="utf-8"))
 
 
 def load_breaks(path: Path | str | None = None) -> list[Break]:

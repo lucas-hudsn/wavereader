@@ -97,10 +97,10 @@ Gradio UI:
 uv run python -m wavereader.app
 ```
 
-Legacy dev server:
+daggr "Morning Surf Report" canvas:
 
 ```sh
-uv run fastapi dev main.py
+uv run python -m wavereader.daggr_pipeline
 ```
 
 ## Built with open everything

@@ -11,8 +11,12 @@ dependencies = [
     "gradio",
     "httpx",
     "huggingface-hub>=1.29.0",
+    "matplotlib>=3.11.1",
     "openai",
+    "plotly>=7.0.0",
     "pydantic",
+    "pyyaml",
+    "seaborn>=0.13.2",
     "smolagents>=1.26.0",
 ]
 

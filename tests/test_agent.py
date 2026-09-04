@@ -22,6 +22,9 @@ from wavereader.agent import (
     PROVIDER_HF,
     PROVIDER_NIM,
     DEFAULT_MODEL,
+    HF_DEFAULT_MODEL,
+    NIM_DEFAULT_MODEL,
+    get_default_model,
     run_agent,
     run_agent_stream,
 )
@@ -115,7 +118,15 @@ class TestScoreWeekTool:
             mock_score.return_value = [{"time": "2024-01-01T00:00", "score": 8.5}]
             result = tool.forward("Snapper Rocks", "QLD")
             assert result[0]["score"] == 8.5
-            mock_score.assert_called_once_with("Snapper Rocks", "QLD")
+            mock_score.assert_called_once_with("Snapper Rocks", "QLD", skill=None)
+
+    def test_forward_with_skill(self):
+        tool = ScoreWeekTool()
+        with patch("wavereader.agent.score_week") as mock_score:
+            mock_score.return_value = [{"time": "2024-01-01T00:00", "score": 7.0}]
+            result = tool.forward("Snapper Rocks", "QLD", skill="beginner")
+            assert result[0]["score"] == 7.0
+            mock_score.assert_called_once_with("Snapper Rocks", "QLD", skill="beginner")
 
     def test_forward_spot_not_found(self):
         tool = ScoreWeekTool()
@@ -194,26 +205,35 @@ class TestSurfAgentInit:
     def test_init_with_explicit_provider_nim(self, mock_build_model):
         agent = SurfAgent(provider=PROVIDER_NIM)
         assert agent.provider == PROVIDER_NIM
-        mock_build_model.assert_called_once_with(PROVIDER_NIM, DEFAULT_MODEL)
+        mock_build_model.assert_called_once_with(PROVIDER_NIM, NIM_DEFAULT_MODEL)
 
     def test_init_auto_detect_hf(self, mock_build_model, monkeypatch):
         monkeypatch.setenv("HF_TOKEN", "test-token")
         agent = SurfAgent(provider=None)
         assert agent.provider == PROVIDER_HF
-        mock_build_model.assert_called_once_with(PROVIDER_HF, DEFAULT_MODEL)
+        mock_build_model.assert_called_once_with(PROVIDER_HF, HF_DEFAULT_MODEL)
 
     def test_init_auto_detect_nim(self, mock_build_model, monkeypatch):
         monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
         agent = SurfAgent(provider=None)
         assert agent.provider == PROVIDER_NIM
-        mock_build_model.assert_called_once_with(PROVIDER_NIM, DEFAULT_MODEL)
+        mock_build_model.assert_called_once_with(PROVIDER_NIM, NIM_DEFAULT_MODEL)
 
     def test_init_prefers_nim_over_hf(self, mock_build_model, monkeypatch):
         monkeypatch.setenv("HF_TOKEN", "test-token")
         monkeypatch.setenv("NVIDIA_API_KEY", "test-key")
         agent = SurfAgent(provider=None)
         assert agent.provider == PROVIDER_NIM
-        mock_build_model.assert_called_once_with(PROVIDER_NIM, DEFAULT_MODEL)
+        mock_build_model.assert_called_once_with(PROVIDER_NIM, NIM_DEFAULT_MODEL)
+
+    def test_system_prompt_preserves_code_agent_template(self, mock_build_model):
+        with patch("wavereader.agent.CodeAgent") as mock_code_agent:
+            SurfAgent(provider=PROVIDER_HF)
+            call_kwargs = mock_code_agent.call_args[1]
+            prompt_templates = call_kwargs["prompt_templates"]
+            sys_prompt = prompt_templates["system_prompt"]
+            assert "final_answer" in sys_prompt or "code" in sys_prompt.lower()
+            assert "You are a surf forecasting assistant" in sys_prompt
 
     def test_init_unknown_provider_raises(self):
         with pytest.raises(ValueError, match="Unknown provider"):

@@ -119,7 +119,7 @@ def _empty_fig(message: str) -> go.Figure:
 
 def create_australia_map(skill_filter: str = "all") -> go.Figure:
     """Scattergeo of all knowledge-base breaks, coloured by skill bucket."""
-    lats, lngs, names, texts, colors = [], [], [], [], []
+    lats, lngs, names, texts, colors, labels = [], [], [], [], [], []
     for b in spots.load_breaks():
         if not _matches_skill(b.additional_details.skill_level, skill_filter):
             continue
@@ -128,6 +128,7 @@ def create_australia_map(skill_filter: str = "all") -> go.Figure:
         lats.append(b.coordinates.lat)
         lngs.append(b.coordinates.lng)
         names.append(b.name)
+        labels.append(f"{b.name} ({b.region})")
         colors.append(SKILL_COLORS.get(_primary_skill(b.additional_details.skill_level), MUTED["gray"]))
         texts.append(
             f"<b>{b.name}</b> ({b.region})<br>"
@@ -141,6 +142,7 @@ def create_australia_map(skill_filter: str = "all") -> go.Figure:
             lat=lats,
             lon=lngs,
             text=names,
+            customdata=labels,
             hovertext=texts,
             hoverinfo="text",
             mode="markers",
@@ -711,8 +713,8 @@ def build_ui() -> gr.Blocks:
                     with gr.Column(scale=5):
                         provider_radio = gr.Radio(
                             choices=[
-                                ("Hugging Face 🤗", PROVIDER_HF),
-                                ("NVIDIA NIM ⚡", PROVIDER_NIM),
+                                ("Hugging Face 🤗 (Qwen 80B)", PROVIDER_HF),
+                                ("NVIDIA NIM ⚡ (Llama 3.2 90B)", PROVIDER_NIM),
                             ],
                             value=PROVIDER_HF if hf_ok else PROVIDER_NIM,
                             label="Model hosting",

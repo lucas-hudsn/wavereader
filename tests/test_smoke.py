@@ -31,3 +31,12 @@ def test_pyproject_pinned():
 def test_api_app_exists():
     routes = {r.path for r in api.app.routes}
     assert {"/", "/spots", "/forecast", "/score"} <= routes
+
+
+def test_golden_questions_eval_dry_run():
+    from evals.run_evals import load_golden_questions, run_single_eval
+    questions = load_golden_questions()
+    assert len(questions) == 10
+    for q in questions:
+        res = run_single_eval(q, None, is_dry_run=True)
+        assert res["passed"] is True

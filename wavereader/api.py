@@ -9,7 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from wavereader import forecasts, scoring, spots
+from wavereader import forecasts, scoring, spots, tools
 from wavereader.agent import run_agent, SurfAgent
 
 app = FastAPI(title="wavereader", version="0.1.0")
@@ -61,13 +61,14 @@ async def forecast(spot: str, region: str, days: int = 7):
 
 
 @app.get("/score")
-async def score(spot: str, region: str, days: int = 7):
+async def score(spot: str, region: str, days: int = 7, skill: str | None = None):
     """Deterministic hourly surf scores via scoring.py."""
     s = spots.get_spot(spot, region)
     if s is None:
         raise HTTPException(status_code=404, detail=f"Spot '{spot}' ({region}) not found")
     fc = forecasts.get_forecast(s.coordinates.lat, s.coordinates.lng, days=days)
-    return scoring.score_week(fc, s.model_dump())
+    skill_level = tools._normalize_skill(skill)
+    return scoring.score_week(fc, s.model_dump(), skill_level=skill_level)
 
 
 @app.post("/ask", response_model=AskResponse)

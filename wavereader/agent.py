@@ -1,11 +1,10 @@
 """smolagents CodeAgent for surf forecasting.
 
-Provider-agnostic: uses InferenceClientModel with base URL + key from env
+Provider-agnostic: uses OpenAIServerModel with base URL + key from env
 (``HF_TOKEN`` -> https://router.huggingface.co/v1,
-``NVIDIA_API_KEY`` -> https://integrate.api.nvidia.com/v1). Default model:
-``Qwen/Qwen3-Next-80B-A3B-Instruct`` (only tested model supporting both
-OpenAI-style tool calling and strict ``json_schema`` on the HF router — see
-``data/GENERATION.md`` before swapping models).
+``NVIDIA_API_KEY`` -> https://integrate.api.nvidia.com/v1). Default models:
+HF: ``Qwen/Qwen3-Next-80B-A3B-Instruct``
+NIM: ``meta/llama-3.2-90b-vision-instruct``
 
 The agent interprets and explains only; all numbers come from scoring.py /
 forecasts.py via the tools in tools.py. Streaming + trace capture feed the UI
@@ -51,7 +50,7 @@ CALL TOOLS EXACTLY LIKE THIS (keyword spellings matter):
 - find_spots(query="QLD", skill="beginner")  # query = spot name OR state code: NSW, QLD, VIC, WA, SA, TAS
 - get_spot_knowledge(spot_name="Snapper Rocks", region="QLD")
 - get_forecast(spot_name="Snapper Rocks", region="QLD")
-- score_week(spot_name="Snapper Rocks", region="QLD")  # ONE spot per call
+- score_week(spot_name="Snapper Rocks", region="QLD", skill="intermediate")  # ONE spot per call
 - rank_spots_this_week(region="QLD", skill="beginner")  # use this to COMPARE many spots in a state
 
 Workflow: to answer "where should I surf in <state>", call rank_spots_this_week first,
@@ -62,9 +61,22 @@ names — use exactly the ones above.
 PROVIDER_HF = "hf"
 PROVIDER_NIM = "nim"
 
-DEFAULT_MODEL = "Qwen/Qwen3-Next-80B-A3B-Instruct"
+HF_DEFAULT_MODEL = "Qwen/Qwen3-Next-80B-A3B-Instruct"
+NIM_DEFAULT_MODEL = "meta/llama-3.2-90b-vision-instruct"
+DEFAULT_MODEL = HF_DEFAULT_MODEL
+
+PROVIDER_MODELS = {
+    PROVIDER_HF: HF_DEFAULT_MODEL,
+    PROVIDER_NIM: NIM_DEFAULT_MODEL,
+}
+
 HF_BASE_URL = "https://router.huggingface.co/v1"
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
+
+
+def get_default_model(provider: str) -> str:
+    """Return the default model ID for a given provider."""
+    return PROVIDER_MODELS.get(provider, HF_DEFAULT_MODEL)
 
 
 @dataclass
@@ -121,17 +133,18 @@ class ScoreWeekTool(Tool):
     name = "score_week"
     description = (
         "Get hour-by-hour surf scores for the next 7 days at ONE spot. "
-        "Example: score_week(spot_name=\"Snapper Rocks\", region=\"QLD\"). "
+        "Example: score_week(spot_name=\"Snapper Rocks\", region=\"QLD\", skill=\"intermediate\"). "
         "To compare many spots, use rank_spots_this_week instead."
     )
     inputs = {
         "spot_name": {"type": "string", "description": "Name of the surf spot"},
         "region": {"type": "string", "description": "Australian state/region"},
+        "skill": {"type": "string", "description": "Surfer skill level (beginner, intermediate, advanced, expert)", "nullable": True},
     }
     output_type = "object"
 
-    def forward(self, spot_name: str, region: str) -> list[dict]:
-        return score_week(spot_name, region)
+    def forward(self, spot_name: str, region: str, skill: str | None = None) -> list[dict]:
+        return score_week(spot_name, region, skill=skill)
 
 
 class FindSpotsTool(Tool):
@@ -203,7 +216,7 @@ def _build_model(provider: str, model: str | None = None) -> OpenAIServerModel:
     Both the HF router and NVIDIA NIM speak the OpenAI chat-completions
     protocol, so one client class covers the HF⇄NIM switch.
     """
-    model_id = model or DEFAULT_MODEL
+    model_id = model or get_default_model(provider)
 
     if provider == PROVIDER_HF:
         token = os.getenv("HF_TOKEN")
@@ -247,16 +260,16 @@ class SurfAgent:
         model: str | None = None,
     ):
         self.provider = provider or _detect_provider()
-        self.model = model or DEFAULT_MODEL
+        self.model = model or get_default_model(self.provider)
         self._model = _build_model(self.provider, self.model)
-        # Load smolagents' default prompt templates, then override system prompt
+        # Load smolagents' default prompt templates, then append system prompt
         default_templates_yaml = (
             importlib.resources.files("smolagents.prompts")
             .joinpath("code_agent.yaml")
             .read_text()
         )
         default_templates = yaml.safe_load(default_templates_yaml)
-        default_templates["system_prompt"] = SYSTEM_PROMPT
+        default_templates["system_prompt"] += "\n\n" + SYSTEM_PROMPT
         prompt_templates = PromptTemplates(**default_templates)
         self._agent = CodeAgent(
             tools=TOOLS,

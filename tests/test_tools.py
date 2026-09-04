@@ -80,3 +80,29 @@ def test_rank_spots_this_week_ranks_descending():
     for r in ranked:
         assert r["region"] == "TAS"
         assert r["best_time"]
+
+
+def test_normalize_skill():
+    assert tools._normalize_skill(None) == "intermediate"
+    assert tools._normalize_skill("beginner") == "beginner"
+    assert tools._normalize_skill("Beginner Surfer") == "beginner"
+    assert tools._normalize_skill("adv") == "advanced"
+    assert tools._normalize_skill("expert only") == "expert"
+    assert tools._normalize_skill("pro") == "expert"
+    assert tools._normalize_skill("something else") == "intermediate"
+
+
+def test_score_week_forwards_skill():
+    with patch("wavereader.forecasts.get_forecast", side_effect=_fake_forecast):
+        res_beg = tools.score_week("Snapper Rocks", "QLD", skill="beginner")
+        res_exp = tools.score_week("Snapper Rocks", "QLD", skill="expert")
+    assert isinstance(res_beg, list) and isinstance(res_exp, list)
+    assert res_beg[0]["skill_level"] == "beginner"
+    assert res_exp[0]["skill_level"] == "expert"
+
+
+def test_rank_spots_this_week_forwards_skill():
+    with patch("wavereader.forecasts.get_forecast", side_effect=_fake_forecast):
+        ranked = tools.rank_spots_this_week("QLD", skill="beginner")
+    assert ranked
+    assert all(r["skill_level"] == "beginner" for r in ranked)

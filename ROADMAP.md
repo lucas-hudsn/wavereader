@@ -21,7 +21,7 @@
 - [x] System prompt: numbers from tools, model explains
 - [x] End-to-end flows: near-me weekly ranking with skill filter, best-hours-today, spot Q&A
 - [ ] User profile (skill, home region) carried through conversation (skill filter works via chat; no persistent profile yet)
-- [ ] `evals/golden_questions.json` written; spot-checked manually (ranking+skill, best-hours, spot Q&A) — automated runner still TODO
+- [x] `evals/golden_questions.json` + automated runner (`evals/run_evals.py`) for regression and pre-recording gate
 
 ---
 

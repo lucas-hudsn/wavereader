@@ -89,6 +89,15 @@ def test_score():
     assert "score" in data[0]
     assert "components" in data[0]
     assert "time" in data[0]
+    assert data[0]["skill_level"] == "intermediate"
+
+
+def test_score_with_skill():
+    with patch("wavereader.forecasts.get_forecast", side_effect=_fake_forecast):
+        resp = client.get("/score?spot=Snapper Rocks&region=QLD&days=2&skill=beginner")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data[0]["skill_level"] == "beginner"
 
 
 def test_score_spot_not_found():

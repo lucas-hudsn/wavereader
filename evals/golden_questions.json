@@ -32,7 +32,7 @@
     },
     {
       "id": "gq-04",
-      "question": "Tell me about Margaret Bay — what swell and wind does it like?",
+      "question": "Tell me about Margaret River - Main Break — what swell and wind does it like?",
       "expected_behaviors": [
         "agent calls get_spot_knowledge and quotes the knowledge base (ideal_swell, ideal_wind, ideal_tide)",
         "tide is described qualitatively only (no invented tide curves)"

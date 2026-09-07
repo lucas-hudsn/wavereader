@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 
 # Environment
@@ -8,3 +9,9 @@ __pycache__/
 
 # Cache
 .cache/
+
+# macOS
+.DS_Store
+
+# Gradio / data caches
+*.log

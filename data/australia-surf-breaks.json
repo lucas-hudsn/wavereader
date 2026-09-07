@@ -1,0 +1,305 @@
+{
+  "Australia_Surf_Breaks": {
+    "New South Wales": {
+      "North Coast": [
+        "Byron Bay (The Pass)",
+        "Lennox Head",
+        "Angourie",
+        "Kingscliff",
+        "Cabarita Beach",
+        "Ballina (Lighthouse Beach)",
+        "Wooli",
+        "Sharpes Beach",
+        "Broken Head",
+        "Tallow Beach"
+      ],
+      "Mid North Coast": [
+        "Crescent Head",
+        "Nambucca Heads",
+        "Diggers Beach (Coffs Harbour)",
+        "Town Beach (Port Macquarie)",
+        "South West Rocks",
+        "Scotts Head",
+        "Sawtell",
+        "Emerald Beach",
+        "Woolgoolga",
+        "Hat Head"
+      ],
+      "Central Coast": [
+        "Avoca Beach",
+        "Terrigal",
+        "The Entrance",
+        "Norah Head",
+        "Copacabana",
+        "MacMasters Beach",
+        "Soldiers Beach",
+        "Shelly Beach",
+        "Forresters Beach",
+        "Box Head"
+      ],
+      "Sydney": [
+        "Bondi Beach",
+        "Manly Beach",
+        "Bronte Beach",
+        "Maroubra Beach",
+        "Cronulla",
+        "Narrabeen",
+        "Freshwater",
+        "Palm Beach",
+        "Curl Curl",
+        "North Avalon"
+      ],
+      "Illawarra / South Coast": [
+        "Sandon Point",
+        "Austinmer",
+        "Thirroul",
+        "Wollongong City Beach",
+        "Shellharbour",
+        "Gerroa",
+        "Seven Mile Beach",
+        "Ulladulla",
+        "Mollymook",
+        "Cave Beach (Jervis Bay)"
+      ],
+      "Far South Coast": [
+        "Merimbula",
+        "Tathra",
+        "Pambula",
+        "Bermagui",
+        "Narooma",
+        "Broulee",
+        "Moruya",
+        "Malua Bay",
+        "Pedro Point",
+        "Aslings Beach"
+      ]
+    },
+    "Queensland": {
+      "Gold Coast": [
+        "Snapper Rocks",
+        "Kirra",
+        "Duranbah",
+        "Burleigh Heads",
+        "Currumbin Alley",
+        "Point Lookout (North Stradbroke Island)",
+        "South Stradbroke Island",
+        "Rainbow Bay",
+        "Greenmount",
+        "Tugun"
+      ],
+      "Sunshine Coast": [
+        "First Point (Noosa)",
+        "Sunshine Beach",
+        "Alexandra Headland",
+        "Coolum Beach",
+        "Mooloolaba",
+        "Kings Beach (Caloundra)",
+        "Wurtulla",
+        "Peregian Beach",
+        "Marcus Beach",
+        "Yaroomba"
+      ],
+      "Wide Bay / Fraser Coast": [
+        "Double Island Point",
+        "Rainbow Beach",
+        "Inskip Point",
+        "Teewah Beach",
+        "Fraser Island Eastern Beach",
+        "Bargara",
+        "Elliott Heads",
+        "Woodgate Beach",
+        "Moore Park Beach",
+        "Agnes Water / 1770"
+      ]
+    },
+    "Victoria": {
+      "Surf Coast": [
+        "Bells Beach",
+        "Winkipop",
+        "Jan Juc",
+        "13th Beach",
+        "Point Impossible",
+        "Fisherman's Beach",
+        "Anglesea Point",
+        "Urquharts Bluff",
+        "Southside",
+        "Rincon"
+      ],
+      "Mornington Peninsula": [
+        "Portsea",
+        "Gunnamatta",
+        "Point Leo",
+        "Flinders (Big Left)",
+        "Rye Back Beach",
+        "Sorrento Back Beach",
+        "St Andrews Beach",
+        "Cape Schanck",
+        "Fingal",
+        "Boneo"
+      ],
+      "Phillip Island": [
+        "Woolamai",
+        "Smiths Beach",
+        "Cat Bay",
+        "Summerlands",
+        "Cape Woolamai Right",
+        "Berrys Beach",
+        "Flynns Reef",
+        "Kitty Miller Bay",
+        "Forrest Caves",
+        "Cowes"
+      ],
+      "Far West Coast (Warrnambool - Portland)": [
+        "Levys Beach",
+        "Lady Bay (Warrnambool)",
+        "Killarney",
+        "Port Fairy",
+        "Yellow Rock (Portland)",
+        "Narrawong",
+        "Bridgewater Bay",
+        "Crumpets",
+        "Logans Beach",
+        "Childers Cove"
+      ],
+      "East Gippsland": [
+        "Ninety Mile Beach",
+        "Lakes Entrance",
+        "Cape Conran",
+        "Marlo",
+        "Bemm River",
+        "Bastion Point (Mallacoota)",
+        "Woodside Beach",
+        "Seaspray",
+        "Golden Beach",
+        "Loch Sport"
+      ]
+    },
+    "Western Australia": {
+      "South West (Margaret River region)": [
+        "Margaret River Main Break",
+        "Surfers Point",
+        "The Box",
+        "Gallows",
+        "Rivermouth",
+        "Yallingup",
+        "Smiths Beach",
+        "Injidup",
+        "North Point",
+        "South Point"
+      ],
+      "Perth Metro": [
+        "Trigg Point",
+        "Scarborough Beach",
+        "Cottesloe Beach",
+        "City Beach",
+        "Leighton Beach",
+        "Secret Harbour",
+        "Mandurah",
+        "Strickland Bay (Rottnest Island)",
+        "Ocean Reef",
+        "Sorrento"
+      ],
+      "South Coast / Great Southern": [
+        "Ocean Beach (Denmark)",
+        "Nanarup",
+        "Middleton Beach (Albany)",
+        "Cheynes Beach",
+        "West Beach (Esperance)",
+        "Kelp Beds (Esperance)",
+        "Salmon Holes",
+        "Cosy Corner",
+        "Peaceful Bay",
+        "Conspicuous Cliff"
+      ],
+      "North West (Gnaraloo - Exmouth - Broome)": [
+        "Gnaraloo Bay",
+        "Red Bluff",
+        "Tantabiddi",
+        "Exmouth Gulf",
+        "Norwest Reef",
+        "Cable Beach (Broome)",
+        "Quobba",
+        "Coral Bay",
+        "Point Quobba",
+        "Carnarvon"
+      ]
+    },
+    "South Australia": {
+      "Fleurieu Peninsula": [
+        "Middleton",
+        "Waitpinga",
+        "Parsons Beach",
+        "Victor Harbor",
+        "Chiton Rocks",
+        "Goolwa Beach",
+        "Boomer Beach",
+        "Southport",
+        "Second Valley",
+        "Port Willunga"
+      ],
+      "Yorke Peninsula": [
+        "Chinaman's",
+        "Pondalowie Bay",
+        "Berry Bay",
+        "Daly Head",
+        "Corny Point",
+        "Formby Bay",
+        "Marion Bay",
+        "Foul Bay",
+        "Sturt Bay",
+        "Investigator Strait breaks"
+      ],
+      "Eyre Peninsula / Far West Coast": [
+        "Cactus Beach",
+        "Fishery Bay",
+        "Almost Anywhere",
+        "Blacks Beach",
+        "Greenly Beach",
+        "Sheringa Beach",
+        "Elliston",
+        "Baird Bay",
+        "Port Kenny",
+        "Streaky Bay"
+      ]
+    },
+    "Tasmania": {
+      "East Coast": [
+        "Bicheno",
+        "Four Mile Creek",
+        "Scamander",
+        "Beer Barrel (St Helens)",
+        "Falmouth",
+        "Chain of Lagoons",
+        "Coles Bay",
+        "Friendly Beaches",
+        "Freycinet",
+        "Seymour"
+      ],
+      "South Coast (Hobart region)": [
+        "Clifton Beach",
+        "Goats Beach",
+        "Park Beach",
+        "South Arm",
+        "Roches Beach",
+        "Cremorne",
+        "Marion Bay",
+        "Shipstern Bluff",
+        "Cloudy Bay (Bruny Island)",
+        "Adventure Bay (Bruny Island)"
+      ],
+      "North / West Coast": [
+        "Marrawah",
+        "Greens Beach",
+        "Anthony's",
+        "West Point",
+        "Bakers Beach",
+        "Boat Harbour",
+        "Sisters Beach",
+        "Ocean Beach (Strahan)",
+        "Bluff Point",
+        "Edge of the World (Arthur River)"
+      ]
+    }
+  },
+  "note": "Northern Territory is excluded as it has negligible surf coastline. Some listed spots are lesser-known local/regional breaks; conditions and swell exposure vary widely by season and swell direction."
+}

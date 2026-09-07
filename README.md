@@ -1,117 +1,96 @@
 # wave~reader
 
-**An agentic surf forecaster for Australian breaks — built for the [NVIDIA GTC Berlin Golden Ticket contest](https://developer.nvidia.com/gtc-golden-ticket-contest).**
+Australian surf-break encyclopaedia + agentic forecaster (work in progress).
 
-Surf forecasting runs on inherent knowledge: which winds suit which break, what swell size a spot can handle, which tide is working. WaveReader encodes that knowledge for 101 Australian breaks and puts an open-model agent on top of live marine data, so anyone can just ask:
+The current front end is a Gradio map UI (`main.py`). Break knowledge is
+generated as schema-valid JSON by the scripts in `app/` using an NVIDIA
+model via Hugging Face Inference Providers. The deterministic
+forecast/score/agent code in `wavereader/` is kept and will be reimplemented
+against the new schemas + UI.
 
-- _"Which days are good to surf this week near Byron Bay, and where?"_
-- _"What time should I surf Snapper Rocks tomorrow? I ride a mid-length."_
-
-The agent calls real forecast tools, scores every spot with a deterministic surf-quality engine, and **explains** the answer — it never invents the numbers.
-
-> 🎬 Built Aug 30 – Sep 7, 2026. Live demo on Hugging Face Spaces: _(link on launch day)_
-
-## Features
-
-|                                    |                                                                                                                                                                                |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 🤖 **Agentic answers**             | smolagents CodeAgent over Qwen3-Next-80B — the LLM interprets, deterministic tools own the data.                                                       |
-| 📊 **Interactive forecast graphs** | Whenever the agent surfaces wind, swell or wave data, it renders as interactive charts (seaborn-styled): hourly wave height, period, wind speed and direction.                 |
-| 🗺️ **Australia break map**         | The home page is a map of Australia: pick your break directly, or search by city/suburb and let the agent rank nearby spots for your skill level.                              |
-| 🧠 **Break knowledge base**        | 101 breaks with coordinates, ideal swell/wind/tide, break type, skill level and hazards — generated with an open model, web-grounded, published as an open dataset.            |
-| 🎛️ **Visible reasoning**           | Every tool call (name, arguments, latency, result) appears in a trace panel; a **daggr "Morning Surf Report" canvas** shows the whole pipeline as an inspectable visual graph. |
-| 🔀 **Dual model hosting**          | One OpenAI-compatible client, switchable at runtime between **Hugging Face Inference** and **NVIDIA NIM** — same open model, two hosts.                                        |
-
-## Architecture
+## Layout
 
 ```
-┌────────────────────────────  UI (Gradio)  ────────────────────────────┐
-│  Australia break map · chat · interactive forecast charts · trace panel│
-│  daggr canvas: "Morning Surf Report" pipeline                          │
-└──────────────────────────────┬────────────────────────────────────────┘
-                               │
-┌──────────────────────────────▼─────────────  FastAPI  ────────────────┐
-│  /spots  /forecast  /score  /ask                                      │
-├───────────────────────────────────────────────────────────────────────┤
-│  agent.py — smolagents CodeAgent (streaming + trace)                   │
-│      ↳ tools: get_forecast · score_week · find_spots(near/skill)       │
-│               get_spot_knowledge · rank_spots_this_week                │
-├───────────────────────────────────────────────────────────────────────┤
-│  scoring.py — deterministic 0–10 surf-quality score per hour:          │
-│    swell size vs ideal range · swell direction match · wind speed +    │
-│    offshore alignment · wave period → per-component breakdown          │
-├───────────────────────────────────────────────────────────────────────┤
-│  forecasts.py — Open-Meteo Marine API (hourly wave height/period/      │
-│    direction, swell, wind; 7-day horizon, cached)                      │
-│  spots.py — 101-break knowledge base (data/break_details.json)         │
-├───────────────────────────────────────────────────────────────────────┤
-│  LLM: Qwen/Qwen3-Next-80B-A3B-Instruct                                 │
-│    via HF Inference Providers  ⇄  NVIDIA NIM (env-switchable)          │
-└───────────────────────────────────────────────────────────────────────┘
+main.py                          # Gradio map front end (run this)
+app/
+  generate_surf_break.py         # single-shot structured-JSON break generator
+  generate_base_data.py          # batch/resumable enrichment runner
+data/
+  australia-surf-breaks.json           # input: nested state -> region -> [names]
+  australia-surf-breaks-enriched.json  # output: list of schema-valid breaks
+  surf-break-schema.json               # JSON Schema every break must conform to
+  surf-break-example-bells.json        # worked example (Bells Beach) used in the prompt
+wavereader/
+  agent.py / tools.py / forecasts.py / scoring.py   # kept, to reimplement
 ```
-
-**Design principle:** the model orchestrates; it doesn't hallucinate. Forecast numbers, scores and rankings all come from code and APIs — the agent's job is interpretation, explanation and recommendation.
-
-## The data
-
-`data/break_details.json` holds one record per break: coordinates, ideal swell (size range + direction), ideal wind (max strength + offshore direction), ideal tide, break type/direction/bottom, skill level, best season, hazards and notes — for breaks across NSW, QLD, VIC, WA, SA and TAS. How it's generated and why it's built this way:
-[data/GENERATION.md](data/GENERATION.md).
 
 ## Setup
 
-Requires [uv](https://docs.astral.sh/uv/).
+Requires [uv](https://docs.astral.sh/uv/) and Python 3.14 (`uv sync` reads
+`.python-version`).
 
 ```sh
 uv sync
+cp .env.example .env   # then fill in HF_TOKEN
 ```
 
-For the data generation script, authenticate with Hugging Face (token is
-stored locally and picked up automatically):
+`HF_TOKEN` needs Inference Providers access:
+https://huggingface.co/settings/tokens
+
+## Run the front end
 
 ```sh
-hf auth login
-# or: export HF_TOKEN="hf_xxx"
+uv run python main.py
 ```
 
-## Generate surf break data
+Opens a Gradio app:
 
-Reads `data/breaks.json` and writes grounded details for each break to
-`data/break_details.json`. The run is resumable — already-fetched breaks are
-skipped, failed ones are retried.
+- State / Region / Skill filters reframe a Plotly `Scattermap` of Australia.
+- Hover a dot for name + region + skill; pick a break for its details table.
+- "Can't find your local break?" generates one live via
+  `app/generate_surf_break.py` — session-only (kept in `gr.State`, never
+  written to `data/`). Generating again replaces it; "Delete my break"
+  removes it.
+
+## Generate break data
+
+Single break (prints JSON):
 
 ```sh
-uv run data/generate_data.py
+uv run python app/generate_surf_break.py "Kilcunda" "Victoria" "Bass Coast"
 ```
 
-## Run the app
-
-API server (OpenAPI docs at `/docs`):
+Full batch (resumable — skips breaks already in the enriched output,
+retries missing ones on re-run, saves after every break):
 
 ```sh
-uv run uvicorn wavereader.api:app --reload
+export HF_TOKEN=hf_xxx
+uv run python app/generate_base_data.py
 ```
 
-Gradio UI:
+How it works: `build_surf_break_prompt()` assembles schema + Bells Beach
+worked example + target break; `generate_surf_break()` makes one chat
+completion call (`nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16` via
+`provider="deepinfra"`, temp 0.4, 2048 tokens); `extract_json()` strips
+fences / outermost `{...}` and parses. `enrich_result()` pins canonical
+`state`/`region` from the input list (not the model) plus a stable
+`"<name> | <state> | <region>"` id.
 
-```sh
-uv run python -m wavereader.app
-```
+## Schemas
 
-daggr "Morning Surf Report" canvas:
+- `data/surf-break-schema.json` — required: `name`, `state`, `region`,
+  `location` (region/state/country/coordinates), `skillLevel`,
+  `breakType`, `peakType`, `idealSwell`, `idealWind`, `idealTide`.
+  Enums are strict (compass points, skill tiers, break/peak types,
+  tide stages, seasons, hazards, crowd factor).
+- `data/surf-break-example-bells.json` — the prompt's worked example.
+- `data/australia-surf-breaks.json` — the nested input list.
+- `data/australia-surf-breaks-enriched.json` — the generated output
+  (list, sorted by state/region/name on write).
 
-```sh
-uv run python -m wavereader.daggr_pipeline
-```
+## Kept for reimplementation
 
-## Built with open everything
-
-- **Model:** Qwen3-Next-80B (open weights) — served by Hugging Face Inference Providers and NVIDIA NIM
-- **Workflow canvas:** [daggr](https://github.com/gradio-app/daggr) (the Gradio team's visual AI-workflow library)
-- **Forecasts:** [Open-Meteo Marine API](https://open-meteo.com/en/docs/marine-weather-api) (free, no key)
-- **Knowledge base:** open dataset, built with an open model
-
-## Context
-
-Built as an entry for the **NVIDIA GTC Berlin Golden Ticket contest** (free GTC Berlin pass, Oct 20–22, 2026; submissions close Sep 10, 2026) — and by a data scientist who just moved to Berlin, 16,000 km from the nearest surf break. 🐻
-
-_Say hi if you're working on LLM agents or applied ML in Berlin — DMs open._
+`wavereader/agent.py`, `wavereader/tools.py`, `wavereader/forecasts.py`,
+`wavereader/scoring.py` are the old deterministic forecast/score/agent
+functions and tools. They still reference the previous data layout and are
+kept as-is to be rewired to the new schemas and the `main.py` front end.

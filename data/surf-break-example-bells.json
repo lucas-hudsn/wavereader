@@ -1,0 +1,29 @@
+{
+  "name": "Bells Beach",
+  "state": "Victoria",
+  "region": "Surf Coast",
+  "description": "Iconic right-hand point/reef break on Victoria's Surf Coast, world-famous as the home of the Rip Curl Pro (the longest continuously running surfing competition). Bells is a powerful, high-performance wave that handles size well, with the adjacent 'Rincon' and 'Winkipop' sections offering different characteristics as swell and tide change.",
+  "location": {
+    "region": "Surf Coast",
+    "state": "Victoria",
+    "country": "Australia",
+    "coordinates": { "lat": -38.3667, "lng": 144.2833 }
+  },
+  "skillLevel": "advanced",
+  "breakType": "point",
+  "peakType": "right",
+  "idealSwell": {
+    "direction": ["SW", "S", "SSW"],
+    "sizeRangeFt": { "min": 4, "max": 12 }
+  },
+  "idealWind": {
+    "direction": ["N", "NNW", "NNE"],
+    "type": "offshore"
+  },
+  "idealTide": {
+    "stage": ["mid", "high"]
+  },
+  "bestSeason": ["autumn", "winter"],
+  "hazards": ["rocks", "sea urchins", "crowds", "shallow water"],
+  "crowdFactor": "very crowded"
+}

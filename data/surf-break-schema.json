@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/surf-break.json",
+  "title": "Surf Break",
+  "description": "Minimal schema describing a surf break for a basic surf app: where it is, who it suits, and the conditions that make it work.",
+  "type": "object",
+  "required": [
+    "name",
+    "state",
+    "region",
+    "location",
+    "skillLevel",
+    "breakType",
+    "peakType",
+    "idealSwell",
+    "idealWind",
+    "idealTide"
+  ],
+  "properties": {
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "id": {
+      "type": "string",
+      "description": "Stable canonical id '<input break name> | <state> | <region>' pinning the entry to the input list (not the model-generated name, which is occasionally shortened)."
+    },
+    "state": {
+      "type": "string",
+      "description": "Australian state/territory (canonical filter key, e.g. 'New South Wales')."
+    },
+    "region": {
+      "type": "string",
+      "description": "Sub-state surf region (canonical filter key, e.g. 'North Coast')."
+    },
+    "location": {
+      "type": "object",
+      "required": ["region", "state", "country", "coordinates"],
+      "properties": {
+        "region": { "type": "string" },
+        "state": { "type": "string" },
+        "country": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "required": ["lat", "lng"],
+          "properties": {
+            "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+            "lng": { "type": "number", "minimum": -180, "maximum": 180 }
+          }
+        }
+      }
+    },
+    "skillLevel": {
+      "type": "string",
+      "enum": ["beginner", "intermediate", "advanced", "expert", "pro-only"]
+    },
+    "breakType": {
+      "type": "string",
+      "enum": [
+        "reef",
+        "beach",
+        "point",
+        "river mouth",
+        "slab",
+        "jetty/groin",
+        "man-made/artificial"
+      ]
+    },
+    "peakType": {
+      "type": "string",
+      "enum": ["left", "right", "a-frame", "both (separate peaks)", "closeout"]
+    },
+    "idealSwell": {
+      "type": "object",
+      "required": ["direction", "sizeRangeFt"],
+      "properties": {
+        "direction": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "N",
+              "NNE",
+              "NE",
+              "ENE",
+              "E",
+              "ESE",
+              "SE",
+              "SSE",
+              "S",
+              "SSW",
+              "SW",
+              "WSW",
+              "W",
+              "WNW",
+              "NW",
+              "NNW"
+            ]
+          }
+        },
+        "sizeRangeFt": {
+          "type": "object",
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "number", "minimum": 0 },
+            "max": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "idealWind": {
+      "type": "object",
+      "required": ["direction", "type"],
+      "properties": {
+        "direction": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "N",
+              "NNE",
+              "NE",
+              "ENE",
+              "E",
+              "ESE",
+              "SE",
+              "SSE",
+              "S",
+              "SSW",
+              "SW",
+              "WSW",
+              "W",
+              "WNW",
+              "NW",
+              "NNW"
+            ]
+          }
+        },
+        "type": {
+          "type": "string",
+          "enum": ["offshore", "onshore", "cross-shore", "light/variable"]
+        }
+      }
+    },
+    "idealTide": {
+      "type": "object",
+      "required": ["stage"],
+      "properties": {
+        "stage": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["low", "mid", "high", "any"] }
+        }
+      }
+    },
+    "bestSeason": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["spring", "summer", "autumn", "winter", "year-round"]
+      }
+    },
+    "hazards": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sharp reef",
+          "rocks",
+          "sea urchins",
+          "rip currents",
+          "sharks",
+          "crowds",
+          "localism",
+          "shallow water",
+          "sandbanks shift often",
+          "boat traffic",
+          "jellyfish/stingers",
+          "cold water"
+        ]
+      }
+    },
+    "crowdFactor": {
+      "type": "string",
+      "enum": ["quiet", "moderate", "busy", "very crowded"]
+    }
+  }
+}

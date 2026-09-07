@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+import math
+
 import plotly.graph_objects as go
 
 from app.adapters import break_skill, enriched_to_scoring_spot, get_coords, normalize_skill
@@ -158,6 +160,65 @@ def _score_color(score: float) -> str:
 _ARROWS_8 = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"]
 _COMPASS_8 = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
+_COMPASS_DEG_16 = {
+    "N": 0.0, "NNE": 22.5, "NE": 45.0, "ENE": 67.5,
+    "E": 90.0, "ESE": 112.5, "SE": 135.0, "SSE": 157.5,
+    "S": 180.0, "SSW": 202.5, "SW": 225.0, "WSW": 247.5,
+    "W": 270.0, "WNW": 292.5, "NW": 315.0, "NNW": 337.5,
+}
+
+# Arrow colours: direction quality only (size encodes strength).
+_WIND_GOOD = "#1a9850"  # green — offshore / good direction
+_WIND_CROSS = "#eab308"  # yellow — cross-shore
+_WIND_BAD = "#d73027"  # red — onshore
+
+
+def _parse_dir_to_deg(direction: Any) -> float | None:
+    """Parse 'N', 'NE/SW', 'N to SW' style bearings to degrees (cyclic mean)."""
+    if direction is None:
+        return None
+    if isinstance(direction, (int, float)):
+        try:
+            return float(direction) % 360.0
+        except (TypeError, ValueError):
+            return None
+    text = str(direction).replace(",", "/").replace(" to ", "/").replace(" ", "").upper()
+    parts = [p for p in text.split("/") if p in _COMPASS_DEG_16]
+    if not parts:
+        return None
+    sin_sum = sum(math.sin(math.radians(_COMPASS_DEG_16[p])) for p in parts)
+    cos_sum = sum(math.cos(math.radians(_COMPASS_DEG_16[p])) for p in parts)
+    return math.degrees(math.atan2(sin_sum, cos_sum)) % 360.0
+
+
+def _angular_diff(a: float, b: float) -> float:
+    d = abs(float(a) - float(b)) % 360.0
+    return d if d <= 180.0 else 360.0 - d
+
+
+def _wind_quality_color(wind_from_deg: float, offshore_from_deg: float | None) -> str:
+    """Green (offshore) ≤45°, yellow (cross) ≤135°, else red (onshore)."""
+    if offshore_from_deg is None:
+        return "#0b2c5c"
+    try:
+        diff = _angular_diff(float(wind_from_deg), float(offshore_from_deg))
+    except (TypeError, ValueError):
+        return "#0b2c5c"
+    if diff <= 45.0:
+        return _WIND_GOOD
+    if diff <= 135.0:
+        return _WIND_CROSS
+    return _WIND_BAD
+
+
+def _wind_arrow_size(speed_kt: Any) -> float:
+    """Arrow size encodes strength: ~22 pt when light → ~33 pt when strong (1–1.5x)."""
+    try:
+        s = max(0.0, float(speed_kt))
+    except (TypeError, ValueError):
+        return 22.0
+    return 22.0 + 11.0 * min(s, 30.0) / 30.0
+
 
 def _deg_to_compass(deg: float) -> str:
     """8-point compass label for a meteorological degree."""
@@ -275,45 +336,59 @@ def build_waves_fig(scored: list[dict]) -> go.Figure:
     return _strip_layout(fig, height=230, hide_x=True)
 
 
-def build_wind_fig(scored: list[dict]) -> go.Figure:
-    """Wind speed line + arrow markers showing blow-to direction."""
+def build_wind_fig(scored: list[dict], spot: dict | None = None) -> go.Figure:
+    """Wind as colored arrows only: colour = direction quality, size = strength.
+
+    Green = offshore/good (≤45° from the spot's ideal), yellow = cross-shore,
+    red = onshore (>135°). Arrow size scales 22→33 pt (1–1.5x) with wind
+    speed in kt; heavy font weight keeps them thick. Single row, no y-axis —
+    strength reads from size only, exact kt on hover. Arrows point where the
+    wind blows TO. ``spot`` is the scoring spot (``ideal_wind.direction``);
+    without it all arrows fall back to dark blue.
+    """
     if not scored:
         return _empty_fig()
     times = [r.get("time") for r in scored]
     speeds = [r.get("wind_speed_kt") for r in scored]
     dirs = [r.get("wind_direction_deg") for r in scored]
+    offshore_deg: float | None = None
+    if isinstance(spot, dict):
+        offshore_deg = _parse_dir_to_deg((spot.get("ideal_wind") or {}).get("direction"))
     fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(
-            x=times,
-            y=speeds,
-            mode="lines",
-            fill="tozeroy",
-            fillcolor="rgba(44,160,44,0.18)",
-            line={"color": "#2ca02c", "width": 2},
-            hovertemplate="%{x}<br>%{y:.0f} kt %{customdata}<extra></extra>",
-            customdata=[f"from {_deg_to_compass(d)} ({float(d):.0f}°)" for d in dirs],
-            name="speed (kt)",
-        )
-    )
     # Subsample arrows so the strip stays readable (~1 per 6 h on a 7-day view).
     step = max(1, len(times) // 28)
     idx = list(range(0, len(times), step))
+    colors = [_wind_quality_color(dirs[i], offshore_deg) for i in idx]
+    sizes = [_wind_arrow_size(speeds[i]) for i in idx]
     fig.add_trace(
         go.Scatter(
             x=[times[i] for i in idx],
-            y=[speeds[i] for i in idx],
+            y=[1.0] * len(idx),
             mode="text",
             text=[_deg_to_arrow_from(dirs[i]) for i in idx],
-            textfont={"size": 17, "color": "#0b2c5c"},
+            textfont={
+                "size": sizes,
+                "color": colors,
+                "family": "Arial Black, Arial, sans-serif",
+            },
             hovertemplate="%{x}<br>%{customdata}<extra></extra>",
             customdata=[
                 f"{float(speeds[i]):.0f} kt from {_deg_to_compass(dirs[i])} "
                 f"({float(dirs[i]):.0f}°) — arrow points where it blows to"
                 for i in idx
             ],
-            name="direction →",
+            name="wind",
+            showlegend=False,
         )
     )
-    fig.update_layout(title="Wind (arrows point where wind blows to)", yaxis={"title": "kt"})
-    return _strip_layout(fig, height=230, hide_x=False)
+    # No legend — the title already carries the colour meaning, and the
+    # overlay legend was blocking arrows.
+    fig.update_layout(
+        title="Wind (green=offshore, yellow=cross, red=onshore; size=strength)",
+        yaxis={"visible": False, "showticklabels": False, "range": [0.5, 1.5]},
+        showlegend=False,
+    )
+    fig = _strip_layout(fig, height=170, hide_x=False)
+    fig.update_yaxes(visible=False, showticklabels=False, showgrid=False, zeroline=False)
+    fig.update_layout(showlegend=False)
+    return fig

@@ -14,6 +14,8 @@ from plotly import graph_objects as go
 DATA_PATH = Path(__file__).parent / "data" / "australia-surf-breaks-enriched.json"
 GENERATOR_PATH = Path(__file__).parent / "app" / "generate_surf_break.py"
 FORECAST_PATH = Path(__file__).parent / "app" / "surf_forecast.py"
+REPORT_PATH = Path(__file__).parent / "app" / "generate_surf_report.py"
+FAVICON_PATH = Path(__file__).parent / "assets" / "wave.svg"
 
 ALL = "All"
 
@@ -45,16 +47,29 @@ APP_CSS = """
     text-transform: lowercase;
     margin-bottom: 0 !important;
 }
-.hero-sub {
-    font-size: 1.3em !important;
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    border-top: 2px dashed #0b2c5c;
-    border-bottom: 2px dashed #0b2c5c;
-    padding: 6px 0;
-}
 button, select {
     font-family: "Courier New", Courier, monospace !important;
+}
+/* primary (orange) buttons -> dark blue */
+.gradio-container {
+    --button-primary-background-fill: #0b2c5c !important;
+    --button-primary-background-fill-hover: #13407e !important;
+    --button-primary-text-color: #ffffff !important;
+    --button-primary-border-color: #0b2c5c !important;
+}
+.gradio-container button.primary,
+.gradio-container .gr-button-primary,
+button.primary, button.lg.primary {
+    background: #0b2c5c !important;
+    border-color: #0b2c5c !important;
+    color: #ffffff !important;
+}
+.gradio-container button.primary:hover,
+.gradio-container .gr-button-primary:hover,
+button.primary:hover, button.lg.primary:hover {
+    background: #13407e !important;
+    border-color: #13407e !important;
+    color: #ffffff !important;
 }
 .break-list { max-height: 210px; overflow-y: auto; border: 1px solid #0b2c5c; border-radius: 8px; padding: 4px; background: #eef6fd !important; }
 """
@@ -79,6 +94,18 @@ def _load_forecast():
     )
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load forecast module from {FORECAST_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_report():
+    """Load app/generate_surf_report.py without requiring app/ to be a package."""
+    spec = importlib.util.spec_from_file_location(
+        "surf_report_generator", REPORT_PATH
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load report generator from {REPORT_PATH}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -547,43 +574,72 @@ def clear_custom_break(base_records: list[dict], selected: dict | None = None):
 def fetch_forecast(
     selected_break: dict | None,
     skill: str,
-    days: int,
     progress=gr.Progress(),
 ):
-    """Score a 1–7 day forecast for the shared ``selected_break`` (explicit button).
+    """Stage 1 — deterministic forecast only: score + build the 3 charts.
 
-    Deterministic only: delegates to ``app/surf_forecast.get_scored_week``
-    (Open-Meteo + deterministic scoring; stale-cache fallback lives inside
-    ``get_forecast``). No agent involved.
+    Delegates to ``app/surf_forecast.get_scored_week`` (Open-Meteo +
+    deterministic scoring) and builds score / swell / wind figs. No LLM
+    call here, so the graphs render immediately and the user can inspect
+    them before opting into Stage 2 (``generate_reports``). Yields
+    (status, best, score_fig, waves_fig, wind_fig, scored_payload,
+    telemetry) tuples. The LLM never owns numbers — it only narrates
+    these scores in Stage 2.
     """
-    empty_df = pd.DataFrame()
-    if not selected_break:
+    logs: list[str] = []
+
+    def emit(status, best_md, score_fig, waves_fig, wind_fig, payload):
         return (
+            status,
+            best_md,
+            score_fig,
+            waves_fig,
+            wind_fig,
+            payload,
+            _telemetry(logs),
+        )
+
+    if not selected_break:
+        logs.append("⚠️ No break selected — pick one in the encyclopedia tab.")
+        yield emit(
             "⚠️ Pick a break in the encyclopedia tab first.",
             "_Pick a break first._",
             _empty_forecast_fig(),
             _empty_forecast_fig(),
             _empty_forecast_fig(),
-            empty_df,
-            empty_df,
+            None,
         )
+        return
     try:
-        try:
-            days_int = max(1, min(7, int(days)))
-        except (TypeError, ValueError):
-            days_int = 7
-        progress(0.1, desc="Loading forecast module…")
+        days_int = 7
+        t0 = time.time()
+        logs.append(
+            f"🔧 [tool: get_scored_week] break='{selected_break.get('name', '?')}' "
+            f"skill='{skill}' days={days_int} (Open-Meteo marine+wind → scoring.score_week)."
+        )
+        progress(0.15, desc="Fetching + scoring forecast…")
+        yield emit(
+            "⏳ Fetching + scoring forecast…",
+            "_Scoring…_",
+            _empty_forecast_fig(),
+            _empty_forecast_fig(),
+            _empty_forecast_fig(),
+            None,
+        )
+
         mod = _load_forecast()
-        progress(0.3, desc="Fetching + scoring forecast…")
         result = mod.get_scored_week(
             selected_break, skill=skill, days=days_int
         )
         scored = result.get("scored", []) or []
-        progress(0.7, desc="Building charts…")
+        skill_used = result.get("skill", skill)
+        spot = result.get("spot", {})
+        progress(0.6, desc="Building charts…")
         score_fig = mod.build_score_fig(scored)
         waves_fig = mod.build_waves_fig(scored)
-        wind_fig = mod.build_wind_fig(scored)
+        wind_fig = mod.build_wind_fig(scored, spot)
         best = mod.best_window(scored)
+        daily = mod.daily_best(scored)
         if best:
             best_md = (
                 f"**{best.get('score')}/10 @ {best.get('time')}** — "
@@ -593,147 +649,243 @@ def fetch_forecast(
             )
         else:
             best_md = "_No scored hours in this window._"
-        daily = pd.DataFrame(mod.daily_best(scored))
-        hourly_rows = []
-        for r in scored:
-            comps = r.get("components") or {}
-            hourly_rows.append(
-                {
-                    "time": r.get("time"),
-                    "score": r.get("score"),
-                    "swell_size": comps.get("swell_size"),
-                    "swell_direction": comps.get("swell_direction"),
-                    "wind": comps.get("wind"),
-                    "period": comps.get("period"),
-                    "wave_height_m": r.get("wave_height_m"),
-                    "wave_period_s": r.get("wave_period_s"),
-                    "wind_speed_kt": r.get("wind_speed_kt"),
-                }
-            )
-        hourly = pd.DataFrame(
-            hourly_rows,
-            columns=[
-                "time",
-                "score",
-                "swell_size",
-                "swell_direction",
-                "wind",
-                "period",
-                "wave_height_m",
-                "wave_period_s",
-                "wind_speed_kt",
-            ],
+        dt = time.time() - t0
+        logs.append(
+            f"📊 [tool: score_week] {len(scored)} hour(s) scored "
+            f"(skill={skill_used}, daily bests={len(daily)}) in {dt:.1f}s."
         )
-        progress(1.0, desc="Done")
+        progress(1.0, desc="Charts ready")
+        if not scored:
+            logs.append("⚠️ No scored hours — charts are empty, report disabled.")
+            yield emit(
+                f"⚠️ {selected_break.get('name', '?')} · no scored hours ({days_int}d).",
+                best_md,
+                score_fig,
+                waves_fig,
+                wind_fig,
+                None,
+            )
+            return
+
+        logs.append(
+            "✅ Charts ready — inspect them above, then press "
+            "“Generate surf report ✨” for the write-up (one sentence per day + recommendation)."
+        )
         status = (
             f"✅ {selected_break.get('name', '?')} · "
-            f"skill {result.get('skill')} · "
-            f"{len(scored)} hour(s) scored ({days_int}d)."
+            f"skill {skill_used} · "
+            f"{len(scored)} hour(s) scored ({days_int}d). "
+            f"Charts ready — generate the report when ready."
         )
-        return (
-            status,
-            best_md,
-            score_fig,
-            waves_fig,
-            wind_fig,
-            daily,
-            hourly,
-        )
+        payload = {
+            "break": selected_break,
+            "skill": skill_used,
+            "spot": spot,
+            "scored": scored,
+            "daily": daily,
+            "best": best,
+            "days": days_int,
+        }
+        yield emit(status, best_md, score_fig, waves_fig, wind_fig, payload)
     except Exception as e:  # noqa: BLE001 — surface fetch/score errors in the status box
-        return (
+        logs.append(f"❌ Forecast failed: {e}")
+        yield emit(
             f"❌ Forecast failed: {e}",
             "_Forecast failed._",
             _empty_forecast_fig(),
             _empty_forecast_fig(),
             _empty_forecast_fig(),
-            empty_df,
-            empty_df,
+            None,
         )
+
+
+def generate_reports(
+    scored_payload: dict | None,
+    progress=gr.Progress(),
+):
+    """Stage 2 — short narrated report, streamed live as plain markdown.
+
+    Reads the ``scored_payload`` saved by :func:`fetch_forecast` and calls
+    ``app/generate_surf_report.generate_surf_report_stream`` (same
+    InferenceClient framework/model as break generation, ``stream=True``).
+    The prompt carries only the daily bests (<=7 lines) + best window, and
+    the model returns one dot-point per day (one full sentence of outlook
+    per day) plus a ``**Recommendation: ...**``
+    line — small prompt + short output keeps time-to-first-token low. Yields
+    (report_md, telemetry) tuples; the streamed text IS the report, so no
+    parse step. The LLM narrates the provided scores only.
+    """
+    logs: list[str] = []
+
+    def emit(report_md):
+        return (report_md, _telemetry(logs))
+
+    daily = (scored_payload or {}).get("daily") or []
+    if not scored_payload or not daily:
+        logs.append("⚠️ No scored forecast yet — press “Get forecast” first.")
+        yield emit("_No report yet — press “Get forecast” first._")
+        return
+
+    # Instant feedback first: this yield renders before any network wait,
+    # so the button never looks dead while the model spins up.
+    logs.append(
+        f"🔧 [tool: build_surf_report_prompt] {len(daily)} daily bests + "
+        f"best window → tiny prompt (no hourly rows)."
+    )
+    progress(0.1, desc="Contacting report model…")
+    yield emit("_Contacting report model… first words appear below as written._")
+
+    try:
+        rep = _load_report()
+        logs.append(
+            f"🧠 [tool: generate_surf_report_stream] InferenceClient "
+            f"provider='{rep.PROVIDER}' model='{rep.MODEL_ID}' "
+            f"(stream=True, temp={rep.TEMPERATURE}, max_tokens={rep.MAX_TOKENS}, "
+            f"reasoning disabled via extra_body={rep.EXTRA_BODY} + /no_think)…"
+        )
+        progress(0.3, desc="Streaming surf report…")
+        yield emit("_Streaming…_")
+
+        t0 = time.time()
+        text = ""
+        chunk_count = 0
+        stream_stats: dict = {}
+        for text in rep.generate_surf_report_stream(
+            break_=scored_payload["break"],
+            skill=scored_payload["skill"],
+            daily=daily,
+            best=scored_payload.get("best"),
+            days=scored_payload.get("days", len(daily)),
+            stats=stream_stats,
+        ):
+            chunk_count += 1
+            yield emit(text + "\n\n⌨️ _streaming…_")
+        if not text.strip():
+            raise ValueError(
+                "Empty stream from report generator "
+                f"(reasoning_chars={stream_stats.get('reasoning_chars', '?')}, "
+                f"content_chars={stream_stats.get('content_chars', '?')})."
+            )
+
+        dt = time.time() - t0
+        logs.append(
+            f"✅ Done in {dt:.1f}s → {chunk_count} chunk(s), "
+            f"final report {len(text)} chars "
+            f"(content={stream_stats.get('content_chars', '?')} chars, "
+            f"hidden reasoning={stream_stats.get('reasoning_chars', '?')} chars — "
+            f"what you see above is the final report, not the thinking)."
+        )
+        progress(1.0, desc="Done")
+        yield emit(text)
+    except Exception as e:  # noqa: BLE001 — LLM failure keeps deterministic charts
+        logs.append(f"❌ Report generation failed: {e}")
+        logs.append("💡 Check HF_TOKEN is set and the inference provider serves the model.")
+        logs.append("ℹ️ Charts + best window above are deterministic and still valid.")
+        yield emit("_Report generation failed — charts above still apply._")
 
 
 def build_demo() -> gr.Blocks:
     with gr.Blocks(title="wave~reader — Australian surf encyclopaedia") as demo:
         gr.Markdown("# wave~reader", elem_classes=["hero-title"])
-        gr.Markdown("## Australian surf encyclopaedia", elem_classes=["hero-sub"])
-        gr.Markdown("filter spots, hover a dot for its name, then pick a break for details. [lo-fi edition]")
+        gr.Markdown(
+            "a guide to australiab surf breaks — browse 238 breaks on the **encyclopedia** page, "
+            "then score the week ahead + get an ai write-up on the **surf forecast** page."
+        )
         records_state = gr.State(_records(DF))
         custom_state = gr.State(None)  # one session-only break; never persisted
         selected_break = gr.State(None)  # shared pick for the forecast tab
-        with gr.Tab("encyclopedia"):
-            with gr.Row():
-                state_dd = gr.Dropdown([ALL, *STATES], value=ALL, label="State")
-                region_dd = gr.Dropdown([ALL, *ALL_REGIONS], value=ALL, label="Region")
-                skill_dd = gr.Dropdown([ALL, *SKILLS], value=ALL, label="Skill level")
-            count_md = gr.Markdown(f"**{len(DF)}** spot(s)")
-            with gr.Row():
-                with gr.Column(scale=3):
-                    map_plot = gr.Plot(build_map(_records(DF), default_view=True), label="Spots")
-                    cant_find_btn = gr.Button(
-                        "Can't find your local break?", variant="secondary"
-                    )
-                    with gr.Group(visible=False) as custom_box:
-                        gr.Markdown(
-                            "### Generate your local break\n"
-                            "One break per session, generated live via "
-                            "`app/generate_surf_break.py`. Session-only — "
-                            "never saved, deleted when your session ends."
+        scored_state = gr.State(None)  # stage-1 scored payload feeding stage-2 report
+        with gr.Tabs() as tabs:
+            with gr.Tab("encyclopedia", id="encyclopedia"):
+                gr.Markdown("### Australian surf encyclopaedia")
+                gr.Markdown("filter spots, hover a dot for its name, then pick a break for details.")
+                with gr.Row():
+                    state_dd = gr.Dropdown([ALL, *STATES], value=ALL, label="State")
+                    region_dd = gr.Dropdown([ALL, *ALL_REGIONS], value=ALL, label="Region")
+                    skill_dd = gr.Dropdown([ALL, *SKILLS], value=ALL, label="Skill level")
+                count_md = gr.Markdown(f"**{len(DF)}** spot(s)")
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        map_plot = gr.Plot(build_map(_records(DF), default_view=True), label="Spots")
+                        cant_find_btn = gr.Button(
+                            "Can't find your local break?", variant="secondary"
                         )
-                        with gr.Row():
-                            custom_state_dd = gr.Dropdown(
-                                STATES, value=None, label="State"
+                        with gr.Group(visible=False) as custom_box:
+                            gr.Markdown(
+                                "### Generate your local break\n"
+                                "One break per session, generated live via "
+                                "`app/generate_surf_break.py`. Session-only — "
+                                "never saved, deleted when your session ends."
                             )
-                            custom_region_dd = gr.Dropdown(
-                                ALL_REGIONS,
-                                value=None,
-                                label="Region (or type a new one)",
-                                allow_custom_value=True,
+                            with gr.Row():
+                                custom_state_dd = gr.Dropdown(
+                                    STATES, value=None, label="State"
+                                )
+                                custom_region_dd = gr.Dropdown(
+                                    ALL_REGIONS,
+                                    value=None,
+                                    label="Region (or type a new one)",
+                                    allow_custom_value=True,
+                                )
+                            custom_name_txt = gr.Textbox(
+                                label="Break name", placeholder="e.g. Kilcunda"
                             )
-                        custom_name_txt = gr.Textbox(
-                            label="Break name", placeholder="e.g. Kilcunda"
+                            with gr.Row():
+                                generate_btn = gr.Button("Generate my break", variant="primary")
+                                clear_btn = gr.Button("Delete my break", variant="stop")
+                            telemetry_box = gr.Textbox(
+                                label="Generation telemetry (tool calls)",
+                                lines=8,
+                                max_lines=14,
+                                interactive=False,
+                                placeholder="Press “Generate my break” to see the tool-call trace…",
+                            )
+                    with gr.Column(scale=2):
+                        break_dd = gr.Radio(
+                            choices=[r.get("name", "?") for r in _records(DF)],
+                            value=None,
+                            label="Breaks (pick one for details)",
+                            elem_classes=["break-list"],
                         )
-                        with gr.Row():
-                            generate_btn = gr.Button("Generate my break", variant="primary")
-                            clear_btn = gr.Button("Delete my break", variant="stop")
-                        telemetry_box = gr.Textbox(
-                            label="Generation telemetry (tool calls)",
-                            lines=8,
-                            max_lines=14,
-                            interactive=False,
-                            placeholder="Press “Generate my break” to see the tool-call trace…",
+                        details_df = gr.Dataframe(
+                            headers=["Field", "Value"],
+                            row_count=(16, "fixed"),
+                            column_count=(2, "fixed"),
+                            label="Break details",
+                            wrap=True,
                         )
-                with gr.Column(scale=2):
-                    break_dd = gr.Radio(
-                        choices=[r.get("name", "?") for r in _records(DF)],
-                        value=None,
-                        label="Breaks (pick one for details)",
-                        elem_classes=["break-list"],
-                    )
-                    details_df = gr.Dataframe(
-                        headers=["Field", "Value"],
-                        row_count=(16, "fixed"),
-                        column_count=(2, "fixed"),
-                        label="Break details",
-                        wrap=True,
-                    )
-        with gr.Tab("surf forecast"):
-            fc_header = gr.Markdown(_NO_BREAK_HEADER)
-            with gr.Row():
+                        go_forecast_btn = gr.Button(
+                            "Check surf forecast →", variant="primary"
+                        )
+            with gr.Tab("surf forecast", id="forecast"):
+                gr.Markdown("### Surf forecast")
+                gr.Markdown(
+                    "pick a break in the encyclopedia, then press get forecast "
+                    "for scored charts + an optional ai report."
+                )
+                fc_header = gr.Markdown(_NO_BREAK_HEADER)
                 fc_skill = gr.Dropdown(
                     SKILL_ORDER, value="intermediate", label="Skill level"
                 )
-                days_slider = gr.Slider(1, 7, value=7, step=1, label="Days")
-            fetch_btn = gr.Button("Get forecast", variant="primary")
-            status_box = gr.Textbox(
-                label="Status",
-                interactive=False,
-                placeholder="Pick a break, then press “Get forecast”…",
-            )
-            best_md = gr.Markdown("_No forecast yet._")
-            score_plot = gr.Plot(label="Score")
-            waves_plot = gr.Plot(label="Swell")
-            wind_plot = gr.Plot(label="Wind")
-            daily_df = gr.Dataframe(label="Best hour each day", wrap=True)
-            hourly_df = gr.Dataframe(label="All scored hours", wrap=True)
+                fetch_btn = gr.Button("Get forecast (charts)", variant="primary")
+                status_box = gr.Textbox(
+                    label="Status",
+                    interactive=False,
+                    placeholder="Pick a break, then press “Get forecast”…",
+                )
+                best_md = gr.Markdown("_No forecast yet._")
+                score_plot = gr.Plot(label="Score (0-10)")
+                waves_plot = gr.Plot(label="Swell")
+                wind_plot = gr.Plot(label="Wind (kt)")
+                report_btn = gr.Button("Generate surf report ✨", variant="secondary")
+                report_md = gr.Markdown("_No report yet — get the forecast, then generate the report._")
+                report_telemetry_box = gr.Textbox(
+                    label="Report telemetry (tool calls)",
+                    lines=8,
+                    max_lines=14,
+                    interactive=False,
+                    placeholder="Press “Get forecast” for scoring trace, then “Generate surf report”…",
+                )
 
         def _toggle_custom_box(visible: bool):
             return gr.update(visible=not visible), not visible
@@ -780,6 +932,11 @@ def build_demo() -> gr.Blocks:
             inputs=[break_dd, records_state, custom_state],
             outputs=[details_df, selected_break, fc_header, fc_skill],
         )
+        go_forecast_btn.click(
+            lambda: gr.Tabs(selected="forecast"),
+            inputs=None,
+            outputs=[tabs],
+        )
         generate_btn.click(
             generate_custom_break,
             inputs=[
@@ -809,22 +966,30 @@ def build_demo() -> gr.Blocks:
         )
         fetch_btn.click(
             fetch_forecast,
-            inputs=[selected_break, fc_skill, days_slider],
+            inputs=[selected_break, fc_skill],
             outputs=[
                 status_box,
                 best_md,
                 score_plot,
                 waves_plot,
                 wind_plot,
-                daily_df,
-                hourly_df,
+                scored_state,
+                report_telemetry_box,
+            ],
+        )
+        report_btn.click(
+            generate_reports,
+            inputs=[scored_state],
+            outputs=[
+                report_md,
+                report_telemetry_box,
             ],
         )
     return demo
 
 
 def main():
-    build_demo().launch(css=APP_CSS)
+    build_demo().launch(css=APP_CSS, favicon_path=str(FAVICON_PATH))
 
 
 if __name__ == "__main__":

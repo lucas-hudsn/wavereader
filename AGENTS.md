@@ -65,7 +65,7 @@ Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
   defaults), best-estimate coords, primary takeoff zone, 2–4 sentence
   description, copy state/region verbatim into top-level AND
   `location.state`/`location.region`.
-- `extract_json()` tolerates ``` fences, else grabs outermost `{...}`.
+- `extract_json()` tolerates ```fences, else grabs outermost`{...}`.
 - `generate_surf_break(...)` — one `InferenceClient.chat.completions.create`
   call (temp 0.4, max_tokens 2048). Deliberately NOT a smolagents CodeAgent
   (ReAct `<code>` format conflicts with raw-JSON instruction — see module
@@ -75,7 +75,7 @@ Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
 `app/generate_base_data.py`:
 
 - `load_break_list()` flattens `Australia_Surf_Breaks: state → region →
-  [names]` into `{break_name, state, region}` in stable order.
+[names]` into `{break_name, state, region}` in stable order.
 - `enrich_result()` merges LLM output with canonical `state`/`region` from
   the input list + stable `id`; normalizes `location.state/region`.
 - `load_existing_results()` / `save_results()` — resume-safe; accepts legacy

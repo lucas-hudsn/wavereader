@@ -13,6 +13,7 @@ from plotly import graph_objects as go
 
 DATA_PATH = Path(__file__).parent / "data" / "australia-surf-breaks-enriched.json"
 GENERATOR_PATH = Path(__file__).parent / "app" / "generate_surf_break.py"
+FORECAST_PATH = Path(__file__).parent / "app" / "surf_forecast.py"
 
 ALL = "All"
 
@@ -69,6 +70,27 @@ def _load_generator():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _load_forecast():
+    """Load app/surf_forecast.py without requiring app/ to be a package."""
+    spec = importlib.util.spec_from_file_location(
+        "surf_forecast_mod", FORECAST_PATH
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load forecast module from {FORECAST_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _empty_forecast_fig() -> go.Figure:
+    fig = go.Figure()
+    fig.add_annotation(text="No forecast data", showarrow=False, font={"size": 16})
+    return fig
+
+
+_NO_BREAK_HEADER = "### No break selected — pick one in the encyclopedia tab."
 
 
 def load_breaks(path: Path = DATA_PATH) -> pd.DataFrame:
@@ -346,12 +368,30 @@ def sync_custom_from_filters(state: str, region: str):
 
 
 def on_break_pick(break_label: str, records: list[dict], custom: dict | None):
+    """Update details + shared forecast state when the break list changes.
+
+    Also refreshes the forecast-tab header and the forecast skill default
+    (the break's own skillLevel). Works for base records and the custom ⭐
+    break via ``_resolve_pick``.
+    """
+    empty_details = pd.DataFrame(columns=["Field", "Value"])
     if not break_label:
-        return pd.DataFrame(columns=["Field", "Value"])
+        return empty_details, None, _NO_BREAK_HEADER, gr.skip()
     record = _resolve_pick(break_label, records or [], custom)
     if record is None:
-        return pd.DataFrame(columns=["Field", "Value"])
-    return break_to_table(record)
+        return empty_details, None, _NO_BREAK_HEADER, gr.skip()
+    raw_skill = str(record.get("skillLevel") or "intermediate").strip().lower()
+    skill_value = raw_skill if raw_skill in SKILL_ORDER else "intermediate"
+    header = (
+        f"### {record.get('name', '?')} — "
+        f"{record.get('region', '?')}, {record.get('state', '?')}"
+    )
+    return (
+        break_to_table(record),
+        record,
+        header,
+        gr.update(value=skill_value),
+    )
 
 
 def _telemetry(lines: list[str]) -> str:
@@ -480,17 +520,135 @@ def generate_custom_break(
         yield emit()
 
 
-def clear_custom_break(base_records: list[dict]):
-    """Delete the session-only break and rebuild the base map."""
+def clear_custom_break(base_records: list[dict], selected: dict | None = None):
+    """Delete the session-only break and rebuild the base map.
+
+    If the deleted custom break was the forecast selection, the shared
+    ``selected_break`` state (and forecast header) is cleared too;
+    otherwise both are left untouched.
+    """
     fig = build_map(base_records or [], default_view=False)
     names = [r.get("name", "?") for r in (base_records or [])]
+    was_selected_custom = bool(
+        selected and str(selected.get("id", "")).startswith("session-only")
+    )
     return (
         None,
         "🗑️ Session break deleted.",
         pd.DataFrame(columns=["Field", "Value"]),
         fig,
         gr.update(choices=names, value=None),
+        None if was_selected_custom else gr.skip(),
+        _NO_BREAK_HEADER if was_selected_custom else gr.skip(),
+        gr.skip(),
     )
+
+
+def fetch_forecast(
+    selected_break: dict | None,
+    skill: str,
+    days: int,
+    progress=gr.Progress(),
+):
+    """Score a 1–7 day forecast for the shared ``selected_break`` (explicit button).
+
+    Deterministic only: delegates to ``app/surf_forecast.get_scored_week``
+    (Open-Meteo + deterministic scoring; stale-cache fallback lives inside
+    ``get_forecast``). No agent involved.
+    """
+    empty_df = pd.DataFrame()
+    if not selected_break:
+        return (
+            "⚠️ Pick a break in the encyclopedia tab first.",
+            "_Pick a break first._",
+            _empty_forecast_fig(),
+            _empty_forecast_fig(),
+            _empty_forecast_fig(),
+            empty_df,
+            empty_df,
+        )
+    try:
+        try:
+            days_int = max(1, min(7, int(days)))
+        except (TypeError, ValueError):
+            days_int = 7
+        progress(0.1, desc="Loading forecast module…")
+        mod = _load_forecast()
+        progress(0.3, desc="Fetching + scoring forecast…")
+        result = mod.get_scored_week(
+            selected_break, skill=skill, days=days_int
+        )
+        scored = result.get("scored", []) or []
+        progress(0.7, desc="Building charts…")
+        score_fig = mod.build_score_fig(scored)
+        waves_fig = mod.build_waves_fig(scored)
+        wind_fig = mod.build_wind_fig(scored)
+        best = mod.best_window(scored)
+        if best:
+            best_md = (
+                f"**{best.get('score')}/10 @ {best.get('time')}** — "
+                f"{best.get('wave_height_m')}m @ {best.get('wave_period_s')}s, "
+                f"wind {best.get('wind_speed_kt')}kt "
+                f"({best.get('wind_direction_deg')}°)"
+            )
+        else:
+            best_md = "_No scored hours in this window._"
+        daily = pd.DataFrame(mod.daily_best(scored))
+        hourly_rows = []
+        for r in scored:
+            comps = r.get("components") or {}
+            hourly_rows.append(
+                {
+                    "time": r.get("time"),
+                    "score": r.get("score"),
+                    "swell_size": comps.get("swell_size"),
+                    "swell_direction": comps.get("swell_direction"),
+                    "wind": comps.get("wind"),
+                    "period": comps.get("period"),
+                    "wave_height_m": r.get("wave_height_m"),
+                    "wave_period_s": r.get("wave_period_s"),
+                    "wind_speed_kt": r.get("wind_speed_kt"),
+                }
+            )
+        hourly = pd.DataFrame(
+            hourly_rows,
+            columns=[
+                "time",
+                "score",
+                "swell_size",
+                "swell_direction",
+                "wind",
+                "period",
+                "wave_height_m",
+                "wave_period_s",
+                "wind_speed_kt",
+            ],
+        )
+        progress(1.0, desc="Done")
+        status = (
+            f"✅ {selected_break.get('name', '?')} · "
+            f"skill {result.get('skill')} · "
+            f"{len(scored)} hour(s) scored ({days_int}d)."
+        )
+        return (
+            status,
+            best_md,
+            score_fig,
+            waves_fig,
+            wind_fig,
+            daily,
+            hourly,
+        )
+    except Exception as e:  # noqa: BLE001 — surface fetch/score errors in the status box
+        return (
+            f"❌ Forecast failed: {e}",
+            "_Forecast failed._",
+            _empty_forecast_fig(),
+            _empty_forecast_fig(),
+            _empty_forecast_fig(),
+            empty_df,
+            empty_df,
+        )
 
 
 def build_demo() -> gr.Blocks:
@@ -498,63 +656,84 @@ def build_demo() -> gr.Blocks:
         gr.Markdown("# wave~reader", elem_classes=["hero-title"])
         gr.Markdown("## Australian surf encyclopaedia", elem_classes=["hero-sub"])
         gr.Markdown("filter spots, hover a dot for its name, then pick a break for details. [lo-fi edition]")
-        with gr.Row():
-            state_dd = gr.Dropdown([ALL, *STATES], value=ALL, label="State")
-            region_dd = gr.Dropdown([ALL, *ALL_REGIONS], value=ALL, label="Region")
-            skill_dd = gr.Dropdown([ALL, *SKILLS], value=ALL, label="Skill level")
-        count_md = gr.Markdown(f"**{len(DF)}** spot(s)")
         records_state = gr.State(_records(DF))
         custom_state = gr.State(None)  # one session-only break; never persisted
-        with gr.Row():
-            with gr.Column(scale=3):
-                map_plot = gr.Plot(build_map(_records(DF), default_view=True), label="Spots")
-                cant_find_btn = gr.Button(
-                    "Can't find your local break?", variant="secondary"
-                )
-                with gr.Group(visible=False) as custom_box:
-                    gr.Markdown(
-                        "### Generate your local break\n"
-                        "One break per session, generated live via "
-                        "`app/generate_surf_break.py`. Session-only — "
-                        "never saved, deleted when your session ends."
+        selected_break = gr.State(None)  # shared pick for the forecast tab
+        with gr.Tab("encyclopedia"):
+            with gr.Row():
+                state_dd = gr.Dropdown([ALL, *STATES], value=ALL, label="State")
+                region_dd = gr.Dropdown([ALL, *ALL_REGIONS], value=ALL, label="Region")
+                skill_dd = gr.Dropdown([ALL, *SKILLS], value=ALL, label="Skill level")
+            count_md = gr.Markdown(f"**{len(DF)}** spot(s)")
+            with gr.Row():
+                with gr.Column(scale=3):
+                    map_plot = gr.Plot(build_map(_records(DF), default_view=True), label="Spots")
+                    cant_find_btn = gr.Button(
+                        "Can't find your local break?", variant="secondary"
                     )
-                    with gr.Row():
-                        custom_state_dd = gr.Dropdown(
-                            STATES, value=None, label="State"
+                    with gr.Group(visible=False) as custom_box:
+                        gr.Markdown(
+                            "### Generate your local break\n"
+                            "One break per session, generated live via "
+                            "`app/generate_surf_break.py`. Session-only — "
+                            "never saved, deleted when your session ends."
                         )
-                        custom_region_dd = gr.Dropdown(
-                            ALL_REGIONS,
-                            value=None,
-                            label="Region (or type a new one)",
-                            allow_custom_value=True,
+                        with gr.Row():
+                            custom_state_dd = gr.Dropdown(
+                                STATES, value=None, label="State"
+                            )
+                            custom_region_dd = gr.Dropdown(
+                                ALL_REGIONS,
+                                value=None,
+                                label="Region (or type a new one)",
+                                allow_custom_value=True,
+                            )
+                        custom_name_txt = gr.Textbox(
+                            label="Break name", placeholder="e.g. Kilcunda"
                         )
-                    custom_name_txt = gr.Textbox(
-                        label="Break name", placeholder="e.g. Kilcunda"
+                        with gr.Row():
+                            generate_btn = gr.Button("Generate my break", variant="primary")
+                            clear_btn = gr.Button("Delete my break", variant="stop")
+                        telemetry_box = gr.Textbox(
+                            label="Generation telemetry (tool calls)",
+                            lines=8,
+                            max_lines=14,
+                            interactive=False,
+                            placeholder="Press “Generate my break” to see the tool-call trace…",
+                        )
+                with gr.Column(scale=2):
+                    break_dd = gr.Radio(
+                        choices=[r.get("name", "?") for r in _records(DF)],
+                        value=None,
+                        label="Breaks (pick one for details)",
+                        elem_classes=["break-list"],
                     )
-                    with gr.Row():
-                        generate_btn = gr.Button("Generate my break", variant="primary")
-                        clear_btn = gr.Button("Delete my break", variant="stop")
-                    telemetry_box = gr.Textbox(
-                        label="Generation telemetry (tool calls)",
-                        lines=8,
-                        max_lines=14,
-                        interactive=False,
-                        placeholder="Press “Generate my break” to see the tool-call trace…",
+                    details_df = gr.Dataframe(
+                        headers=["Field", "Value"],
+                        row_count=(16, "fixed"),
+                        column_count=(2, "fixed"),
+                        label="Break details",
+                        wrap=True,
                     )
-            with gr.Column(scale=2):
-                break_dd = gr.Radio(
-                    choices=[r.get("name", "?") for r in _records(DF)],
-                    value=None,
-                    label="Breaks (pick one for details)",
-                    elem_classes=["break-list"],
+        with gr.Tab("surf forecast"):
+            fc_header = gr.Markdown(_NO_BREAK_HEADER)
+            with gr.Row():
+                fc_skill = gr.Dropdown(
+                    SKILL_ORDER, value="intermediate", label="Skill level"
                 )
-                details_df = gr.Dataframe(
-                    headers=["Field", "Value"],
-                    row_count=(16, "fixed"),
-                    column_count=(2, "fixed"),
-                    label="Break details",
-                    wrap=True,
-                )
+                days_slider = gr.Slider(1, 7, value=7, step=1, label="Days")
+            fetch_btn = gr.Button("Get forecast", variant="primary")
+            status_box = gr.Textbox(
+                label="Status",
+                interactive=False,
+                placeholder="Pick a break, then press “Get forecast”…",
+            )
+            best_md = gr.Markdown("_No forecast yet._")
+            score_plot = gr.Plot(label="Score")
+            waves_plot = gr.Plot(label="Swell")
+            wind_plot = gr.Plot(label="Wind")
+            daily_df = gr.Dataframe(label="Best hour each day", wrap=True)
+            hourly_df = gr.Dataframe(label="All scored hours", wrap=True)
 
         def _toggle_custom_box(visible: bool):
             return gr.update(visible=not visible), not visible
@@ -599,7 +778,7 @@ def build_demo() -> gr.Blocks:
         break_dd.change(
             on_break_pick,
             inputs=[break_dd, records_state, custom_state],
-            outputs=details_df,
+            outputs=[details_df, selected_break, fc_header, fc_skill],
         )
         generate_btn.click(
             generate_custom_break,
@@ -616,8 +795,30 @@ def build_demo() -> gr.Blocks:
         )
         clear_btn.click(
             clear_custom_break,
-            inputs=[records_state],
-            outputs=[custom_state, telemetry_box, details_df, map_plot, break_dd],
+            inputs=[records_state, selected_break],
+            outputs=[
+                custom_state,
+                telemetry_box,
+                details_df,
+                map_plot,
+                break_dd,
+                selected_break,
+                fc_header,
+                fc_skill,
+            ],
+        )
+        fetch_btn.click(
+            fetch_forecast,
+            inputs=[selected_break, fc_skill, days_slider],
+            outputs=[
+                status_box,
+                best_md,
+                score_plot,
+                waves_plot,
+                wind_plot,
+                daily_df,
+                hourly_df,
+            ],
         )
     return demo
 

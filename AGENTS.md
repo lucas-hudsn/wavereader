@@ -1,7 +1,8 @@
 # AGENTS.md
 
 Guidance for AI coding agents working in this repo. The active surface is
-`main.py` + `app/` + `data/`. `wavereader/` is legacy-kept, to reimplement.
+`main.py` + `app/` + `data/`. `wavereader/` was deleted after its port
+to `app/agent.py` + `app/agent_tools.py`.
 
 ## What is live now
 
@@ -95,23 +96,25 @@ Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
   model. `location.country` is `"Australia"`.
 - New prompts must load schema + example from `data/` (don't paste copies).
 
-## `wavereader/` (kept, to reimplement — do not delete)
+## `wavereader/` (deleted after port — see `app/agent.py` + `app/agent_tools.py`)
 
-- `agent.py` (smolagents CodeAgent, HF Router, Nemotron defaults, trace
-  capture), `tools.py` (forecast/score/knowledge wrappers + Tool classes),
-  `forecasts.py` (Open-Meteo marine+weather client, disk cache),
-  `scoring.py` (deterministic 0–10 surf-quality engine).
-- They still assume the old data layout (`spots.py`, since removed). Rewire
-  them to `data/australia-surf-breaks-enriched.json` + the
-  `surf-break-schema.json` contracts and to the `main.py` UI before using
-  them in the demo path. The LLM never owns numbers — scores/forecasts stay
-  deterministic.
+- Ported: `app/agent_tools.py` (deterministic forecast/score/knowledge
+  functions over `data/australia-surf-breaks-enriched.json` via
+  `app/forecasts.py` + `app/scoring.py` + `app/adapters.py`),
+  `app/agent.py` (smolagents CodeAgent, HF Router, Nemotron defaults, trace
+  capture, single Tool definitions).
+- `main.py` "surf agent" tab chats via `SurfAgent.run_stream` and rebuilds
+  score/swell/wind charts from the trace's `score_week` payload.
+- The LLM never owns numbers — scores/forecasts stay deterministic.
 
 ## Rules for edits
 
 1. `app/` is tracked in this repo (no nested git — don't re-init one).
 2. Never commit `.env`, `.venv/`, `__pycache__/`, `.DS_Store` (all ignored).
-3. Keep prompt files in `data/`; keep `main.py` free of embedded schema text.
-4. Test cheaply: `uv run python -c "from pathlib import Path; import main"` for
+3. Never read `.env` or print secrets/tokens. Use `.env.example` for var
+   names; check presence with `printenv HF_TOKEN | wc -c` or
+   `[ -n "$HF_TOKEN" ]` style checks that never echo the value.
+4. Keep prompt files in `data/`; keep `main.py` free of embedded schema text.
+5. Test cheaply: `uv run python -c "from pathlib import Path; import main"` for
    import health; full generation calls cost inference — use the single-break
    CLI before running the batch.

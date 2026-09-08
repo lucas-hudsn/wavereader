@@ -88,6 +88,15 @@ def get_scored_week(
     spot = enriched_to_scoring_spot(break_)
     forecast = get_forecast(lat, lng, days)
     scored = score_week(forecast, spot, level)
+    sun = (forecast.get("daily") or {}) if isinstance(forecast, dict) else {}
+    sst_c = None
+    for row in (forecast.get("hourly") or [])[:6]:
+        if isinstance(row, dict) and row.get("sea_surface_temperature") is not None:
+            try:
+                sst_c = float(row.get("sea_surface_temperature"))
+            except (TypeError, ValueError):
+                sst_c = None
+            break
     return {
         "forecast": forecast,
         "scored": scored,
@@ -95,7 +104,43 @@ def get_scored_week(
         "skill": level,
         "lat": lat,
         "lng": lng,
+        "sun": sun,
+        "sst_c": sst_c,
+        "wetsuit_hint": _wetsuit_hint(sst_c),
     }
+
+
+def _wetsuit_hint(sst_c) -> str | None:
+    """Deterministic SST → wetsuit lookup (same table as agent_tools)."""
+    try:
+        sst = float(sst_c)
+    except (TypeError, ValueError):
+        return None
+    if sst >= 22.0:
+        return f"boardshorts / rashie (SST ~{sst:.1f}C)"
+    if sst >= 19.0:
+        return f"2mm spring suit (SST ~{sst:.1f}C)"
+    if sst >= 16.0:
+        return f"3/2mm full suit (SST ~{sst:.1f}C)"
+    return f"4/3mm full suit + boots in winter (SST ~{sst:.1f}C)"
+
+
+def add_sun_markers(fig: go.Figure, sun: dict | None) -> go.Figure:
+    """Overlay sunrise (dotted gold) / sunset (dashed orange) verticals.
+
+    ``sun`` is the ``daily`` frame (``{"sunrise": [...], "sunset": [...]}``);
+    no-op when absent. Max ~14 lines so the chart stays readable.
+    """
+    if not isinstance(sun, dict):
+        return fig
+    for key, color, dash in (("sunrise", "#b8860b", "dot"), ("sunset", "#ff7f0e", "dash")):
+        times = sun.get(key) or []
+        for t in list(times)[:7]:
+            try:
+                fig.add_vline(x=t, line_width=1, line_dash=dash, line_color=color)
+            except (TypeError, ValueError):
+                continue
+    return fig
 
 
 def best_window(scored: list[dict]) -> dict | None:
@@ -243,16 +288,29 @@ def _deg_to_arrow_from(deg_from: float) -> str:
 
 
 def _strip_layout(fig: go.Figure, height: int = 230, hide_x: bool = False) -> go.Figure:
-    """Compact shared styling so the three forecast strips read as one."""
+    """Compact shared styling so the three forecast strips read as one.
+
+    Legends share the wind chart's top-right spot (horizontal, anchored
+    right) so Score / Swell / Wind titles + legends line up.
+    """
     fig.update_layout(
         height=height,
-        margin={"l": 48, "r": 48, "t": 36, "b": 30 if not hide_x else 8},
+        margin={"l": 48, "r": 48, "t": 60, "b": 30 if not hide_x else 8},
         showlegend=True,
-        legend={"orientation": "h", "y": 1.08, "x": 0},
+        legend={
+            "orientation": "h",
+            "x": 1.0,
+            "y": 1.15,
+            "xanchor": "right",
+            "yanchor": "bottom",
+        },
         hovermode="x unified",
         plot_bgcolor="white",
         paper_bgcolor="white",
     )
+    # Left-align any title so it never shifts the legend row.
+    if getattr(getattr(fig.layout, "title", None), "text", None):
+        fig.update_layout(title={"x": 0.0, "xanchor": "left"})
     fig.update_xaxes(showticklabels=not hide_x, tickangle=-30, showgrid=True)
     fig.update_yaxes(showgrid=True, gridcolor="#e5e5e5")
     return fig
@@ -275,6 +333,23 @@ def build_score_fig(scored: list[dict]) -> go.Figure:
             name="score",
         )
     )
+    # Dummy entries so the top legend explains the bar colours.
+    for band_name, band_color in [
+        ("8+ excellent", "#1a9850"),
+        ("6–8 good", "#91cf60"),
+        ("4–6 fair", "#fee08b"),
+        ("2–4 poor", "#fc8d59"),
+        ("0–2 very poor", "#d73027"),
+    ]:
+        fig.add_trace(
+            go.Bar(
+                x=[None],
+                y=[None],
+                marker={"color": band_color},
+                name=band_name,
+                hoverinfo="skip",
+            )
+        )
     best = best_window(scored)
     if best is not None:
         fig.add_trace(
@@ -288,7 +363,7 @@ def build_score_fig(scored: list[dict]) -> go.Figure:
                 name="best ★",
             )
         )
-    fig.update_layout(title="Score (bar colour = quality)", yaxis={"range": [0, 10], "title": "0–10"})
+    fig.update_layout(title="Score", yaxis={"range": [0, 10], "title": "0–10"})
     return _strip_layout(fig, height=230, hide_x=True)
 
 
@@ -329,7 +404,7 @@ def build_waves_fig(scored: list[dict]) -> go.Figure:
         )
     )
     fig.update_layout(
-        title="Swell (blue = height, orange = period)",
+        title="Swell",
         yaxis={"title": "m"},
         yaxis2={"title": "s", "overlaying": "y", "side": "right"},
     )
@@ -381,14 +456,28 @@ def build_wind_fig(scored: list[dict], spot: dict | None = None) -> go.Figure:
             showlegend=False,
         )
     )
-    # No legend — the title already carries the colour meaning, and the
-    # overlay legend was blocking arrows.
+    # Dummy entries so the top legend explains arrow colours (the arrow
+    # trace itself stays out of the legend so it never blocks arrows).
+    for legend_name, legend_color in [
+        ("offshore", _WIND_GOOD),
+        ("cross-shore", _WIND_CROSS),
+        ("onshore", _WIND_BAD),
+    ]:
+        fig.add_trace(
+            go.Scatter(
+                x=[None],
+                y=[None],
+                mode="markers",
+                marker={"size": 10, "color": legend_color, "symbol": "square"},
+                name=legend_name,
+                hoverinfo="skip",
+            )
+        )
     fig.update_layout(
-        title="Wind (green=offshore, yellow=cross, red=onshore; size=strength)",
+        title="Wind",
         yaxis={"visible": False, "showticklabels": False, "range": [0.5, 1.5]},
-        showlegend=False,
+        showlegend=True,
     )
     fig = _strip_layout(fig, height=170, hide_x=False)
     fig.update_yaxes(visible=False, showticklabels=False, showgrid=False, zeroline=False)
-    fig.update_layout(showlegend=False)
     return fig

@@ -65,8 +65,8 @@ Two tabs share one `selected_break` state:
   its details table. "Can't find your local break?" generates one live
   via `app/generate_surf_break.py` — session-only (`gr.State`, never
   written to `data/`). See `documents/ENCYCLOPEDIA.md`.
-- **surf forecast** — pick a break on tab 1, then press **Get forecast
-  (charts)** on tab 2. Skill defaults to the break's own `skillLevel`
+- **surf forecast** — pick a break on either tab and charts load
+  automatically on tab 2. Skill defaults to the break's own `skillLevel`
   (`pro-only` → `expert`); window is fixed at 7 days. Shows a best-window
   hero, score bars (red → green, gold ★ on the best hour), swell
   height + period chart, and a wind-arrows strip (colour = direction

@@ -146,12 +146,15 @@ def _score_wind(
     wind_dir_deg: float,
     spot: dict,
     skill_level: str = _DEFAULT_SKILL_LEVEL,
+    gust_kt: float | None = None,
 ) -> float:
     """Scores wind as the mean of a speed score and a direction score.
 
     Speed: glassy (<= 5 kt) is always perfect; above the tolerable limit
     (the spot's ``strength_kt_max``, capped by the skill profile) it scores 0.
     Direction: cosine falloff from perfect offshore to absolute onshore.
+    Gusts (optional, kt): gust > limit+10 knocks 2 points off, gust >
+    limit+5 knocks 1 point off — same limit, no new thresholds.
     """
     profile_max = _SKILL_PROFILES[skill_level]["max_wind_kt"]
     spot_max = float(spot["ideal_wind"]["strength_kt_max"])
@@ -168,19 +171,41 @@ def _score_wind(
     else:
         speed_score = 0.0
 
-    return round((speed_score + dir_score) / 2.0, 2)
+    base = round((speed_score + dir_score) / 2.0, 2)
+    if gust_kt is not None:
+        try:
+            gust = float(gust_kt)
+        except (TypeError, ValueError):
+            gust = None
+        if gust is not None:
+            if gust > limit + 10:
+                base = max(0.0, round(base - 2.0, 2))
+            elif gust > limit + 5:
+                base = max(0.0, round(base - 1.0, 2))
+    return base
 
 
-def _score_period(period_s: float) -> float:
+def _score_period(period_s: float, skill_level: str = _DEFAULT_SKILL_LEVEL) -> float:
     """Evaluates swell period quality: 0 below 4 s, 10 from 14 s up.
 
-    Long groundswell is never penalised — there is no falloff above 14 s.
+    Long groundswell is never penalised for experienced surfers — there
+    is no falloff above 14 s. Beginners get a gentle cap above their
+    ``ideal_period_max_s`` (12 s): very long-period power is harder to
+    handle, so the score eases down to a floor of ~5 instead of 10.
     """
     if period_s <= 4.0:
         return 0.0
     if period_s >= 14.0:
-        return 10.0
-    return round(10.0 * (period_s - 4.0) / 10.0, 2)
+        base = 10.0
+    else:
+        base = round(10.0 * (period_s - 4.0) / 10.0, 2)
+    try:
+        ideal_max = float(_SKILL_PROFILES[skill_level]["ideal_period_max_s"])
+    except (KeyError, TypeError, ValueError):
+        return base
+    if skill_level == "beginner" and period_s > ideal_max:
+        base = max(5.0, round(base - (period_s - ideal_max) * 0.4, 2))
+    return base
 
 
 # ---- Main Interface Functions ----
@@ -193,6 +218,7 @@ def score_hour(
     spot: dict,
     wave_direction_deg: Optional[float] = None,
     skill_level: str = _DEFAULT_SKILL_LEVEL,
+    gust_kt: Optional[float] = None,
 ) -> dict[str, Any]:
     """Computes composite surf score (0-10) for a given hour and skill tier."""
     if skill_level not in _SKILL_PROFILES:
@@ -204,8 +230,8 @@ def score_hour(
         if wave_direction_deg is not None
         else None
     )
-    c_wind = _score_wind(wind_speed_kt, wind_direction_deg, spot, skill_level)
-    c_period = _score_period(wave_period_s)
+    c_wind = _score_wind(wind_speed_kt, wind_direction_deg, spot, skill_level, gust_kt=gust_kt)
+    c_period = _score_period(wave_period_s, skill_level)
 
     components: dict[str, Optional[float]] = {
         "swell_size": round(c_size, 2),
@@ -232,6 +258,7 @@ def score_hour(
         "wind_speed_kt": wind_speed_kt,
         "wind_direction_deg": wind_direction_deg,
         "wave_direction_deg": wave_direction_deg,
+        "gust_kt": gust_kt,
     }
 
 
@@ -251,6 +278,12 @@ def score_week(
         if None in (wave_height, wave_period, wind_speed, wind_dir):
             continue
 
+        gust_raw = row.get("wind_gusts_10m")
+        try:
+            gust_kt = float(gust_raw) * 0.539957 if gust_raw is not None else None
+        except (TypeError, ValueError):
+            gust_kt = None
+
         scored = score_hour(
             wave_height_m=float(wave_height),
             wave_period_s=float(wave_period),
@@ -259,6 +292,7 @@ def score_week(
             spot=spot,
             wave_direction_deg=float(row["wave_direction"]) if row.get("wave_direction") is not None else None,
             skill_level=skill_level,
+            gust_kt=gust_kt,
         )
         scored["time"] = row["time"]
         results.append(scored)

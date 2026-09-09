@@ -42,7 +42,7 @@ CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache" / "seafloor"
 CACHE_TTL_SECONDS = 30 * 24 * 3600
 CACHE_VERSION = 1
 
-GRID_N_DEFAULT = 9  # 9x9 = 81 pts, one API call
+GRID_N_DEFAULT = 10  # 10x10 = 100 pts, one API call
 RADIUS_KM_DEFAULT = 1.2  # ~300 m spacing at 9x9
 MAX_LOCATIONS_PER_CALL = 100
 

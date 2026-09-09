@@ -13,6 +13,7 @@ dependencies = [
     "plotly>=7.0.0",
     "pydantic>=2.0.0",
     "smolagents[openai]>=1.26.0",
+    "scipy>=1.14.0",
 ]
 
 [dependency-groups]

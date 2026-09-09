@@ -144,12 +144,14 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
                 d = payload if isinstance(payload, dict) else {"name": str(payload)}
                 name = str(d.get("name", "?"))
                 cards.append(f"🔧 `{name}({_short_args(d.get('arguments', {}))})`")
-                yield emit(f"🔧 {name}…")
+                yield emit(f"🔧 {name} — ⚙ scorer + 🌍 world model…")
             elif kind == "tool_result":
                 d = payload if isinstance(payload, dict) else {}
                 name = str(d.get("name", "?"))
                 summary = d.get("summary") or "done"
-                cards.append(f"📦 `{name}` → {summary}")
+                ms = d.get("ms")
+                badge = f" · ⚡ {float(ms):.0f} ms" if isinstance(ms, (int, float)) else ""
+                cards.append(f"📦 `{name}` → {summary}{badge}")
                 obs = d.get("observation")
                 hours = score_chart.coerce_scored_hours(obs)
                 if hours:
@@ -241,8 +243,9 @@ def build_agent(selected, store, records: list[dict]) -> dict:
     """Build the agent tab. Returns component dict for wiring."""
     with gr.Tab("surf agent"):
         gr.Markdown("### surf agent")
-        gr.Markdown("chat with the surf agent — it calls scoring tools and explains. "
-                    "charts appear below only when a spot is actually scored.")
+        gr.Markdown("the agent calls the deterministic engines directly — ⚙ scoring, 🌍 GEBCO "
+                    "world model, 📡 open-meteo feeds — and the LLM (Nemotron 3.5 Lightning) "
+                    "only narrates their numbers. charts appear as spots are scored.")
         with gr.Row():
             skill_dd = gr.Dropdown(_SKILLS, value="intermediate", label="Skill level")
             token_box = gr.Textbox(label="HF token (optional, session-only)", type="password",

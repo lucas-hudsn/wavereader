@@ -27,6 +27,8 @@ from ui import _stubs as _stub
 
 ALL = "All"
 
+_BREAKS_CACHE: list[dict] | None = None
+
 
 def _core():
     """Worker A/B core modules, or None when unavailable (Worker branches)."""
@@ -44,11 +46,21 @@ def _core():
 # ---------------------------------------------------------------- breaks ---
 
 def list_breaks() -> list[dict]:
-    """Full break catalogue as validated record dicts (real core first)."""
+    """Full break catalogue as validated record dicts (real core first).
+
+    Memoized: jsonschema-validating 238 records costs ~800 ms, which made
+    every agent tool call (``api_score_week`` et al.) pay it again. The
+    catalogue is static per process, so cache once and reuse. Callers treat
+    records as read-only.
+    """
+    global _BREAKS_CACHE
+    if _BREAKS_CACHE is not None:
+        return _BREAKS_CACHE
     core = _core()
     if core is not None:
         try:
-            return core[0].load_breaks()
+            _BREAKS_CACHE = core[0].load_breaks()
+            return _BREAKS_CACHE
         except Exception:
             pass
     try:  # v1 catalogue (238 enriched breaks)
@@ -177,10 +189,37 @@ def get_scored_week(break_: dict | None, skill: str = "intermediate",
         return payload
     except ImportError:
         pass
+    except (ValueError, TypeError):
+        pass
     hours = _stub.stub_scored_hours(break_, skill=skill, days=days)
     return _normalize_payload(
         break_, skill, hours,
         {"name": break_.get("name"), "region": break_.get("region")})
+
+
+def engine_strip() -> str:
+    """The 'engines online' strip: world model / feeds / LLM / MCP, live ids.
+
+    Names every engine the app runs so the demo makes the machinery
+    evident: GEBCO world model, Open-Meteo feeds, ERA5 climate, the
+    Nemotron LLM via Inference Providers, the deterministic scorer, MCP.
+    """
+    model = provider = "Nemotron 3.5 Lightning 30B · fireworks-ai"
+    try:
+        from wavereader import llm as _l
+
+        model = str(_l.get_model_id()).split("/")[-1]
+        provider = str(_l.get_provider())
+    except ImportError:
+        pass
+    return (
+        f"🌍 **world model** GEBCO 2020 bathymetry · "
+        f"📡 **swell feed** Open-Meteo marine + wind · "
+        f"🌡 **climate** ERA5 5-yr · "
+        f"⚙ **scoring** deterministic v2 · "
+        f"🧠 **llm** {model} · {provider} · "
+        f"🔌 **mcp** on"
+    )
 
 
 def api_score_week(spot_name: str, region: str = "",
@@ -503,7 +542,8 @@ def _real_agent_stream(question: str, hf_token: str) -> Iterator[tuple[str, Any]
         elif kind == "tool_result":
             yield ("tool_result", {"name": event.get("name", "?"), "arguments": {},
                                    "observation": event.get("output"),
-                                   "summary": event.get("summary", "")})
+                                   "summary": event.get("summary", ""),
+                                   "ms": event.get("ms")})
         elif kind == "final":
             yield ("final", event.get("text", ""))
         elif kind == "usage":

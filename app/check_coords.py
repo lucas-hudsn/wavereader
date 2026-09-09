@@ -183,15 +183,25 @@ NOMINATIM_UA = "wavereader-coord-check/1.0 (one-off surf-break data maintenance)
 _nominatim_last_call = 0.0
 
 # Score bonuses for candidate feature kinds: we want the physical spot
-# (beach/reef/point), not the suburb it happens to be inside.
+# (beach/reef/river mouth), not the suburb it happens to be inside.
 _TYPE_SCORE = {
-    "beach": 6, "reef": 6, "bay": 5, "water": 5, "shoreline": 5,
+    "beach": 6, "reef": 6, "bay": 5, "water": 5, "shoreline": 5, "cove": 5,
     "coastline": 4, "headland": 4, "cape": 4, "point": 4, "rock": 3,
-    "bare_rock": 3, "strait": 3, "harbour": 2, "island": 2, "river": 1,
-    "viewpoint": 2, "attraction": 1, "place": 0, "administrative": -6,
+    "bare_rock": 3, "strait": 3, "harbour": 2, "island": 2, "river": 3,
+    "stream": 3, "estuary": 3, "blowhole": 3, "attraction": 2, "viewpoint": 2,
 }
-_CLASS_SCORE = {"natural": 3, "waterway": 3, "man_made": 1, "tourism": 2,
-               "highway": -5, "boundary": -10, "administrative": -10}
+_CLASS_SCORE = {"natural": 3, "waterway": 3, "man_made": 1, "tourism": 2}
+
+# Feature kinds that can never be a surf takeoff zone.
+_NEVER_CLASSES = {"highway", "rail", "industrial", "commercial", "amenity",
+                  "landuse", "building", "military", "power"}
+_NEVER_TYPES = {"road", "footway", "cycleway", "path", "track", "house",
+                "building", "site", "information"}
+# Physical water/land features — trusted on name match alone.
+_PHYSICAL_TYPES = set(_TYPE_SCORE)
+# Settlements / postal localities — accepted only when unambiguous.
+_PLACE_TYPES = {"town", "village", "hamlet", "locality", "administrative",
+                "suburb", "city", "neighbourhood", "isolated_dwelling"}
 
 
 def _pace_nominatim() -> None:
@@ -217,27 +227,46 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
-def _candidate_score(cand: dict, core: str, anchor: tuple[float, float] | None) -> float | None:
-    """Score one Nominatim hit; None means it is disqualified."""
-    dn = _norm(cand.get("display_name", ""))
-    if _norm(core) not in dn:
-        return None  # not actually this spot
-    try:
-        lat, lng = float(cand["lat"]), float(cand["lon"])
-    except (KeyError, ValueError):
+def _candidate_kind(cand: dict) -> str | None:
+    """Classify a Nominatim hit: 'physical', 'place', or None (never accept)."""
+    cls, typ = cand.get("class") or "", cand.get("type") or ""
+    if cls in _NEVER_CLASSES or typ in _NEVER_TYPES:
         return None
+    if "council" in cand.get("display_name", "").lower():
+        return None  # council boundary centroids are useless
+    if typ in _PHYSICAL_TYPES or cls in ("natural", "waterway"):
+        return "physical"
+    if typ in _PLACE_TYPES or cls == "place":
+        return "place"
+    return "place"  # unknown feature kinds: treat conservatively
+
+
+def _candidate_score(cand: dict, anchor: tuple[float, float] | None) -> float:
+    lat, lng = float(cand["lat"]), float(cand["lon"])
     score = _TYPE_SCORE.get(cand.get("type", ""), 1) + _CLASS_SCORE.get(cand.get("class", ""), 0)
     if anchor is not None:  # prefer the candidate nearest the region's trusted cluster
         score -= 0.05 * _haversine_km((lat, lng), anchor)
     return score
 
 
-def osm_match(break_: dict, state: str, anchor: tuple[float, float] | None) -> tuple[float, float, str] | None:
+def osm_match(
+    break_: dict,
+    state: str,
+    anchor: tuple[float, float] | None,
+    current: tuple[float, float] | None,
+) -> tuple[float, float, str] | None:
     """Geocode one break against OSM. Returns (lat, lng, display_name) of the
-    best candidate that lies inside the break's state, else None.
+    chosen candidate, or None to keep the existing coordinates.
 
-    ``anchor`` is the median of the *other, unflagged* breaks in the same
-    region — used only to disambiguate, never to disqualify.
+    Trust model:
+    - a *physical* feature (beach/bay/cape/river mouth/...) with a name match
+      is accepted outright, unless the existing point is clearly closer to
+      the region's trusted cluster (G2 veto — guards against same-name
+      features elsewhere in the state, e.g. two different 'Fishery Bays');
+    - a *settlement* (town/hamlet/locality/boundary) is accepted only when it
+      is the sole viable candidate or the existing point is the one far from
+      the cluster — never when it just happens to be the nearest hit;
+    - highways, roads, viewpoints and council centroids are never accepted.
     """
     name = str(break_.get("name", ""))
     base, inner = name, ""
@@ -245,36 +274,85 @@ def osm_match(break_: dict, state: str, anchor: tuple[float, float] | None) -> t
     if m:
         base, inner = m.group(1).strip(), m.group(2).strip()
 
-    variants: list[str] = []
-    for core in dict.fromkeys((name, base)):
-        variants.append(f"{core}, {state}, Australia")
-    if inner:
-        variants.insert(0, f"{base}, {inner}, {state}, Australia")
-    variants.append(f"{base}, Australia")
+    # Query variants: parenthetical locality first, then the raw name, then
+    # any parts of a slashed name ("Agnes Water / 1770" -> "Agnes Water").
+    cores = []
+    for part in name.split("/"):
+        part = part.strip()
+        if part:
+            cores.append(part)
+    cores.append(base)
 
     box = STATE_BOXES.get(state)
-    for query in dict.fromkeys(variants):
+    d_old = _haversine_km(current, anchor) if (anchor and current) else None
+
+    physical: list[tuple[float, float, str]] = []
+    places: list[tuple[float, float, str]] = []
+    seen: set[tuple[float, float]] = set()
+    for query in dict.fromkeys(
+        [f"{base}, {inner}, {state}, Australia"] if inner else []
+        + [f"{c}, {state}, Australia" for c in cores]
+        + [f"{base}, Australia"]
+    ):
         try:
             hits = nominatim_search(query)
         except Exception as e:  # noqa: BLE001
             print(f"    ! Nominatim error for {query!r}: {e}")
             continue
-        best, best_score = None, None
+        core = base if inner else (cores[0] if cores else name)
         for cand in hits:
+            if _norm(core) not in _norm(cand.get("display_name", "")):
+                continue
             try:
                 lat, lng = float(cand["lat"]), float(cand["lon"])
             except (KeyError, ValueError):
                 continue
             if box and not _in_box(lat, lng, box):
-                continue  # wrong corner of the country — never accept
-            score = _candidate_score(cand, base if inner else name, anchor)
-            if score is None:
+                continue  # wrong corner of the state — never accept
+            if (round(lat, 3), round(lng, 3)) in seen:
                 continue
-            if best_score is None or score > best_score:
-                best, best_score = (lat, lng, cand.get("display_name", "")), score
-        if best:
-            return best
+            kind = _candidate_kind(cand)
+            if kind is None:
+                continue
+            seen.add((round(lat, 3), round(lng, 3)))
+            entry = (lat, lng, cand.get("display_name", ""))
+            (physical if kind == "physical" else places).append(entry)
+        if physical:
+            break  # a physical match is the best we will get
+
+    # Cluster-distance gate (G2): if the existing point sits clearly closer
+    # to the trusted region cluster than the OSM candidate, trust the cluster.
+    def veto(point: tuple[float, float]) -> bool:
+        if anchor is None or d_old is None or current is None:
+            return False
+        if any(r in ("invalid", "out_of_australia", "wrong_state") for r in _break_hard_fail(break_)):
+            return False
+        return d_old + 20.0 <= _haversine_km(point, anchor)
+
+    if physical:
+        physical.sort(key=lambda p: -_haversine_km(p[:2], anchor) if anchor else 0)
+        best = physical[0]
+        if veto(best[:2]):
+            print("  -> candidate farther from region cluster than existing point")
+            return None
+        return best
+    if len(places) == 1 and not veto(places[0][:2]):
+        return places[0]
+    if len(places) > 1 and d_old is not None:
+        # Several settlement hits: accept only if the existing point is the outlier.
+        supported = [p for p in places if _haversine_km(p[:2], anchor) + 20.0 <= d_old]
+        if supported:
+            supported.sort(key=lambda p: _haversine_km(p[:2], anchor) if anchor else 0)
+            if not veto(supported[0][:2]):
+                return supported[0]
     return None
+
+
+def _break_hard_fail(break_: dict) -> list[str]:
+    # Re-derived cheaply: a hard-failed existing point is untrusted, so G2
+    # must not protect it. (Flag reasons are passed through item['reasons']
+    # upstream; this keeps the signature of osm_match small.)
+    return getattr(break_, "_flag_reasons", [])  # type: ignore[attr-defined]
 
 
 def build_coord_prompt(break_: dict, current) -> str:

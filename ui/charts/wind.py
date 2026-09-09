@@ -12,6 +12,7 @@ from typing import Any
 
 import plotly.graph_objects as go
 
+from ui.charts._style import add_weekend_shading
 from ui.charts.score import _empty_fig, _strip_layout
 
 
@@ -159,6 +160,7 @@ def build_wind_fig(scored: list[dict], spot: dict | None = None) -> go.Figure:
         yaxis={"visible": False, "showticklabels": False, "range": [0.5, 1.5]},
         showlegend=True,
     )
+    add_weekend_shading(fig, scored)
     fig = _strip_layout(fig, height=170, hide_x=False)
     fig.update_yaxes(visible=False, showticklabels=False, showgrid=False, zeroline=False)
     return fig

@@ -11,6 +11,8 @@ from typing import Any
 
 import plotly.graph_objects as go
 
+from ui.charts._style import add_weekend_shading, style_fig
+
 
 def _empty_fig() -> go.Figure:
     fig = go.Figure()
@@ -129,8 +131,8 @@ def _strip_layout(fig: go.Figure, height: int = 230, hide_x: bool = False) -> go
     if getattr(getattr(fig.layout, "title", None), "text", None):
         fig.update_layout(title={"x": 0.0, "xanchor": "left"})
     fig.update_xaxes(showticklabels=not hide_x, tickangle=-30, showgrid=True)
-    fig.update_yaxes(showgrid=True, gridcolor="#e5e5e5")
-    return fig
+    fig.update_yaxes(showgrid=True)
+    return style_fig(fig, height=height)
 
 
 def add_sun_markers(fig: go.Figure, sun: dict | None) -> go.Figure:
@@ -199,6 +201,7 @@ def build_score_fig(scored: list[dict]) -> go.Figure:
             )
         )
     fig.update_layout(title="Score", yaxis={"range": [0, 10], "title": "0–10"})
+    add_weekend_shading(fig, scored)
     return _strip_layout(fig, height=230, hide_x=True)
 
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import plotly.graph_objects as go
 
+from ui.charts._style import add_weekend_shading
 from ui.charts.score import _empty_fig, _strip_layout
 
 
@@ -47,4 +48,5 @@ def build_waves_fig(scored: list[dict]) -> go.Figure:
         yaxis={"title": "m"},
         yaxis2={"title": "s", "overlaying": "y", "side": "right"},
     )
+    add_weekend_shading(fig, scored)
     return _strip_layout(fig, height=230, hide_x=True)

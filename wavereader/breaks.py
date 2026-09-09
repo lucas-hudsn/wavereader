@@ -48,13 +48,25 @@ def is_valid_break(break_: dict, schema: dict | None = None) -> bool:
     return True
 
 
-def load_breaks(path: Path = DATA_PATH, strict: bool = False) -> list[dict]:
+_LOAD_CACHE: dict[tuple[str, bool], list[dict]] = {}
+
+
+def load_breaks(path: Path = DATA_PATH, strict: bool = False,
+                refresh: bool = False) -> list[dict]:
     """Load the enriched break catalogue as a list of validated records.
 
     Handles the legacy ``{"name | state | region": {...}}`` dict format
     and drops ``error`` rows, mirroring the v1 loader. Records failing
     schema validation are skipped (``strict=True`` raises instead).
+
+    Memoized per (path, strict): the catalogue is static per process, and
+    re-validating 238 records costs ~700 ms on every agent tool call.
+    ``refresh=True`` bypasses the cache.
     """
+    key = (str(path), bool(strict))
+    if not refresh and key in _LOAD_CACHE:
+        load_breaks.last_skipped = 0  # type: ignore[attr-defined]
+        return _LOAD_CACHE[key]
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(data, dict):
         records = list(data.values())
@@ -82,6 +94,7 @@ def load_breaks(path: Path = DATA_PATH, strict: bool = False) -> list[dict]:
         out.append(rec)
     out.sort(key=lambda b: (str(b.get("state", "")), str(b.get("region", "")), str(b.get("name", ""))))
     load_breaks.last_skipped = skipped  # type: ignore[attr-defined]
+    _LOAD_CACHE[key] = out
     return out
 
 

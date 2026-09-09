@@ -1,7 +1,7 @@
 [project]
 name = "wavereader"
 version = "0.1.0"
-description = "Add your description here"
+description = "Australian surf-break encyclopedia + scored swell forecasts + agentic chat forecaster, powered by HF Inference Providers and NVIDIA Nemotron 3"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [

@@ -14,38 +14,49 @@ to `app/agent.py` + `app/agent_tools.py`.
   `surf-break-schema.json` (conformance contract),
   `surf-break-example-bells.json` (prompt worked example).
 
-## `main.py` map of the code
+## Front-end modules (`main.py` + `app/` UI layer)
 
-Entry: `build_demo()` → `main()` → `demo.launch(css=APP_CSS)`.
+Entry: `main.py` (thin: re-exports + `main()` → `demo.launch(css=APP_CSS)`)
+calls `app/ui.py::build_demo()`. Run with `uv run python main.py`.
 
-- Data load (module import time): `load_breaks()` reads
+- `app/config.py` — paths (`DATA_PATH`), `ALL`, `SKILL_ORDER`/`SKILL_COLORS`,
+  `AUSTRALIA_CENTER`/`ZOOM`, shared strings (`SCORE_EXPLAINER_MD`,
+  `BROWSE_INTRO`, `AGENT_INTRO`, ...). `app/theme.py` — `APP_CSS` only.
+- `app/breaks_data.py` — `load_breaks()` reads
   `data/australia-surf-breaks-enriched.json` into `DF` (handles legacy
   `{"name | state | region": {...}}` dict format too, drops `error` rows).
   Derives `STATES`, `REGIONS_BY_STATE`, `ALL_REGIONS`, `SKILLS`.
-- Filtering: `filter_breaks(df, state, region, skill)` — `"All"`/None = no
-  filter. Case-insensitive on canonical `state` / `region` / `skillLevel`.
-- Map: `build_map(records, default_view)` — Plotly `Scattermap`
-  (`open-street-map` style), marker colour by `SKILL_COLORS`, point order ==
-  records order so the break list lines up. Auto-centers/zooms via
-  `_zoom_for_span()` unless `default_view` (unfiltered → whole Australia).
-  `build_map_with_custom()` adds the gold star marker for the session break.
-- Details: `break_to_table(break_)` flattens one record to a
-  Field/Value dataframe (name/state/region/description/skill/break+peak
-  type/coords/ideal swell+wind+tide/season/hazards/crowd).
-- Session-only custom break: `generate_custom_break()` streams
-  `(telemetry, details, map, dropdown, state)` tuples via `yield`.
-  Loads `app/generate_surf_break.py` with `_load_generator()`
-  (`importlib`, no package import). Empty custom state/region fields fall
-  back to the main map filters; explicit values win. Exactly one custom
-  break per session (`gr.State`, never written to disk); regeneration
-  replaces it. `clear_custom_break()` deletes it. `sync_custom_from_filters()`
-  pushes map State/Region into the generation form (`gr.skip()` leaves a
-  field untouched when the filter is `All`).
-- Identity: `_resolve_pick()` maps a break-list label back to its record
-  (custom break carries a `⭐ (your break)` suffix); base records match by
-  `name`. Enriched `id` is `"<name> | <state> | <region>"`.
-- Helpers `_lat()` / `_lng()` return None on missing coords (map skips
-  them for centering); `_join()` stringifies list fields.
+  `filter_breaks(df, state, region, skill)` — `"All"`/None = no filter,
+  case-insensitive on canonical `state` / `region` / `skillLevel`.
+- `app/maps.py` — `build_map(records, default_view)` (Plotly `Scattermap`,
+  `open-street-map` style, marker colour by `SKILL_COLORS`, point order ==
+  records order). Auto-centers/zooms via `_zoom_for_span()` unless
+  `default_view` (unfiltered → whole Australia). `build_map_with_custom()`
+  adds the gold star marker for the session break. `_lat()` / `_lng()`
+  return None on missing coords.
+- `app/break_details.py` — `break_to_table(break_)` flattens one record to a
+  Field/Value dataframe; `_join()` stringifies list fields; `_cam_*` wrappers
+  + `CAMS` overlay via direct `from app import surf_cams` (optional, never
+  breaks the UI).
+- `app/browse_sync.py` — `update_map`, `on_break_pick`, region-choice
+  helpers, `mirror_*` one-way filter↔prefs sync, `resync_on_mode_toggle`,
+  `_format_pref_chip`. `_resolve_pick()` maps a break-list label back to its
+  record (custom break carries a `⭐ (your break)` suffix).
+- `app/custom_break.py` — `generate_custom_break()` streams
+  `(telemetry, details, map, dropdown, state)` tuples via `yield` (lazy
+  `from app import generate_surf_break`, no `importlib` shims). Empty custom
+  state/region fields fall back to the main map filters; explicit values win.
+  Exactly one custom break per session (`gr.State`, never written to disk).
+  `clear_custom_break()` deletes it.
+- `app/forecast_handlers.py` — `fetch_forecast()` (deterministic charts via
+  lazy `app.surf_forecast`) + `generate_reports()` (streams
+  `app.generate_surf_report` markdown).
+- `app/agent_trace.py` — trace coercion (`_coerce_scored_hours`,
+  `_coerce_rank_rows`, `_coerce_forecast_hours`), telemetry builders,
+  chart trios. `app/agent_chat.py` — `chat_fn` (lazy
+  `from app import agent`, session-persistent `SurfAgent`), spot dropdown,
+  leaderboard select.
+- `app/ui.py` — `build_demo()` layout + event wiring only (no logic).
 
 Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
 `#0b2c5c`, Courier). Don't restyle without asking. Keep callbacks wired in
@@ -57,8 +68,8 @@ Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
 
 `app/generate_surf_break.py`:
 
-- `MODEL_ID = "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"`,
-  `PROVIDER = "deepinfra"`. Swap only to a model actually served by an
+- `MODEL_ID = "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16"`,
+  `PROVIDER = "fireworks-ai"`. Swap only to a model actually served by an
   Inference Provider you have enabled.
 - `load_prompt_parts()` reads schema + Bells example from `data/`.
 - `build_surf_break_prompt(break_name, state, region)` — rules: JSON only,

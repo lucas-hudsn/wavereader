@@ -27,11 +27,13 @@ __all__ = [
     "find_spots",
     "get_spot_knowledge",
     "rank_spots_this_week",
+    "score_region_week",
     "explain_score_breakdown",
     "find_best_windows",
     "find_similar_spots",
     "list_states_regions",
     "get_spot_sun_sst",
+    "get_seafloor_analysis",
 ]
 
 _DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "australia-surf-breaks-enriched.json"
@@ -375,6 +377,218 @@ def rank_spots_this_week(
     return ranked
 
 
+def _apply_spot_filters(
+    candidates: list[dict],
+    break_type: str | None = None,
+    peak_type: str | None = None,
+    max_crowd: str | None = None,
+    avoid_hazards: list[str] | str | None = None,
+) -> list[dict]:
+    """Shared deterministic filters for rank/sweep tools (LLM never filters by hand)."""
+    crowd_order = {"quiet": 0, "moderate": 1, "busy": 2, "very crowded": 3}
+    avoid: set[str] = set()
+    if isinstance(avoid_hazards, str):
+        avoid = {avoid_hazards.strip().lower()} if avoid_hazards.strip() else set()
+    elif isinstance(avoid_hazards, list):
+        avoid = {str(h).strip().lower() for h in avoid_hazards if str(h).strip()}
+    out = list(candidates)
+    if break_type:
+        want = str(break_type).strip().lower()
+        out = [b for b in out if str(b.get("breakType", "")).lower() == want]
+    if peak_type:
+        want = str(peak_type).strip().lower()
+        out = [b for b in out if str(b.get("peakType", "")).lower() == want]
+    if max_crowd:
+        cap = crowd_order.get(str(max_crowd).strip().lower())
+        if cap is not None:
+            out = [
+                b
+                for b in out
+                if crowd_order.get(str(b.get("crowdFactor", "moderate")).lower(), 1)
+                <= cap
+            ]
+    if avoid:
+        out = [
+            b
+            for b in out
+            if not (set(str(h).lower() for h in (b.get("hazards") or [])) & avoid)
+        ]
+    return out
+
+
+def _slim_hour(row: dict) -> dict:
+    """Token-lean hour shape shared by region sweeps (daily rows + best)."""
+    return {
+        "time": row.get("time"),
+        "score": row.get("score"),
+        "wave_height_m": row.get("wave_height_m"),
+        "wave_period_s": row.get("wave_period_s"),
+        "wind_speed_kt": row.get("wind_speed_kt"),
+        "wind_direction_deg": row.get("wind_direction_deg"),
+    }
+
+
+def _score_one_region(break_: dict, skill_level: str) -> dict | None:
+    """Fetch + score one break; rich sweep row (best + daily) or None on failure."""
+    lat, lng = adapters.get_coords(break_)
+    if lat is None or lng is None:
+        return None
+    try:
+        frame = forecasts.get_forecast(lat, lng)
+    except Exception:  # noqa: BLE001 — skip unfetchable breaks, sweep the rest
+        return None
+    try:
+        spot = adapters.enriched_to_scoring_spot(break_)
+        hours = scoring.score_week(frame, spot, skill_level=skill_level)
+    except Exception:  # noqa: BLE001 — skip unscoreable breaks, sweep the rest
+        return None
+    best = _best_window(hours)
+    if best is None:
+        return None
+    return {
+        "name": break_.get("name"),
+        "state": break_.get("state"),
+        "region": break_.get("region"),
+        "skillLevel": break_.get("skillLevel"),
+        "breakType": break_.get("breakType"),
+        "peakType": break_.get("peakType"),
+        "best_score": best.get("score", 0.0),
+        "best_time": best.get("time"),
+        "best": _slim_hour(best),
+        "daily": _daily_best(hours),
+    }
+
+
+def score_region_week(
+    region: str,
+    skill: str | None = None,
+    break_type: str | None = None,
+    peak_type: str | None = None,
+    max_crowd: str | None = None,
+    avoid_hazards: list[str] | str | None = None,
+    weekend_only: bool = False,
+    min_score: float = 0.0,
+    limit: int = 10,
+) -> dict:
+    """Forecast + score a whole region in ONE call (one fan-out, not N score_weeks).
+
+    Same deterministic filters as ``rank_spots_this_week`` (applied before
+    scoring), plus:
+
+    - ``weekend_only``: daily/best computed over Sat/Sun hours only.
+    - ``min_score``: drop spots whose best score is below this floor.
+    - ``limit``: top-N spots returned after sorting (1-15).
+
+    Each spot carries its slim ``best`` hour + per-date ``daily`` bests —
+    enough to answer "where + when in <region>" with no follow-up scoring.
+    Call ``score_week`` once afterwards for the top pick when the user needs
+    charts (the sweep carries daily bests, not full hourly rows).
+    Scoring fans out over a ThreadPoolExecutor (max 8 workers); failures are
+    skipped and named in ``skipped``. State-wide sweeps (>25 matches) score
+    the first 25 and say so in ``coverage_note`` — use a sub-region for full
+    coverage.
+    """
+    from datetime import datetime as _dt
+
+    if not (region or "").strip():
+        return {"error": "Pass a state name, code, or sub-region (e.g. 'Byron / North Coast')"}
+    try:
+        lim = max(1, min(15, int(limit)))
+    except (TypeError, ValueError):
+        lim = 10
+    try:
+        floor = max(0.0, float(min_score))
+    except (TypeError, ValueError):
+        floor = 0.0
+    skill_level = _normalize_skill(skill)
+    candidates = _search_breaks(query=region or "", skill=skill, limit=1000)
+    candidates = _apply_spot_filters(
+        candidates,
+        break_type=break_type,
+        peak_type=peak_type,
+        max_crowd=max_crowd,
+        avoid_hazards=avoid_hazards,
+    )
+    total_matches = len(candidates)
+    truncated = total_matches > 25
+    pool_list = candidates[:25] if truncated else candidates
+    if not pool_list:
+        return {
+            "region": region,
+            "skill": skill_level,
+            "spots": [],
+            "count": 0,
+            "candidates": 0,
+            "scored": 0,
+            "skipped": [],
+            "filters": {
+                "break_type": break_type,
+                "peak_type": peak_type,
+                "max_crowd": max_crowd,
+                "avoid_hazards": avoid_hazards,
+                "weekend_only": bool(weekend_only),
+                "min_score": floor,
+            },
+            "note": "No breaks matched — call list_states_regions() and retry with a canonical spelling.",
+        }
+    scored_rows: list[dict] = []
+    skipped: list[str] = []
+    with ThreadPoolExecutor(max_workers=_RANK_WORKERS) as pool:
+        for b, row in zip(pool_list, pool.map(lambda x: _score_one_region(x, skill_level), pool_list)):
+            if row is None:
+                skipped.append(str(b.get("name", "?")))
+            else:
+                scored_rows.append(row)
+    out_spots: list[dict] = []
+    for row in scored_rows:
+        daily = row.get("daily") or []
+        if weekend_only:
+            kept = []
+            for d in daily:
+                try:
+                    if _dt.fromisoformat(str(d.get("time", ""))).weekday() >= 5:
+                        kept.append(d)
+                except ValueError:
+                    continue
+            if not kept:
+                continue
+            row = dict(row)
+            row["daily"] = kept
+            top = max(kept, key=lambda r: float(r.get("score", 0) or 0))
+            row["best_score"] = top.get("score", 0.0)
+            row["best_time"] = top.get("time")
+            row["best"] = _slim_hour(top)
+        if float(row.get("best_score", 0) or 0) < floor:
+            continue
+        out_spots.append(row)
+    out_spots.sort(key=lambda x: float(x.get("best_score", 0) or 0), reverse=True)
+    out_spots = out_spots[:lim]
+    coverage_note = (
+        f"Scored first 25 of {total_matches} matches — use a sub-region for full coverage."
+        if truncated
+        else None
+    )
+    return {
+        "region": region,
+        "skill": skill_level,
+        "spots": out_spots,
+        "count": len(out_spots),
+        "candidates": total_matches,
+        "scored": len(scored_rows),
+        "skipped": skipped,
+        "truncated": truncated,
+        "coverage_note": coverage_note,
+        "filters": {
+            "break_type": break_type,
+            "peak_type": peak_type,
+            "max_crowd": max_crowd,
+            "avoid_hazards": avoid_hazards,
+            "weekend_only": bool(weekend_only),
+            "min_score": floor,
+        },
+    }
+
+
 _CROWD_ORDER = {"quiet": 0, "moderate": 1, "busy": 2, "very crowded": 3}
 
 _WETSUIT_TABLE = (
@@ -442,6 +656,35 @@ def get_spot_sun_sst(spot_name: str, region: str | None = None) -> dict:
         "sunset": daily.get("sunset"),
         "sea_surface_temp_c": sst,
         "wetsuit_hint": _wetsuit_hint(sst),
+    }
+
+
+def get_seafloor_analysis(
+    spot_name: str, region: str | None = None, radius_km: float = 1.2
+) -> dict:
+    """Return deterministic seafloor/bathymetry analysis for a break.
+
+    Fetches a GEBCO 2020 grid (ETOPO1 fallback, disk-cached) around the
+    spot and returns shape stats (deepest/median depth, relief, slopes,
+    shelf class, channel hint) plus a markdown read. Network-backed via
+    ``app.seafloor``; the LLM narrates but never computes numbers.
+    """
+    from app import seafloor as _sf
+
+    b = _resolve_break(spot_name, region)
+    if b is None:
+        return {"error": f"Spot '{spot_name}' ({region}) not found"}
+    lat, lng = adapters.get_coords(b)
+    if lat is None or lng is None:
+        return {"error": f"Spot '{spot_name}' ({region}) has no coordinates"}
+    try:
+        res = _sf.get_seafloor(lat, lng, radius_km=radius_km)
+    except Exception as e:  # noqa: BLE001 — surface fetch failure to the agent
+        return {"error": f"Seafloor fetch failed for '{spot_name}' ({region}): {e}"}
+    return {
+        "spot": {"name": b.get("name"), "state": b.get("state"), "region": b.get("region")},
+        "stats": res.get("stats", {}),
+        "analysis": res.get("analysis", ""),
     }
 
 

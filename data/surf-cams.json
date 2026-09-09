@@ -1,0 +1,150 @@
+{
+  "_notes": "Curated surf-cam page links keyed by canonical enriched break id ('<name> | <state> | <region>'). Link to cam PAGES, never direct streams/snapshots (hotlinking + ToS). Missing key = no cam linked yet. Swellnet long-form URLs verified live; slugs for directory-listed cams follow the same convention. Duranbah lives on the NSW/QLD border — Swellnet files it under NSW.",
+  "Avoca Beach | New South Wales | Central Coast": {
+    "label": "Swellnet — Avoca Beach cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/avoca-beach"
+  },
+  "Bells Beach | Victoria | Surf Coast": {
+    "label": "Surfline — Bells Beach cam",
+    "provider": "surfline",
+    "url": "https://www.surfline.com/surf-report/bells-beach/584204204e65fad6a77099c7"
+  },
+  "Bondi Beach | New South Wales | Sydney": {
+    "label": "Swellnet — Bondi cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/bondi"
+  },
+  "Burleigh Heads | Queensland | Gold Coast": {
+    "label": "Swellnet — Burleigh Heads cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/burleigh-heads"
+  },
+  "Byron Bay (The Pass) | New South Wales | North Coast": {
+    "label": "Swellnet — Byron Bay cam",
+    "note": "Nearest cam; covers The Pass area.",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/byron-bay"
+  },
+  "Cronulla | New South Wales | Sydney": {
+    "label": "Swellnet — Cronulla Beaches cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/cronulla-beaches"
+  },
+  "Curl Curl | New South Wales | Sydney": {
+    "label": "Swellnet — Curl Curl cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/curl-curl"
+  },
+  "Currumbin Alley | Queensland | Gold Coast": {
+    "label": "Swellnet — Currumbin Alley cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/currumbin-alley"
+  },
+  "Duranbah | Queensland | Gold Coast": {
+    "alternates": [
+      {
+        "label": "Surfline — Duranbah",
+        "url": "https://www.surfline.com/surf-report/duranbah/5842041f4e65fad6a7708c11"
+      }
+    ],
+    "label": "Swellnet — Duranbah cam",
+    "note": "Swellnet files D-Bah under NSW (border break).",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/duranbah"
+  },
+  "First Point (Noosa) | Queensland | Sunshine Coast": {
+    "alternates": [
+      {
+        "label": "Surfline — Noosa Heads",
+        "url": "https://www.surfline.com/surf-report/noosa-heads/5842041f4e65fad6a7708bee"
+      }
+    ],
+    "label": "Swellnet — Noosa Heads cam",
+    "note": "Nearest cam; points at the Noosa points including First Point.",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/noosa-heads"
+  },
+  "Greenmount | Queensland | Gold Coast": {
+    "label": "Swellnet — Greenmount cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/greenmount"
+  },
+  "Jan Juc | Victoria | Surf Coast": {
+    "label": "Swellnet — Jan Juc cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/victoria/jan-juc"
+  },
+  "Kirra | Queensland | Gold Coast": {
+    "label": "Swellnet — Kirra cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/kirra"
+  },
+  "Manly Beach | New South Wales | Sydney": {
+    "label": "Swellnet — Manly cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/manly"
+  },
+  "Margaret River Main Break | Western Australia | South West (Margaret River region)": {
+    "label": "Swellnet — Margaret River Mainbreak cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/western-australia/margaret-river-mainbreak"
+  },
+  "Maroubra Beach | New South Wales | Sydney": {
+    "label": "Swellnet — Maroubra cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/maroubra"
+  },
+  "Narrabeen | New South Wales | Sydney": {
+    "label": "Swellnet — Narrabeen cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/narrabeen"
+  },
+  "Palm Beach | New South Wales | Sydney": {
+    "label": "Swellnet — Palm Beach cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/palm-beach"
+  },
+  "Portsea | Victoria | Mornington Peninsula": {
+    "label": "Swellnet — Portsea cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/victoria/portsea"
+  },
+  "Rainbow Bay | Queensland | Gold Coast": {
+    "label": "Swellnet — Rainbow Bay cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/rainbow-bay"
+  },
+  "Scarborough Beach | Western Australia | Perth Metro": {
+    "label": "Swellnet — Scarborough cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/western-australia/scarborough"
+  },
+  "Snapper Rocks | Queensland | Gold Coast": {
+    "alternates": [
+      {
+        "label": "Surfline — Snapper Rocks",
+        "url": "https://www.surfline.com/surf-report/snapper-rocks/5842041f4e65fad6a7708be5"
+      }
+    ],
+    "label": "Swellnet — Snapper Rocks cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/queensland/snapper-rocks"
+  },
+  "Trigg Point | Western Australia | Perth Metro": {
+    "label": "Swellnet — South Trigg cam",
+    "note": "Nearest cam to Trigg Point.",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/western-australia/south-trigg"
+  },
+  "Winkipop | Victoria | Surf Coast": {
+    "label": "Swellnet — Winkipop cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/victoria/winkipop"
+  },
+  "Wollongong City Beach | New South Wales | Illawarra / South Coast": {
+    "label": "Swellnet — Wollongong cam",
+    "provider": "swellnet",
+    "url": "https://www.swellnet.com/surfcams/australia/new-south-wales/wollongong"
+  }
+}

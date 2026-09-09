@@ -54,7 +54,7 @@ import json
 import time
 from pathlib import Path
 
-from generate_surf_break import generate_surf_break
+from app.generate_surf_break import generate_surf_break
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 

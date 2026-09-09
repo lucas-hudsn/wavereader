@@ -1,135 +1,133 @@
 # wave~reader
 
-Australian surf-break encyclopaedia + scored surf forecast (two Gradio tabs).
+**238 Australian surf breaks, a deterministic 7-day swell score, and a surf
+agent that talks to you — all powered by open models on Hugging Face
+Inference Providers.**
 
-Tab 1 (`encyclopedia`) filters spots on a Plotly `Scattermap` and shows
-break details. Tab 2 (`surf forecast`) is two-stage: Stage 1 fetches
-Open-Meteo marine + wind data for the selected break and scores every
-hour 0–10 (deterministic); Stage 2 optionally streams a short LLM
-dot-point report that narrates those scores. The LLM never owns
-numbers — generation lives in `app/generate_surf_break.py` /
-`app/generate_surf_report.py`, scores/forecasts stay deterministic in
-`app/scoring.py` + `app/forecasts.py`.
+> Built in a week, in September 2026, from a fresh pair of shoes: I'd just
+> moved to Berlin, I'm on a careers break, and I needed a project that was
+> about waves before it was about weights. 🌊
+
+## The stack: Hugging Face × NVIDIA
+
+Every model call in this repo goes through one door: **Hugging Face
+Inference Providers** (served by Fireworks AI), running
+[`nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16`](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16)
+— the open-weights Lightning model of NVIDIA's Nemotron 3 family. No private APIs,
+no proprietary models, one `HF_TOKEN`.
+
+So wave~reader is, at its core, a love letter to open models on
+first-party infra: **NVIDIA's open weights, Hugging Face's inference
+fabric, open data (Open-Meteo), and a deterministic Python scoring engine
+in the middle that the LLM is contractually forbidden to touch.**
+
+Big congrats to Hugging Face on the NVIDIA acquisition 🎉 — the two halves
+of this stack just became one family, and this app got to be an early
+marriage photo.
+
+## What it does
+
+Three experiences in one Gradio app (`uv run python main.py`):
+
+| Tab / mode | What you get |
+|---|---|
+| **break book** | All 238 breaks on a Plotly map, filterable by state / region / skill. Pick a break for its full field guide (peak type, ideal swell / wind / tide, hazards, crowd factor). "Can't find your local break?" generates one live, schema-validated, session-only. |
+| **swell check** | Pick a break → deterministic 0–10 score for every hour of the next 7 days (Open-Meteo marine + wind data). Score bars, swell height + period chart, wind-arrows strip, best-window hero — then an optional streamed AI write-up that *narrates the scores only*. |
+| **agentic mode** (toggle) | Chat with a surf agent: "where's it going to be good in NSW this weekend?" — a smolagents `CodeAgent` on Nemotron 3.5 Lightning that finds spots, scores regions, explains score breakdowns, ranks the week, and suggests similar breaks. Charts render automatically from the agent's tool payloads. |
+
+## The rule that makes it trustworthy
+
+**The LLM never owns numbers.** Every wave height, wind speed, and score in
+the UI comes from `app/scoring.py` / `app/forecasts.py` / `app/agent_tools.py`
+— plain Python over Open-Meteo + the enriched break dataset. The model's
+contract (enforced by its system prompt) is to interpret, cite the tool it
+used, and never compute a forecast itself. The agent can *recommend*, but it
+can't *hallucinate a swell*.
+
+That split — deterministic core, model as interpreter — is the whole
+architecture, and it's what makes an open 30B model usable for something
+you'd actually plan a surf trip around.
+
+## Quickstart
+
+Requires [uv](https://docs.astral.sh/uv/) and Python 3.14.
+
+```sh
+uv sync
+cp .env.example .env   # fill in HF_TOKEN (https://huggingface.co/settings/tokens)
+uv run python main.py
+```
+
+Hand it to a friend?
+
+```sh
+uv run python main.py --share   # prints a public gradio.live URL
+```
+
+Or drive the agent straight from the terminal:
+
+```sh
+uv run python -m app.agent "best beginner morning this weekend in VIC?"
+```
+
+`HF_TOKEN` (Inference Providers access) is needed for the agent, the
+Stage-2 report, and custom-break generation. The Stage-1 forecast charts
+only need network access to Open-Meteo, with a disk cache under `.cache/`.
 
 ## Layout
 
 ```
-main.py                          # Gradio two-tab front end (run this)
+main.py                          # Gradio front end: break book / swell check / agentic mode
 app/
-  generate_surf_break.py         # single-shot structured-JSON break generator
-  generate_base_data.py          # batch/resumable enrichment runner
-  surf_forecast.py               # scored-forecast service + Plotly builders (no Gradio)
-  generate_surf_report.py        # Stage-2 streamed LLM report (narrates scores only)
+  agent.py                       # smolagents CodeAgent surf agent (HF Providers, Nemotron 3.5 Lightning, streaming + trace)
+  agent_tools.py                 # 10 deterministic tools the agent may call (find / rank / score / explain)
+  surf_forecast.py               # scored-forecast service + Plotly builders
   forecasts.py                   # Open-Meteo marine + weather client, disk cache
   scoring.py                     # deterministic 0–10 surf-quality engine
-  adapters.py                    # enriched-break -> scoring-spot bridge (flat 15kt wind)
+  adapters.py                    # enriched-break -> scoring-spot bridge
+  generate_surf_report.py        # streamed Stage-2 report (narrates scores only)
+  generate_base_data.py          # batch/resumable dataset enrichment runner
+  surf_cams.py                   # curated surf-cam link overlay (data/surf-cams.json)
+scripts/
+  generate_surf_break.py         # single-shot structured-JSON break generator (CLI)
 data/
-  australia-surf-breaks.json           # input: nested state -> region -> [names]
-  australia-surf-breaks-enriched.json  # output: list of schema-valid breaks
-  surf-break-schema.json               # JSON Schema every break must conform to
-  surf-break-example-bells.json        # worked example (Bells Beach) used in the prompt
-wavereader/                      # legacy-kept, not wired into the UI
-  agent.py / tools.py            # agentic forecast-explanation layer (kept for later)
+  australia-surf-breaks.json           # input: state -> region -> [names]
+  australia-surf-breaks-enriched.json  # 238 schema-valid breaks (generated by the pipeline above)
+  surf-break-schema.json               # the conformance contract
+  surf-break-example-bells.json        # worked example (Bells Beach) in the prompt
+  surf-cams.json                       # cam link overlay
 documents/
-  ENCYCLOPEDIA.md                # encyclopedia tab deep dive
-  FORECAST.md                    # forecast tab deep dive (pipeline, scoring, cache, report)
+  ENCYCLOPEDIA.md                # break book deep dive
+  FORECAST.md                    # forecast pipeline deep dive
+  SURFAGENT.md                   # agent design: prompt, tools, budgets, output contract
+  VIDEO_SCRIPT.md                # demo video script (GTC entry)
 ```
 
-## Setup
+## How the dataset was built
 
-Requires [uv](https://docs.astral.sh/uv/) and Python 3.14 (`uv sync` reads
-`.python-version`).
+`scripts/generate_surf_break.py` + `app/generate_base_data.py` ran
+Nemotron 3.5 Lightning once per break (temp 0.4, 2048 tokens, one chat call):
+the prompt carries the JSON schema + the Bells Beach worked example, and
+`extract_json()` strips fences / grabs the outermost `{...}`. Canonical
+`state` / `region` are pinned from the input list, never the model, and
+every record conforms to `data/surf-break-schema.json` (strict enums for
+swell, wind, tide, skill, hazards…). The batch runner is resumable —
+skips done breaks, retries failures, saves after every write.
 
-```sh
-uv sync
-cp .env.example .env   # then fill in HF_TOKEN
-```
+## The forecast pipeline
 
-`HF_TOKEN` (Inference Providers access,
-https://huggingface.co/settings/tokens) is needed for break generation
-(`app/generate_surf_break.py`) and the Stage-2 surf report
-(`app/generate_surf_report.py`). The Stage-1 forecast charts need
-network access to Open-Meteo, with disk cache fallback under `.cache/`
-(git-ignored).
+1. **Stage 1 — deterministic:** break → `adapters.enriched_to_scoring_spot`
+   → `forecasts.get_forecast` (Open-Meteo marine + wind, disk-cached) →
+   `scoring.score_week` → 168 hourly 0–10 scores → Plotly score / swell /
+   wind figures + best window.
+2. **Stage 2 — LLM narrator (optional):** the prompt carries only the daily
+    bests (≤7 lines) + best window + a one-line break summary; Nemotron 3.5
+    Lightning streams a dot-point write-up. It can only talk about the numbers
+   it was handed.
 
-## Run the front end
-
-```sh
-uv run python main.py
-```
-
-Two tabs share one `selected_break` state:
-
-- **encyclopedia** — State / Region / Skill filters reframe the
-  `Scattermap`. Hover a dot for name + region + skill; pick a break for
-  its details table. "Can't find your local break?" generates one live
-  via `app/generate_surf_break.py` — session-only (`gr.State`, never
-  written to `data/`). See `documents/ENCYCLOPEDIA.md`.
-- **surf forecast** — pick a break on either tab and charts load
-  automatically on tab 2. Skill defaults to the break's own `skillLevel`
-  (`pro-only` → `expert`); window is fixed at 7 days. Shows a best-window
-  hero, score bars (red → green, gold ★ on the best hour), swell
-  height + period chart, and a wind-arrows strip (colour = direction
-  quality, size = strength). Then optionally press **Generate surf
-  report ✨** for a streamed dot-point write-up (one bullet per day +
-  `**Recommendation: …**`). See `documents/FORECAST.md`.
-
-## Generate break data
-
-Single break (prints JSON):
-
-```sh
-uv run python app/generate_surf_break.py "Kilcunda" "Victoria" "Bass Coast"
-```
-
-Full batch (resumable — skips breaks already in the enriched output,
-retries missing ones on re-run, saves after every break):
-
-```sh
-export HF_TOKEN=hf_xxx
-uv run python app/generate_base_data.py
-```
-
-How it works: `build_surf_break_prompt()` assembles schema + Bells Beach
-worked example + target break; `generate_surf_break()` makes one chat
-completion call (`nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16` via
-`provider="deepinfra"`, temp 0.4, 2048 tokens); `extract_json()` strips
-fences / outermost `{...}` and parses. `enrich_result()` pins canonical
-`state`/`region` from the input list (not the model) plus a stable
-`"<name> | <state> | <region>"` id.
-
-## Schemas
-
-- `data/surf-break-schema.json` — required: `name`, `state`, `region`,
-  `location` (region/state/country/coordinates), `skillLevel`,
-  `breakType`, `peakType`, `idealSwell`, `idealWind`, `idealTide`.
-  Enums are strict (compass points, skill tiers, break/peak types,
-  tide stages, seasons, hazards, crowd factor).
-- `data/surf-break-example-bells.json` — the prompt's worked example.
-- `data/australia-surf-breaks.json` — the nested input list.
-- `data/australia-surf-breaks-enriched.json` — the generated output
-  (list, sorted by state/region/name on write).
-
-## Forecast pipeline (short)
-
-Stage 1 (`main.py fetch_forecast` → `app/surf_forecast.get_scored_week`):
-break → `adapters.enriched_to_scoring_spot` → `forecasts.get_forecast`
-→ `scoring.score_week` → score / swell / wind figs + `scored_payload`
-(best + daily bests + scored hours). Wind tolerance is a flat `15kt`
-(`adapters.DEFAULT_WIND_MAX_KT`) because the schema carries no
-wind-strength number.
-
-Stage 2 (`main.py generate_reports` →
-`app/generate_surf_report.generate_surf_report_stream`): the prompt
-carries only the daily bests (≤7 lines) + best window + a one-line
-break summary; the model streams plain markdown (one bullet per day +
-`Recommendation` line) with reasoning disabled (`/no_think` +
-`reasoning_effort: "none"`). It narrates the provided scores only.
 Full detail in `documents/FORECAST.md`.
 
-## Kept for later
+## Built for the GTC Berlin Golden Ticket Developer Contest 🎟️
 
-`wavereader/agent.py` / `wavereader/tools.py` are the legacy agentic
-forecast-explanation layer. Not wired into the UI — the forecast tab
-is Stage-1 deterministic plus the Stage-2 `generate_surf_report.py`
-narrator by design.
+Entry video script: `documents/VIDEO_SCRIPT.md`. Tagging @Merve Noyan —
+thanks for the nudge. #NVIDIAGTC

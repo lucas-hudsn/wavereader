@@ -1,6 +1,6 @@
 # Surf forecast tab
 
-The `surf forecast` tab in `main.py:build_demo()` scores the break
+The `surf forecast` tab in `app/ui.py:build_demo()` scores the break
 selected on the `encyclopedia` tab. Two stages:
 
 - **Stage 1 — deterministic charts** (`fetch_forecast`): Open-Meteo
@@ -14,8 +14,8 @@ selected on the `encyclopedia` tab. Two stages:
 ```
 pick break (tab 1, break_dd -> selected_break gr.State)
   -> press "Get forecast (charts)" (tab 2, fetch_btn)
-  -> fetch_forecast() [main.py]
-  -> _load_forecast() [importlib, app/surf_forecast.py]
+   -> fetch_forecast() [app/forecast_handlers.py]
+   -> lazy `from app import surf_forecast` (direct package import)
   -> get_scored_week(break, skill, days=7)
        -> adapters.enriched_to_scoring_spot(break)   # schema -> scoring shape
        -> forecasts.get_forecast(lat, lng, days)     # marine + wind, cached
@@ -23,8 +23,8 @@ pick break (tab 1, break_dd -> selected_break gr.State)
   -> best_window / daily_best / build_score_fig / build_waves_fig / build_wind_fig
   -> scored_payload gr.State {break, skill, spot, scored, daily, best, days}
   -> press "Generate surf report" (tab 2, report_btn) [optional]
-  -> generate_reports() [main.py]
-  -> _load_report() [importlib, app/generate_surf_report.py]
+   -> generate_reports() [app/forecast_handlers.py]
+   -> lazy `from app import generate_surf_report` (direct package import)
   -> generate_surf_report_stream(break, skill, daily, best, days)
 ```
 
@@ -49,7 +49,7 @@ so the adapter bridges it:
 | skill `beginner/intermediate/advanced/expert` | + `pro-only` | `pro-only`/`pro only`/`pro` → `expert`; unknown/None → `intermediate` |
 
 Helpers: `normalize_skill()`, `break_skill()` (break's own tier),
-`get_coords()` (mirrors `main.py _lat`/`_lng`, `None` on missing).
+`get_coords()` (mirrors `app/maps.py` `_lat`/`_lng`, `None` on missing).
 
 ## Forecast client (`app/forecasts.py`)
 
@@ -125,8 +125,8 @@ highest-scoring hour.
 ## Stage-2 report (`app/generate_surf_report.py`)
 
 Same framework as break generation (single-shot `InferenceClient`
-call, `nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16` via
-`provider="deepinfra"`, deliberately NOT a smolagents CodeAgent).
+call, `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16` via
+`provider="fireworks-ai"`, deliberately NOT a smolagents CodeAgent).
 Speed-first: the prompt carries ONLY the daily bests (≤7 lines) + the
 single best window + a one-line break summary (ideals + up to 3
 hazards) — never the full hourly table or full break record.
@@ -143,7 +143,7 @@ hazards) — never the full hourly table or full break record.
 - `generate_surf_report_stream` yields the accumulated cleaned report
   per delta; `stats` reports `reasoning_chars` (hidden channel, never
   displayed) vs `content_chars` so callers can prove the visible text
-  is the final report. `main.py generate_reports` yields an instant
+  is the final report. `app/forecast_handlers.py` `generate_reports` yields an instant
   "Contacting report model…" placeholder first so the button never
   looks dead, then streams. LLM failure keeps the deterministic
   charts — only the report box shows the error.

@@ -157,7 +157,7 @@ def test_score_week_uses_swell_values_not_generic():
     assert got["wave_direction_deg"] == pytest.approx(0.0)
 
 
-# ---- Daylight filter ----
+# ---- Daylight flag (all hours returned, nights never recommended) ----
 
 def _sunny_frame():
     return {
@@ -174,19 +174,33 @@ def _sunny_frame():
     }
 
 
-def test_score_week_drops_night_hours_by_default():
+def test_score_week_returns_all_hours_with_daylight_flags():
     hours = score_week(_sunny_frame(), _spot())
+    assert [h["time"] for h in hours] == [
+        "2026-09-01T02:00", "2026-09-01T12:00", "2026-09-01T23:00"]
+    assert [h["daylight"] for h in hours] == [False, True, False]
+
+
+def test_score_week_daylight_only_drops_night():
+    hours = score_week(_sunny_frame(), _spot(), daylight_only=True)
     assert [h["time"] for h in hours] == ["2026-09-01T12:00"]
 
 
-def test_score_week_daylight_opt_out_keeps_all():
-    hours = score_week(_sunny_frame(), _spot(), daylight_only=False)
-    assert len(hours) == 3
-
-
-def test_score_week_without_daily_keeps_all():
+def test_score_week_without_daily_flags_all_daylight():
     hours = score_week(_frame(["2026-09-01T02:00", "2026-09-01T12:00"]), _spot())
     assert len(hours) == 2
+    assert all(h["daylight"] for h in hours)
+
+
+def test_daylight_hours_filters_and_fails_open():
+    rows = [
+        {"time": "a", "score": 9, "daylight": False},
+        {"time": "b", "score": 5, "daylight": True},
+        {"time": "c", "score": 7},  # flag-absent legacy row counts as daylight
+        "junk",
+    ]
+    assert [r["time"] for r in sc.daylight_hours(rows)] == ["b", "c"]
+    assert sc.daylight_hours(None) == []
 
 
 # ---- Daily summary (p75) ----
@@ -206,6 +220,16 @@ def test_daily_summary_is_p75():
     assert d1["n"] == 4
     assert d1["surfable_hours"] == 2
     assert d2["p75"] == pytest.approx(9.0)
+
+
+def test_daily_summary_skips_flagged_night_hours():
+    hours = [
+        {"time": "2026-09-01T03:00", "score": 10.0, "daylight": False},
+        {"time": "2026-09-01T12:00", "score": 6.0, "daylight": True},
+    ]
+    (d1,) = daily_summary(hours)
+    assert d1["best"] == pytest.approx(6.0)
+    assert d1["n"] == 1
 
 
 # ---- Rank by surfable hours ----
@@ -233,6 +257,25 @@ def test_rank_spots_prefers_surfable_hours_over_single_best():
 def test_rank_spots_skips_missing_forecasts():
     ranked = rank_spots({}, [_spot(name="Ghost", region="R")])
     assert ranked == []
+
+
+def test_rank_spots_best_ignores_night():
+    spot = _spot(name="Night Owl", region="R")
+    # 23:00 is perfect and clean; midday is merely decent — the pick must
+    # still be the daylight hour.
+    frame = {
+        "hourly": [
+            _row("2026-09-01T23:00", wave_height=1.8, wave_period=14.0,
+                 wind_speed_10m=5.0, wind_direction_10m=0.0),
+            _row("2026-09-01T12:00", wave_height=1.0, wave_period=10.0,
+                 wind_speed_10m=9.0, wind_direction_10m=0.0),
+        ],
+        "daily": {"time": ["2026-09-01"],
+                  "sunrise": ["2026-09-01T06:00"], "sunset": ["2026-09-01T18:00"]},
+    }
+    (row,) = rank_spots({("Night Owl", "R"): frame}, [spot])
+    assert row["best_time"] == "2026-09-01T12:00"
+    assert row["total_hours"] == 2
 
 
 # ---- Monotonicity properties ----

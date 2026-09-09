@@ -4,17 +4,22 @@ Single-model rule: every live LLM call in the v2 rebuild goes through
 :func:`get_client` (raw ``InferenceClient``) or :func:`build_agent_model`
 (smolagents ``InferenceClientModel``). Defaults are the ONE approved model::
 
-    nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16  via  fireworks-ai
+    nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16  via  deepinfra
+
+(2026-09: switched from Nemotron 3.5 Lightning / fireworks-ai — the HF
+account can't enable pay-as-you-go there (HTTP 402) and deepinfra is the
+only provider serving the Ultra BF16 build. ``reasoning_effort`` is a
+deepinfra extension, so the narrator's no-think hint is honored natively.)
 
 Env overrides (never commit values — see ``.env.example``)::
 
-    WR_MODEL     model id (default: Nemotron 3.5 Lightning 30B)
-    WR_PROVIDER  Inference Providers provider (default: fireworks-ai)
+    WR_MODEL     model id (default: Nemotron 3 Ultra 550B)
+    WR_PROVIDER  Inference Providers provider (default: deepinfra)
     WR_BASE_URL  if set, use an OpenAI-compatible endpoint instead of a
                  provider (e.g. local Ollama/NIM); token falls back to "no-key"
     HF_TOKEN     Inference Providers token (also accepted as an arg)
 
-No Ultra/Qwen references anywhere in this module by design.
+No Qwen references anywhere in this module by design.
 """
 
 from __future__ import annotations
@@ -24,8 +29,8 @@ from typing import Any
 
 from huggingface_hub import InferenceClient
 
-DEFAULT_MODEL = "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16"
-DEFAULT_PROVIDER = "fireworks-ai"
+DEFAULT_MODEL = "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"
+DEFAULT_PROVIDER = "deepinfra"
 
 ENV_MODEL = "WR_MODEL"
 ENV_PROVIDER = "WR_PROVIDER"
@@ -34,12 +39,12 @@ ENV_TOKEN = "HF_TOKEN"
 
 
 def get_model_id() -> str:
-    """Model id from ``WR_MODEL`` or the Nemotron Lightning default."""
+    """Model id from ``WR_MODEL`` or the Nemotron Ultra default."""
     return os.environ.get(ENV_MODEL, "").strip() or DEFAULT_MODEL
 
 
 def get_provider() -> str:
-    """Inference Providers provider from ``WR_PROVIDER`` (default fireworks-ai)."""
+    """Inference Providers provider from ``WR_PROVIDER`` (default deepinfra)."""
     return os.environ.get(ENV_PROVIDER, "").strip() or DEFAULT_PROVIDER
 
 
@@ -63,7 +68,7 @@ def get_client(hf_token: str | None = None) -> InferenceClient:
 
     When ``WR_BASE_URL`` is set, returns an OpenAI-compatible client pointed
     at that URL (for local Ollama/NIM). Otherwise returns a provider-routed
-    client for Nemotron Lightning on fireworks-ai.
+    client for Nemotron Ultra on deepinfra.
     """
     token = resolve_token(hf_token)
     base_url = get_base_url()
@@ -104,7 +109,7 @@ def build_agent_model(
 
 
 def smoke_test(hf_token: str | None = None, max_tokens: int = 50) -> dict:
-    """One tiny live call proving Nemotron Lightning tool-calling path works.
+    """One tiny live call proving Nemotron Ultra tool-calling path works.
 
     Costs a fraction of a cent (<=50 completion tokens). Returns
     ``{"ok": True, ...}`` on success or ``{"ok": False, "reason": ...}``

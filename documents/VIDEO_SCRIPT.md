@@ -5,7 +5,7 @@ Record AFTER `uv run python scripts/warm_caches.py` so every spin-up on
 screen is warm (charts land in <100 ms). Browser at ~1440×900, zoom ~110%.
 
 Tag line to open on: **"wave~reader — a surf forecasting world model,
-powered by NVIDIA Nemotron 3.5 Lightning on Hugging Face Inference
+powered by NVIDIA Nemotron 3 Ultra on Hugging Face Inference
 Providers."**
 
 ---
@@ -17,7 +17,7 @@ Providers."**
   (🌍 world model · 📡 feeds · 🌡 climate · ⚙ scorer · 🧠 LLM · 🔌 MCP).
 - VO: "wave~reader makes its machinery visible: a GEBCO world model, open
   weather feeds, a deterministic scoring engine — and one open model,
-  Nemotron 3.5 Lightning, that is only ever allowed to narrate their numbers."
+  Nemotron 3 Ultra, that is only ever allowed to narrate their numbers."
 
 ### 0:08–0:25 — break book
 - Filter Victoria → Surf Coast, pick **Bells Beach**.
@@ -46,7 +46,7 @@ Providers."**
 - Let the tool cards stream: `🔧 score_week(...)` → `📦 → 84 scored hours ·
   ⚡ 312 ms`, charts appearing mid-answer, then the token meter
   (🪙 prompt/completion tokens, single turn).
-- VO: "The agent is a native tool-calling loop on Nemotron 3.5 Lightning.
+- VO: "The agent is a native tool-calling loop on Nemotron 3 Ultra.
   Watch the clock: every tool call is milliseconds, because the numbers
   come from deterministic Python — the model only interprets. Hard budget:
   six steps, 700 tokens per turn."

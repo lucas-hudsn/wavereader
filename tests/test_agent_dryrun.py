@@ -1,8 +1,8 @@
 """Offline dry-run tests for Worker C (no network, no LLM, no token).
 
-Covers: 9 tools importable + plausibly shaped offline, system-prompt token
-budget, golden-question routing, score_week per-turn budget guard, llm
-factory defaults, narrator marker/think stripping.
+Covers: 11 tools importable + plausibly shaped offline, system-prompt token
+budget, golden-question routing, depth budget profiles, score_week per-turn
+budget guard, llm factory defaults, narrator marker/think stripping.
 """
 
 from __future__ import annotations
@@ -26,6 +26,8 @@ from wavereader import tools as tools_mod  # noqa: E402
 EXPECTED_TOOLS = [
     "get_spot_knowledge",
     "get_climate_profile",
+    "get_seafloor_profile",
+    "get_session_brief",
     "score_week",
     "rank_region_week",
     "explain_score",
@@ -36,9 +38,9 @@ EXPECTED_TOOLS = [
 ]
 
 
-def test_nine_tools_registered():
+def test_eleven_tools_registered():
     assert tools_mod.TOOL_NAMES == EXPECTED_TOOLS
-    assert len(tools_mod.TOOLS) == 9
+    assert len(tools_mod.TOOLS) == 11
     for t in tools_mod.TOOLS:
         assert t.description and t.inputs is not None and t.output_type in ("object", "array", "string")
 
@@ -59,6 +61,8 @@ def test_spot_tools_offline_plausible_shapes():
     assert "error" in tools_mod.score_week(spot_name="No Such Break XYZ")
     assert "error" in tools_mod.explain_score(spot_name="No Such Break XYZ")
     assert "error" in tools_mod.get_climate_profile(spot_name="No Such Break XYZ")
+    assert "error" in tools_mod.get_seafloor_profile(spot_name="No Such Break XYZ")
+    assert "error" in tools_mod.get_session_brief(spot_name="No Such Break XYZ")
     assert "error" in tools_mod.rank_region_week(region="")
     assert "error" in tools_mod.find_best_windows(spot_name="No Such Break XYZ")
     miss = tools_mod.find_similar_spots(spot_name="No Such Break XYZ")
@@ -84,6 +88,10 @@ def test_known_spot_offline_shapes():
     assert isinstance(windows.get("windows"), list)
     climate = tools_mod.get_climate_profile(spot_name=name, region=region)
     assert "climate" in climate and "findings" in climate
+    seafloor = tools_mod.get_seafloor_profile(spot_name=name, region=region)
+    assert seafloor.get("shelf_class") or "error" in seafloor
+    brief = tools_mod.get_session_brief(spot_name=name, region=region)
+    assert brief.get("wetsuit") or "error" in brief
     ranked = tools_mod.rank_region_week(region=first_state, limit=3)
     if "error" in ranked:
         pytest.skip(f"forecast backend offline: {ranked['error']}")
@@ -97,14 +105,31 @@ def test_system_prompt_token_budget():
     assert est <= 1500, f"system prompt ~{est} tokens, budget is 1500"
 
 
-def test_golden_routing_8_of_8():
+def test_golden_routing_10_of_10():
     missed = []
     for question, expected in eval_agent.GOLDEN:
         predicted = eval_agent.predict_tools(question)
         if not all(t in predicted for t in expected):
             missed.append((question, expected, predicted))
-    assert len(eval_agent.GOLDEN) == 8
+    assert len(eval_agent.GOLDEN) == 10
     assert not missed, f"routing misses: {missed}"
+
+
+def test_budget_profiles():
+    quick = agent_mod.resolve_budget("quick")[1]
+    deep = agent_mod.resolve_budget("deep")[1]
+    standard = agent_mod.resolve_budget("standard")[1]
+    bogus_key, standard_fb = agent_mod.resolve_budget("bogus")
+    assert bogus_key == "standard" and standard_fb is standard
+    assert quick["max_steps"] < standard["max_steps"] < deep["max_steps"]
+    assert quick["max_tokens"] < standard["max_tokens"] < deep["max_tokens"]
+    assert quick["score_week_calls"] < standard["score_week_calls"] < deep["score_week_calls"]
+    # standard preserves the original legacy constants
+    assert standard == {
+        "max_steps": agent_mod.MAX_STEPS,
+        "max_tokens": agent_mod.MAX_TOKENS,
+        "score_week_calls": agent_mod.MAX_SCORE_WEEK_CALLS,
+    }
 
 
 def test_score_week_budget_guard():
@@ -118,16 +143,27 @@ def test_score_week_budget_guard():
     assert "error" in third and "Budget exceeded" in third["error"]
 
 
+def test_score_week_budget_guard_profile_cap():
+    counter: dict = {}
+    guarded = agent_mod._guarded_score_week(counter, cap=1)  # quick profile
+    kwargs = {"spot_name": "No Such Break XYZ", "region": None, "skill": None}
+    guarded(**kwargs)
+    second = guarded(**kwargs)
+    assert counter["score_week"] == 1
+    assert "error" in second
+    assert "at most 1" in second["error"] and "Budget exceeded" in second["error"]
+
+
 def test_llm_factory_defaults_no_token():
     env_backup = {k: os.environ.get(k) for k in ("WR_MODEL", "WR_PROVIDER", "WR_BASE_URL")}
     try:
         for k in ("WR_MODEL", "WR_PROVIDER", "WR_BASE_URL"):
             os.environ.pop(k, None)
         assert llm_mod.get_model_id() == llm_mod.DEFAULT_MODEL
-        assert "Nemotron-3.5-Lightning" in llm_mod.get_model_id()
-        assert llm_mod.get_provider() == "fireworks-ai"
+        assert "Nemotron-3-Ultra" in llm_mod.get_model_id()
+        assert llm_mod.get_provider() == "deepinfra"
         assert llm_mod.get_base_url() is None
-        assert "Ultra" not in llm_mod.get_model_id() and "Qwen" not in llm_mod.get_model_id()
+        assert "Lightning" not in llm_mod.get_model_id() and "Qwen" not in llm_mod.get_model_id()
         os.environ["WR_MODEL"] = "custom/model"
         os.environ["WR_PROVIDER"] = "custom-provider"
         os.environ["WR_BASE_URL"] = "http://localhost:11434/v1"

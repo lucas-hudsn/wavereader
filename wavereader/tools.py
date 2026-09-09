@@ -1,14 +1,15 @@
-"""THE 9 typed tool functions (Worker C — agent + narrator).
+"""THE 11 typed tool functions (Worker C — agent + narrator).
 
 Single source for the smolagents ``ToolCallingAgent`` AND the Gradio MCP
 surface (``@gr.api()``): every function carries the smolagents ``@tool``
 decorator, a docstring with ``Args:``, and typed params/returns.
 
 Deterministic-only contract: no LLM inside. Each tool wraps a Worker A
-(scoring/forecasts/breaks/seafloor) or Worker B (climate) export. Those
-modules do NOT exist yet on this branch, so every import is stubbed with a
-``try/except`` + typed fake fallback returning plausible shapes (marked
-``STUB(merge)``). At merge, delete the fallback and keep the import.
+(scoring/forecasts/breaks/seafloor) or Worker B (climate) export. The
+core modules all exist and the direct imports succeed; the guarded
+imports remain as the offline seam — when a backend is unavailable the
+tools return stable deterministic shapes (``_fake_*``) instead of raising,
+which is what the offline dry-run tests and the UI stub layer rely on.
 
 Agreed signatures coded against::
 
@@ -17,7 +18,7 @@ Agreed signatures coded against::
     resolve_break(name, region) -> dict
     get_forecast(lat, lon, days) -> dict
     get_seafloor(lat, lng) -> dict{grid,analysis,stats}
-    load_climate(slug) -> dict
+    break_climate(break) -> dict
     audit_break(break, climate) -> list[dict]
 """
 
@@ -25,7 +26,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -80,12 +80,12 @@ except ImportError:
 # STUB(merge): Worker B imports — rewire to wavereader/climate.py here.
 # ---------------------------------------------------------------------------
 
-try:  # Worker B: wavereader/climate.py :: load_climate(slug)
-    from wavereader.climate import load_climate as _core_load_climate  # type: ignore
+try:  # Worker B: wavereader/climate.py :: break_climate(break)
+    from wavereader.climate import break_climate as _core_break_climate  # type: ignore
     _HAS_CLIMATE = True
 except ImportError:
     _HAS_CLIMATE = False
-    _core_load_climate = None  # type: ignore
+    _core_break_climate = None  # type: ignore
 
 try:  # Worker B: wavereader/climate.py :: audit_break(break, climate)
     from wavereader.climate import audit_break as _core_audit_break  # type: ignore
@@ -94,6 +94,13 @@ except ImportError:
     _HAS_AUDIT = False
     _core_audit_break = None  # type: ignore
 
+try:  # Worker B: wavereader/climate.py :: summarize(climate)
+    from wavereader.climate import summarize as _core_summarize  # type: ignore
+    _HAS_CLIMATE_SUMMARY = True
+except ImportError:
+    _HAS_CLIMATE_SUMMARY = False
+    _core_summarize = None  # type: ignore
+
 #: STUB(merge): exact stubbed imports needing rewire at merge time.
 STUBBED_IMPORTS = (
     "wavereader.scoring.score_week",
@@ -101,7 +108,7 @@ STUBBED_IMPORTS = (
     "wavereader.breaks.resolve_break",
     "wavereader.openmeteo.get_forecast",
     "wavereader.seafloor.get_seafloor",
-    "wavereader.climate.load_climate",
+    "wavereader.climate.break_climate",
     "wavereader.climate.audit_break",
 )
 
@@ -128,6 +135,28 @@ _KNOWLEDGE_KEYS = (
     "crowdFactor", "description", "location",
 )
 _SPOT_SUMMARY_KEYS = ("name", "state", "region", "skillLevel", "breakType", "peakType")
+
+#: Sea-surface temperature (°C) floors → deterministic wetsuit advice.
+_WETSUIT_BANDS = (
+    (24.0, "boardshorts"),
+    (21.0, "springsuit"),
+    (18.0, "3/2 wetsuit"),
+    (14.0, "4/3 wetsuit"),
+    (10.0, "5/4 wetsuit + boots"),
+    (0.0, "5/4 + hood & boots"),
+)
+
+_KMH_TO_KT = 0.539957
+
+
+def _wetsuit_for(sst_c: float | None) -> str | None:
+    """Deterministic wetsuit advice from sea-surface temperature."""
+    if sst_c is None:
+        return None
+    for floor, gear in _WETSUIT_BANDS:
+        if sst_c >= floor:
+            return gear
+    return None
 
 # STUB(merge): deterministic anchor so fake weeks are stable offline.
 _FAKE_WEEK_ANCHOR = datetime(2026, 9, 7, 0, 0, 0)
@@ -254,6 +283,46 @@ def _fake_scored_week(spot_name: str, n_hours: int = 24) -> list[dict]:
     return rows
 
 
+def _fake_seafloor(spot_name: str) -> dict:
+    """STUB(merge): stable seafloor shape until wavereader.seafloor lands."""
+    stats = {
+        "dataset": "stub-gebco",
+        "box_km": 2.4,
+        "points": 100,
+        "center_elev_m": -6.0,
+        "max_depth_m": 18.0,
+        "median_depth_m": 7.0,
+        "relief_m": 24.0,
+        "median_slope_m_per_km": 12.0,
+        "max_slope_m_per_km": 45.0,
+        "shelf_class": "moderately sloping reef/shelf",
+        "channel_hint": True,
+    }
+    md = (f"**Seafloor (stub, {stats['box_km']} km box)** — stable offline shape.\n\n"
+          f"- **Shape:** {stats['shelf_class']}.\n"
+          f"- **Surf read:** mid-slope reef — swell jacks up over the edge.")
+    return {"grid": {}, "analysis": md, "stats": stats}
+
+
+def _fake_session_brief(spot_name: str) -> dict:
+    """STUB(merge): stable session-brief shape until openmeteo lands."""
+    sst = 18.2
+    return {
+        "sst_c": sst,
+        "wetsuit": _wetsuit_for(sst),
+        "sunrise": "2026-09-07T06:21",
+        "sunset": "2026-09-07T17:54",
+        "snapshot": {
+            "time": "2026-09-07T12:00",
+            "wave_height_m": 1.2,
+            "wave_period_s": 9.0,
+            "wind_speed_kt": 8.3,
+            "wind_direction_deg": 225,
+        },
+        "stub": True,
+    }
+
+
 def _slim_hour(row: dict) -> dict:
     return {k: row.get(k) for k in (
         "time", "score", "wave_height_m", "wave_period_s",
@@ -268,6 +337,11 @@ def _safe_score(value) -> float:
         return 0.0
     import math as _math
     return f if _math.isfinite(f) else 0.0
+
+
+def _daylight_rows(scored: list[dict]) -> list[dict]:
+    """Recommendation pool: daylight rows only (flag-absent = daylight)."""
+    return [r for r in scored or [] if isinstance(r, dict) and r.get("daylight", True)]
 
 
 def _daily_best(scored: list[dict]) -> list[dict]:
@@ -286,16 +360,8 @@ def _daily_best(scored: list[dict]) -> list[dict]:
     ]
 
 
-def _climate_slug(break_: dict) -> str:
-    """Slug matching Worker B's ``data/climate/<name-state-region>.json`` files."""
-    parts = [str(break_.get("name", "")), str(break_.get("state", "")), str(break_.get("region", ""))]
-    slug = "-".join(parts).lower()
-    slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")
-    return slug or "unknown"
-
-
 # ---------------------------------------------------------------------------
-# The 9 tools.
+# The 11 tools.
 # ---------------------------------------------------------------------------
 
 @tool
@@ -316,6 +382,13 @@ def get_spot_knowledge(spot_name: str, region: Optional[str] = None) -> dict:
 def get_climate_profile(spot_name: str, region: Optional[str] = None) -> dict:
     """5-year wave climatology + dataset audit findings for one spot.
 
+    Returns ``climate`` (raw ERA5 profile), ``summary`` (plain-language
+    digest: ideal size window, dominant swell directions with share of
+    days, % of days in-window per month, best months) and ``findings``
+    (where the dataset's stated ideals disagree with observations).
+    Prefer citing ``summary`` numbers — they are the same data, just
+    readable.
+
     Args:
         spot_name: Name of the surf spot, e.g. 'Bells Beach'.
         region: State name, code or sub-region, e.g. 'Victoria' or 'VIC'.
@@ -323,16 +396,15 @@ def get_climate_profile(spot_name: str, region: Optional[str] = None) -> dict:
     b = _resolve_local(spot_name, region)
     if b is None:
         return {"error": f"Spot '{spot_name}' ({region}) not found"}
-    slug = _climate_slug(b)
-    if _HAS_CLIMATE and _core_load_climate is not None:
+    if _HAS_CLIMATE and _core_break_climate is not None:
         try:
-            climate = _core_load_climate(slug)
+            climate = _core_break_climate(b)
         except Exception as exc:  # noqa: BLE001
             return {"error": f"Climate load failed for '{spot_name}': {exc}"}
     else:
         # STUB(merge): plausible climate shape until wavereader.climate lands.
         climate = {
-            "slug": slug,
+            "slug": "stub",
             "years": 5,
             "direction_rose_pct": {"S": 28.0, "SE": 22.0, "SW": 18.0, "E": 12.0, "other": 20.0},
             "monthly_median_height_m": {str(m): round(1.2 + (m % 4) * 0.3, 1) for m in range(1, 13)},
@@ -352,16 +424,125 @@ def get_climate_profile(spot_name: str, region: Optional[str] = None) -> dict:
             "finding": "stub: no observed rose to compare against yet",
             "note": "rewire to audit_break at merge",
         }]
-    return {
+    out = {
         "spot": {"name": b.get("name"), "state": b.get("state"), "region": b.get("region")},
         "climate": climate,
         "findings": findings,
+    }
+    if _HAS_CLIMATE_SUMMARY and _core_summarize is not None:
+        try:
+            out["summary"] = _core_summarize(climate)
+        except Exception:  # noqa: BLE001 — summary is additive; raw data still flows
+            pass
+    return out
+
+
+@tool
+def get_seafloor_profile(spot_name: str, region: Optional[str] = None) -> dict:
+    """Seafloor structure for one spot from the GEBCO world model.
+
+    Args:
+        spot_name: Name of the surf spot, e.g. 'Bells Beach'.
+        region: State name, code or sub-region, e.g. 'Victoria' or 'VIC'.
+    """
+    b = _resolve_local(spot_name, region)
+    if b is None:
+        return {"error": f"Spot '{spot_name}' ({region}) not found"}
+    lat, lng = _coords(b)
+    if lat is None or lng is None:
+        return {"error": f"Spot '{spot_name}' has no coordinates"}
+    if _HAS_SEAFLOOR and _core_get_seafloor is not None:
+        try:
+            out = _core_get_seafloor(lat, lng)
+        except Exception as exc:  # noqa: BLE001
+            return {"error": f"Seafloor fetch failed for '{spot_name}': {exc}"}
+    else:
+        out = _fake_seafloor(str(b.get("name")))
+    stats = out.get("stats") or {}
+    return {
+        "spot": {"name": b.get("name"), "state": b.get("state"), "region": b.get("region")},
+        "shelf_class": stats.get("shelf_class"),
+        "channel_hint": stats.get("channel_hint"),
+        "median_slope_m_per_km": stats.get("median_slope_m_per_km"),
+        "max_slope_m_per_km": stats.get("max_slope_m_per_km"),
+        "max_depth_m": stats.get("max_depth_m"),
+        "relief_m": stats.get("relief_m"),
+        "analysis": out.get("analysis", ""),
+        "stub": str(stats.get("dataset", "")).startswith("stub"),
+    }
+
+
+@tool
+def get_session_brief(spot_name: str, region: Optional[str] = None) -> dict:
+    """Wetsuit, sunrise/sunset + right-now wave/wind snapshot for one spot.
+
+    Args:
+        spot_name: Name of the surf spot, e.g. 'Bells Beach'.
+        region: State name, code or sub-region, e.g. 'Victoria'.
+    """
+    b = _resolve_local(spot_name, region)
+    if b is None:
+        return {"error": f"Spot '{spot_name}' ({region}) not found"}
+    lat, lng = _coords(b)
+    if lat is None or lng is None:
+        return {"error": f"Spot '{spot_name}' has no coordinates"}
+    spot = {"name": b.get("name"), "state": b.get("state"), "region": b.get("region")}
+    frame: dict | None = None
+    if _HAS_FORECAST and _core_get_forecast is not None:
+        try:
+            frame = _core_get_forecast(lat, lng, 7)
+        except Exception as exc:  # noqa: BLE001
+            return {"error": f"Forecast fetch failed for '{spot_name}': {exc}"}
+    if not frame:
+        return {**_fake_session_brief(str(b.get("name"))), "spot": spot}
+    hourly = [r for r in frame.get("hourly") or [] if isinstance(r, dict)]
+    temps = [float(r["sea_surface_temperature"]) for r in hourly
+             if r.get("sea_surface_temperature") is not None]
+    sst = round(sum(temps) / len(temps), 1) if temps else None
+    daily = frame.get("daily") or {}
+    rises = [str(s) for s in daily.get("sunrise") or []]
+    sets = [str(s) for s in daily.get("sunset") or []]
+    times = [str(t) for t in daily.get("time") or []]
+    day0 = times[0] if times else ""
+    today_rows = [r for r in hourly if day0 and str(r.get("time", "")).startswith(day0)]
+    pool = today_rows or hourly
+
+    def _dist(r: dict) -> float:
+        try:
+            return abs((datetime.fromisoformat(str(r.get("time", ""))) - datetime.now()).total_seconds())
+        except ValueError:
+            return float("inf")
+
+    row = min(pool, key=_dist) if pool else None
+    snapshot = None
+    if row is not None:
+        kmh = row.get("wind_speed_10m")
+        wave = row.get("swell_wave_height") if row.get("swell_wave_height") is not None else row.get("wave_height")
+        period = row.get("swell_wave_period") if row.get("swell_wave_period") is not None else row.get("wave_period")
+        snapshot = {
+            "time": row.get("time"),
+            "wave_height_m": round(float(wave), 2) if wave is not None else None,
+            "wave_period_s": round(float(period), 1) if period is not None else None,
+            "wind_speed_kt": round(float(kmh) * _KMH_TO_KT, 1) if kmh is not None else None,
+            "wind_direction_deg": row.get("wind_direction_10m"),
+        }
+    return {
+        "spot": spot,
+        "sst_c": sst,
+        "wetsuit": _wetsuit_for(sst),
+        "sunrise": rises[0] if rises else None,
+        "sunset": sets[0] if sets else None,
+        "snapshot": snapshot,
+        "stub": False,
     }
 
 
 @tool
 def score_week(spot_name: str, region: Optional[str] = None, skill: Optional[str] = None) -> dict:
     """Hour-by-hour surf scores for the next 7 days at ONE spot.
+
+    Returns all 24 hours per day (each row tagged ``daylight``); the
+    ``daily``/``best`` recommendation fields cover daylight hours only.
 
     Args:
         spot_name: Name of the surf spot, e.g. 'Bells Beach'.
@@ -376,8 +557,11 @@ def score_week(spot_name: str, region: Optional[str] = None, skill: Optional[str
     scored, used_stub = _scored_or_fake(b, skill_level)
     if not scored and not used_stub:
         return {"error": f"No scored hours for '{spot_name}' ({region})"}
-    daily = _daily_best(scored)
-    best = max(scored, key=lambda r: float(r.get("score", 0) or 0)) if scored else None
+    # All 24 hours come back in `scored` (each tagged `daylight`);
+    # recommendations never land in the dark.
+    pool = _daylight_rows(scored)
+    daily = _daily_best(pool)
+    best = max(pool, key=lambda r: _safe_score(r.get("score"))) if pool else None
     return {
         "spot": {"name": b.get("name"), "state": b.get("state"), "region": b.get("region")},
         "skill": skill_level,
@@ -489,11 +673,13 @@ def explain_score(
     scored, used_stub = _scored_or_fake(b, skill_level)  # real Worker A hours when online
     target = None
     if time:
-        for row in scored:
+        for row in scored:  # an explicitly asked hour is explained, even at night
             if str(time).strip() in str(row.get("time", "")):
                 target = row
                 break
-    target = target or (max(scored, key=lambda r: float(r.get("score", 0) or 0)) if scored else None)
+    if target is None:
+        pool = _daylight_rows(scored)
+        target = max(pool, key=lambda r: _safe_score(r.get("score"))) if pool else None
     if target is None:
         return {"error": f"No scored hours for '{spot_name}'"}
     return {
@@ -548,7 +734,7 @@ def find_best_windows(
         lim = 5
     scored, used_stub = _scored_or_fake(b, skill_level)  # real Worker A hours when online
     kept = []
-    for row in scored:
+    for row in _daylight_rows(scored):  # window picks stay in daylight
         try:
             dt = datetime.fromisoformat(str(row.get("time", "")))
         except ValueError:
@@ -665,10 +851,12 @@ def list_regions() -> dict:
     }
 
 
-#: The 9 tools in canonical order (agent + MCP share this list).
+#: The 11 tools in canonical order (agent + MCP share this list).
 TOOLS = [
     get_spot_knowledge,
     get_climate_profile,
+    get_seafloor_profile,
+    get_session_brief,
     score_week,
     rank_region_week,
     explain_score,

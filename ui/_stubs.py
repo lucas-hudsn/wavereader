@@ -289,27 +289,6 @@ def climate_profile(break_: dict) -> dict:
     }
 
 
-def audit_break(break_: dict) -> list[dict]:
-    """Fake climate audit: compare ideal direction vs rose top-3."""
-    name = (break_ or {}).get("name", "?")
-    ideal = ((break_ or {}).get("idealSwell") or {}).get("direction") or []
-    ideal_dirs = [str(d).upper() for d in (ideal if isinstance(ideal, list) else [ideal])]
-    prof = climate_profile(break_)
-    top3 = sorted(prof["rose"], key=lambda d: prof["rose"][d], reverse=True)[:3]
-    findings = []
-    overlap = [d for d in ideal_dirs if d in top3]
-    if overlap:
-        findings.append({"level": "ok",
-                         "message": f"ideal swell {', '.join(ideal_dirs)} matches observed climate top-3 ({', '.join(top3)})."})
-    else:
-        findings.append({"level": "warn",
-                         "message": f"dataset says {', '.join(ideal_dirs) or '?'} but 5-yr climate peaks at {', '.join(top3)} — score uses the observed window."})
-    findings.append({"level": "info",
-                     "message": f"best observed months: {', '.join(prof['best_months'])} (median {prof['median_height_m']}m @ {prof['median_period_s']}s)."})
-    _ = name
-    return findings
-
-
 def seafloor_grid(break_: dict, radius_km: float = 1.2, n: int = 9) -> dict:
     """Fake bathymetry grid: depth increasing seaward + noise."""
     coords = ((break_ or {}).get("location") or {}).get("coordinates") or {}

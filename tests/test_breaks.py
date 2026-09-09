@@ -61,6 +61,7 @@ def test_filter_breaks():
 
 def test_get_coords():
     lat, lng = br.get_coords(br.resolve_break("Bells Beach"))
-    assert lat == pytest.approx(-38.3667)
-    assert lng == pytest.approx(144.2833)
+    # OSM ground truth (beach feature), verified via scripts/check_coords.py
+    assert lat == pytest.approx(-38.368985, abs=0.01)
+    assert lng == pytest.approx(144.282452, abs=0.01)
     assert br.get_coords({}) == (None, None)

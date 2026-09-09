@@ -17,18 +17,20 @@ Scoring v2 upgrades over the v1 port:
   onshore 8, light/variable 10 — with a smooth logistic roll-off centred
   at the cap instead of the old 10→0 cliff. The effective cap is still
   bounded above by the skill profile's ``max_wind_kt``.
-* **Daylight-only** — :func:`score_week` drops night hours using
-  ``daily.sunrise``/``sunset`` from the forecast frame
-  (``daylight_only=False`` restores all hours).
+* **All hours, daylight-flagged** — :func:`score_week` scores *every*
+  hour and tags each with ``"daylight"`` from ``daily.sunrise``/
+  ``sunset`` in the forecast frame (``daylight_only=True`` still drops
+  night hours here); recommendation surfaces filter through
+  :func:`daylight_hours` so the dark is never recommended.
 * **Daily summary = p75** — :func:`daily_summary` reports the 75th
   percentile of daylight scores per date (consistency over one lucky
   hour).
 * **Rank by surfable hours** — :func:`rank_spots` orders by
-  (hours with score ≥ 6, then best score).
+  (daylight hours with score ≥ 6, then best daylight score).
 
 Stable public signatures (Worker C builds against these)::
 
-    score_week(forecast, spot, skill_level="intermediate", daylight_only=True)
+    score_week(forecast, spot, skill_level="intermediate", daylight_only=False)
     rank_spots(forecasts, spots_list, skill_level="intermediate")
 
 Deterministic only: no LLM, no network.
@@ -435,6 +437,19 @@ def is_daylight(iso_time: str, windows: dict[str, tuple[str, str]]) -> bool:
     return rise <= hhmm <= set_
 
 
+def daylight_hours(scored_hours: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Daylight rows only — the recommendation pool.
+
+    ``score_week`` returns all 24 hours tagged ``"daylight"``; every
+    "when should I go" answer must filter through this first. Rows
+    without the flag (older payloads, stubs) count as daylight.
+    """
+    return [
+        h for h in scored_hours or []
+        if isinstance(h, dict) and h.get("daylight", True)
+    ]
+
+
 # ---- Main Interface Functions ----
 
 def score_hour(
@@ -521,19 +536,21 @@ def _pick_period(row: dict) -> float | None:
 
 def score_week(
     forecast: dict, spot: dict, skill_level: str = _DEFAULT_SKILL_LEVEL,
-    daylight_only: bool = True,
+    daylight_only: bool = False,
 ) -> list[dict[str, Any]]:
-    """Score every (daylight) hour in a forecast frame for a target spot.
+    """Score every hour in a forecast frame for a target spot.
 
-    ``daylight_only=True`` (default) drops night hours using
-    ``forecast["daily"]`` sunrise/sunset; pass ``False`` to score every
-    hour. Each returned hour carries its ``"time"``. Hours missing any
-    required field are skipped.
+    All hours come back, each tagged ``"daylight"`` from
+    ``forecast["daily"]`` sunrise/sunset (no sun frame → ``True``,
+    fail-open). Recommendation surfaces filter through
+    :func:`daylight_hours`; pass ``daylight_only=True`` to drop night
+    hours here instead. Each returned hour carries its ``"time"``. Hours
+    missing any required field are skipped.
     """
     rows = forecast.get("hourly", []) if isinstance(forecast, dict) else []
     if not isinstance(rows, list):
         return []
-    windows = _daylight_windows(forecast.get("daily")) if daylight_only else {}
+    windows = _daylight_windows(forecast.get("daily"))
     results = []
 
     for row in rows:
@@ -542,7 +559,8 @@ def score_week(
         t = row.get("time")
         if not isinstance(t, str) or not t:
             continue
-        if daylight_only and not is_daylight(t, windows):
+        daylight = is_daylight(t, windows)
+        if daylight_only and not daylight:
             continue
         wave_height = _pick_height(row)
         wave_period = _pick_period(row)
@@ -571,6 +589,7 @@ def score_week(
             # One bad spot field or hour must not abort the whole week.
             continue
         scored["time"] = t
+        scored["daylight"] = daylight
         results.append(scored)
 
     return results
@@ -593,11 +612,12 @@ def _percentile(xs: list[float], q: float) -> float:
 def daily_summary(scored_hours: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Per-date summary of scored hours: p75 score (consistency signal).
 
-    Returns ``[{"date", "p75", "best", "n", "surfable_hours"}]`` sorted by
-    date, where ``surfable_hours`` counts hours with score ≥ 6.
+    Runs over :func:`daylight_hours` only — night rows never inflate a
+    day. Returns ``[{"date", "p75", "best", "n", "surfable_hours"}]``
+    sorted by date, where ``surfable_hours`` counts hours with score ≥ 6.
     """
     by_date: dict[str, list[float]] = {}
-    for h in scored_hours:
+    for h in daylight_hours(scored_hours):
         if not isinstance(h, dict):
             continue
         t = h.get("time")
@@ -631,11 +651,12 @@ def rank_spots(
     spots_list: list[dict],
     skill_level: str = _DEFAULT_SKILL_LEVEL,
 ) -> list[dict[str, Any]]:
-    """Rank spots by (surfable hours with score ≥ 6, then best score).
+    """Rank spots by (surfable daylight hours ≥ 6, then best daylight score).
 
     ``forecasts`` maps ``(name, region)`` → forecast frame. Spots with no
-    frame are skipped. Ties on surfable hours break toward the higher
-    single-hour best.
+    frame are skipped. Best/time come from :func:`daylight_hours` (night
+    is never the pick); ``total_hours`` counts every scored hour. Ties on
+    surfable hours break toward the higher single-hour best.
     """
     ranked = []
 
@@ -645,8 +666,9 @@ def rank_spots(
             continue
 
         hours = score_week(forecasts[key], spot, skill_level=skill_level)
-        best_hour = max(hours, key=lambda h: h["score"]) if hours else None
-        surfable = sum(1 for h in hours if h["score"] >= SURFABLE_THRESHOLD)
+        day = daylight_hours(hours)
+        best_hour = max(day, key=lambda h: h["score"]) if day else None
+        surfable = sum(1 for h in day if h["score"] >= SURFABLE_THRESHOLD)
 
         ranked.append(
             {
@@ -685,6 +707,7 @@ __all__ = [
     "break_skill",
     "wind_cap",
     "is_daylight",
+    "daylight_hours",
     "score_hour",
     "score_week",
     "daily_summary",

@@ -4,8 +4,11 @@ Pure functions over a per-break climate JSON profile built from the
 Open-Meteo marine *archive* (ERA5 reanalysis). Deterministic: no LLM,
 no Gradio imports.
 
-Profile schema (per break id-slug, ``data/climate/<slug>.json``)::
-
+Profiles live embedded in the break catalogue (``climate`` key on each
+record of ``data/australia-surf-breaks-enriched.json``); the per-slug
+files in ``data/climate/<slug>.json`` are the builder's output and the
+fallback source for catalogues that predate the embed. Schema (per break
+id-slug)::
     {
       "slug": str,
       "break_id": str,            # original dataset id ("Name | State | Region")
@@ -221,6 +224,25 @@ def load_climate(slug: str, climate_dir: str | Path | None = None) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def break_id(break_: dict) -> str:
+    """``"Name | State | Region"`` identity a slug/profile is keyed by."""
+    return f"{break_.get('name', '')} | {break_.get('state', '')} | {break_.get('region', '')}"
+
+
+def break_climate(break_: dict, climate_dir: str | Path | None = None) -> dict:
+    """Climate profile for a break record: embedded copy, file fallback.
+
+    Prefers the ``climate`` key embedded in the catalogue record (the
+    normal path — no extra disk read); falls back to the per-slug
+    ``data/climate/<slug>.json`` file for catalogues that predate the
+    embed. Raises FileNotFoundError when neither source has a profile.
+    """
+    prof = break_.get("climate") if isinstance(break_, dict) else None
+    if isinstance(prof, dict) and prof:
+        return prof
+    return load_climate(slugify(break_id(break_)), climate_dir)
+
+
 def direction_rose(climate: dict) -> dict[str, float]:
     """Return the 16-bin direction rose (percentages) from a profile."""
     rose = climate.get("direction_rose_pct", {})
@@ -258,6 +280,73 @@ def top_months_by_window(climate: dict, n: int = 3) -> list[int]:
         counts.append((m, c))
     counts.sort(key=lambda mc: (-mc[1], mc[0]))
     return [m for m, _ in counts[:n]]
+
+
+def monthly_window_pct(climate: dict) -> dict[int, float | None]:
+    """Share of each month's days whose swell fell inside the ideal window (%).
+
+    ``days_in_ideal_window / n_days * 100`` — the "how often is it good
+    here in March" number, comparable across months. ``None`` for months
+    with no calendar days in the record.
+    """
+    monthly = climate.get("monthly", {}) or {}
+    out: dict[int, float | None] = {}
+    for m in range(1, 13):
+        entry = monthly.get(str(m), monthly.get(m, {})) or {}
+        try:
+            days = int(entry.get("days_in_ideal_window", 0) or 0)
+            n = int(entry.get("n_days", 0) or 0)
+        except (TypeError, ValueError):
+            out[m] = None
+            continue
+        out[m] = round(100.0 * days / n, 1) if n > 0 else None
+    return out
+
+
+def dominant_directions(climate: dict, n: int = 2) -> list[tuple[str, float]]:
+    """The ``n`` most frequent rose bins as ``(label, pct)`` pairs."""
+    rose = direction_rose(climate)
+    ranked = sorted(rose.items(), key=lambda kv: (-kv[1], COMPASS16.index(kv[0])))
+    return [(label, pct) for label, pct in ranked[:n]]
+
+
+def rose_top_share(climate: dict, n: int = 2) -> float:
+    """Cumulative % of observed days carried by the top ``n`` rose bins."""
+    rose = direction_rose(climate)
+    top = sorted(rose.values(), reverse=True)[:n]
+    return round(sum(top), 2)
+
+
+def ideal_window_label(climate: dict) -> str:
+    """Human label for the ideal size window, e.g. ``"4–12 ft"`` (or ``""``)."""
+    window = climate.get("ideal_window_ft") or {}
+    lo, hi = window.get("min"), window.get("max")
+    if lo is None or hi is None:
+        return ""
+    return f"{float(lo):g}–{float(hi):g} ft"
+
+
+def summarize(climate: dict) -> dict:
+    """Plain-language digest of a profile (UI hints + agent tool output).
+
+    Every number traces straight back to the raw profile — nothing is
+    invented: the ideal size window, dominant swell directions with their
+    share of days, best months ranked by share of in-window days, and the
+    per-month % of days in the window.
+    """
+    pct = monthly_window_pct(climate)
+    best = sorted(
+        (m for m in range(1, 13) if pct[m] is not None),
+        key=lambda m: (-pct[m], m),
+    )[:3]
+    dom = dominant_directions(climate, 2)
+    return {
+        "ideal_window_ft": ideal_window_label(climate) or None,
+        "dominant_directions": [[label, share] for label, share in dom],
+        "top_directions_share_pct": rose_top_share(climate, 2) if dom else None,
+        "best_months_by_share": best,
+        "monthly_window_pct": {m: pct[m] for m in range(1, 13)},
+    }
 
 
 def month_to_season(month: int) -> str:

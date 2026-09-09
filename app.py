@@ -1,10 +1,11 @@
 """wave~reader v2 — HF Space entrypoint.
 
-Builds the Gradio 6 UI and exposes the deterministic tool functions as
-public API/MCP endpoints (typed inputs so the MCP schema is valid). Launch
-with ``uv run python app.py``; the Space runs this file with ``demo``
-already built — no secrets are read or logged here (the BYO token box in
-the agent tab is session-only, the Space secret is the fallback).
+Builds the single-page Gradio 6 UI and exposes the deterministic tool
+functions as public API/MCP endpoints (typed inputs so the MCP schema is
+valid). Launch with ``uv run python app.py``; the Space runs this file
+with ``demo`` already built — no secrets are read or logged here (the
+BYO token box in the agent panel is session-only, the Space secret is
+the fallback).
 """
 
 from __future__ import annotations

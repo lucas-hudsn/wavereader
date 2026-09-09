@@ -1,14 +1,14 @@
-"""Agent eval: 8 golden questions x expected tool names (Worker C).
+"""Agent eval: 10 golden questions x expected tool names (Worker C).
 
 ``--dry-run`` (default in CI): offline keyword router asserts each golden
 question maps to its expected tools — no network, no LLM, no token.
-Exit code 0 + "8/8 routed" on success.
+Exit code 0 + "10/10 routed" on success.
 
 Live mode (``--live``): runs :func:`wavereader.agent.run_stream` per
-question with the per-turn budget guard (max_steps=6, max_tokens=700) and
-checks the expected tools were actually called. Small token budget:
-8 questions x ~1 short turn each — pennies on Nemotron Lightning.
-Requires ``HF_TOKEN``.
+question with the per-turn budget guard (standard profile: 6 steps, 700
+tokens, 2 score_week calls) and checks the expected tools were actually
+called. Small token budget: 10 questions x ~1 short turn each — a few
+cents on Nemotron 3 Ultra. Requires ``HF_TOKEN``.
 """
 
 from __future__ import annotations
@@ -29,10 +29,14 @@ GOLDEN: list[tuple[str, list[str]]] = [
     ("I like Snapper Rocks — what similar spots are quieter?", ["find_similar_spots"]),
     ("What states and regions do you cover?", ["list_regions"]),
     ("Is Snapper Rocks good in autumn? How is the climate there?", ["get_climate_profile"]),
+    ("What's the seafloor like at Bells Beach — reef or sandy shelf?", ["get_seafloor_profile"]),
+    ("What wetsuit do I need at Bells Beach tomorrow, and when is sunrise?", ["get_session_brief"]),
 ]
 
 # Keyword -> tool routing rules (mirrors the agent system prompt).
 _RULES: list[tuple[str, tuple[str, ...]]] = [
+    ("seafloor|reef|shelf|bathymetry|structure", ("get_seafloor_profile",)),
+    ("wetsuit|sunrise|sunset|what do i wear|gear", ("get_session_brief",)),
     ("climate|autumn|season|best month|climatology", ("get_climate_profile",)),
     ("why|break it down|breakdown|explain.*score|component", ("explain_score",)),
     ("what states|what regions|which regions|do you cover|list.*region", ("list_regions",)),
@@ -96,7 +100,7 @@ def run_live(max_steps: int = 6) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="wavereader agent eval (8 goldens)")
+    parser = argparse.ArgumentParser(description="wavereader agent eval (10 goldens)")
     parser.add_argument("--dry-run", action="store_true", help="offline routing check (default)")
     parser.add_argument("--live", action="store_true", help="live run through the agent (needs HF_TOKEN)")
     parser.add_argument("--max-steps", type=int, default=6)

@@ -5,8 +5,8 @@ factory: daily scored summaries IN, streamed markdown OUT. The LLM never
 owns numbers — it narrates only the provided deterministic scores.
 
 Keeps the ``<think>``/``@@REPORT@@`` marker-stripping streaming pattern from
-the original. Single-model rule: Nemotron 3.5 Lightning 30B via
-fireworks-ai (``WR_*`` env overrides); no Ultra/Qwen references.
+the original. Single-model rule: Nemotron 3 Ultra 550B via
+deepinfra (``WR_*`` env overrides); no Qwen references.
 """
 
 from __future__ import annotations

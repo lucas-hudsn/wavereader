@@ -13,17 +13,23 @@ import pytest
 from wavereader.climate import (
     COMPASS16,
     audit_break,
+    break_climate,
     build_profile,
     climate_rose_fig,
     compute_monthly_stats,
     compute_rose,
     direction_rose,
     direction_to_bin,
+    dominant_directions,
     filter_existing_slugs,
+    ideal_window_label,
     load_climate,
     monthly_medians,
+    monthly_window_pct,
     month_to_season,
+    rose_top_share,
     slugify,
+    summarize,
     top_months_by_window,
     top_rose_bins,
 )
@@ -95,6 +101,39 @@ def test_top_months_by_window(bells_climate):
     assert top_months_by_window(bells_climate, 3) == [6, 7, 5]
 
 
+def test_monthly_window_pct(bells_climate):
+    pct = monthly_window_pct(bells_climate)
+    assert set(pct) == set(range(1, 13))
+    assert pct[10] == pytest.approx(22.6, abs=0.01)  # 35/155, rounded to 0.1
+    assert pct[6] == pytest.approx(53.3, abs=0.01)   # 80/150
+    empty = {"monthly": {"3": {"days_in_ideal_window": 0, "n_days": 0}}}
+    assert monthly_window_pct(empty)[3] is None
+
+
+def test_dominant_directions_and_top_share(bells_climate):
+    assert dominant_directions(bells_climate, 2) == [("SW", 28.0), ("S", 22.0)]
+    assert rose_top_share(bells_climate, 2) == pytest.approx(50.0)
+    assert rose_top_share({"direction_rose_pct": {}}) == 0.0
+
+
+def test_ideal_window_label(bells_climate):
+    assert ideal_window_label(bells_climate) == "4–12 ft"
+    assert ideal_window_label({"ideal_window_ft": {"min": None, "max": None}}) == ""
+    assert ideal_window_label({}) == ""
+
+
+def test_summarize_digest(bells_climate):
+    s = summarize(bells_climate)
+    assert s["ideal_window_ft"] == "4–12 ft"
+    assert s["dominant_directions"] == [["SW", 28.0], ["S", 22.0]]
+    assert s["top_directions_share_pct"] == pytest.approx(50.0)
+    # by share of in-window days: 6 (53.3%) > 7 (48.4%) > 5 (45.2%)
+    assert s["best_months_by_share"] == [6, 7, 5]
+    assert set(s["monthly_window_pct"]) == set(range(1, 13))
+    assert s["monthly_window_pct"][6] == pytest.approx(53.3, abs=0.1)
+    json.dumps(s)  # must stay JSON-serializable for the agent tool surface
+
+
 def test_month_to_season():
     assert month_to_season(1) == "summer"
     assert month_to_season(4) == "autumn"
@@ -147,6 +186,24 @@ def test_load_climate_fixture(bells_climate):
     assert loaded == bells_climate
     with pytest.raises(FileNotFoundError):
         load_climate("nope", Path(__file__).parent / "fixtures")
+
+
+def test_break_climate_prefers_embedded(bells_climate, tmp_path):
+    break_ = dict(BELLS_BREAK, state="Victoria", region="Surf Coast", climate=bells_climate)
+    # embedded copy wins even when the fallback dir holds nothing
+    assert break_climate(break_, tmp_path) == bells_climate
+
+
+def test_break_climate_file_fallback(bells_climate, tmp_path):
+    import shutil
+
+    shutil.copy(FIXTURE, tmp_path / "bells-beach-victoria-surf-coast.json")
+    break_ = {k: v for k, v in BELLS_BREAK.items() if k != "id"}
+    break_["state"] = "Victoria"
+    break_["region"] = "Surf Coast"
+    assert break_climate(break_, tmp_path) == bells_climate
+    with pytest.raises(FileNotFoundError):
+        break_climate({"name": "Nowhere", "state": "X", "region": "Y"}, tmp_path)
 
 
 def test_filter_existing_slugs_resumable(tmp_path):

@@ -1,8 +1,8 @@
-"""Shared lo-fi chart styling + weekend/night shading for wave~reader figs.
+"""Shared lo-fi chart styling + weekend shading for wave~reader figs.
 
-One helper so every chart reads as the same instrument panel: Courier
-type, dark-blue ink on white, week shading for weekends and night hours.
-Deterministic — pure Plotly layout, no data changes.
+One helper so every chart reads as the same instrument panel: IBM Plex
+Mono (Courier fallback), dark-blue ink on the page-blue paper, weekend
+shading. Deterministic — pure Plotly layout, no data changes.
 """
 
 from __future__ import annotations
@@ -10,12 +10,12 @@ from __future__ import annotations
 import datetime as _dt
 
 INK = "#0b2c5c"
-PAPER = "#ffffff"
+MUTED = "#a9c8e6"  # second tone for climate charts: ordinary values vs INK picks
+PAPER = "#eef6fd"
 PANEL = "#eef6fd"
 SHADE = "#d6e9f8"
-NIGHT = "#dde7f3"
 GRID = "#c9dff2"
-FONT = "Courier New, Courier, monospace"
+FONT = "'IBM Plex Mono', 'Courier New', Courier, monospace"
 
 
 def style_fig(fig, height: int | None = None, title: str | None = None):
@@ -28,7 +28,7 @@ def style_fig(fig, height: int | None = None, title: str | None = None):
         plot_bgcolor=PAPER,
         coloraxis={"colorbar": {"tickfont": {"family": FONT, "color": INK}}},
         hoverlabel={"font": {"family": FONT, "color": INK},
-                    "bgcolor": PANEL, "bordercolor": INK},
+                    "bgcolor": "#ffffff", "bordercolor": INK},
         legend={"font": {"family": FONT, "color": INK}},
     )
     fig.update_xaxes(
@@ -57,8 +57,12 @@ def _ts(value) -> _dt.datetime | None:
         return None
 
 
-def add_weekend_shading(fig, scored: list[dict], axis: str = "x") -> None:
-    """Light-blue bands behind Sat+Sun spans on a time axis."""
+def add_weekend_shading(fig, scored: list[dict], **vrect_kw) -> None:
+    """Light-blue bands behind Sat+Sun spans on a time axis.
+
+    Extra kwargs (e.g. ``row=``/``col=`` for subplot grids) pass straight
+    through to ``fig.add_vrect``.
+    """
     days: dict[_dt.date, list[float]] = {}
     for row in scored or []:
         ts = _ts(row.get("time") if isinstance(row, dict) else row)
@@ -75,38 +79,7 @@ def add_weekend_shading(fig, scored: list[dict], axis: str = "x") -> None:
         x0 = x0.replace(tzinfo=None)
         x1 = x1.replace(tzinfo=None)
         try:
-            fig.add_vrect(x0=x0, x1=x1, fillcolor=SHADE, opacity=0.45,
-                          line_width=0, layer="below")
-        except Exception:  # noqa: BLE001 — shading is cosmetic
-            pass
-
-
-def add_night_shading(fig, scored: list[dict], sunrise_map: dict | None = None) -> None:
-    """Optional pale bands over night hours (needs sunrise/sunset per day).
-
-    ``scored`` rows may carry ``sunrise``/``sunset`` ISO strings; hours
-    before sunrise or after sunset get a pale band via vrect per gap.
-    Cheap heuristic: shade gaps between consecutive day boundaries.
-    """
-    stamps = []
-    for row in scored or []:
-        if not isinstance(row, dict):
-            continue
-        ts = _ts(row.get("time"))
-        sr = _ts(row.get("sunrise"))
-        ss = _ts(row.get("sunset"))
-        if ts is None or sr is None or ss is None:
-            return  # no sun info → skip shading entirely
-        stamps.append((ts, sr, ss))
-    if not stamps:
-        return
-    stamps.sort()
-    for i, (ts, sr, ss) in enumerate(stamps):
-        if ts >= sr and ts <= ss:
-            continue
-        end = stamps[i + 1][0] if i + 1 < len(stamps) else ts + _dt.timedelta(hours=1)
-        try:
-            fig.add_vrect(x0=ts.replace(tzinfo=None), x1=end.replace(tzinfo=None),
-                          fillcolor=NIGHT, opacity=0.35, line_width=0, layer="below")
+            fig.add_vrect(x0=x0, x1=x1, fillcolor=SHADE, opacity=0.5,
+                          line_width=0, layer="below", **vrect_kw)
         except Exception:  # noqa: BLE001 — shading is cosmetic
             pass

@@ -1,23 +1,25 @@
-"""Score chart + scoring summaries (ported from ``app/surf_forecast.py``).
+"""Scoring summaries + hero formatting (ported from ``app/surf_forecast.py``).
 
-Deterministic: renders straight from typed tool payloads (lists of scored
-hour dicts). Adds :func:`daily_summary` (p75 of scores per day) for the
-swell-panel hero.
+Deterministic: pure functions over typed tool payloads (lists of scored
+hour dicts). Chart traces live in :mod:`ui.charts.strip`; this module
+owns the numbers behind them — daily bests, the p75 consistency summary,
+sunrise/sunset markers, and the hero/best markdown formatters.
 """
 
 from __future__ import annotations
 
+import datetime as _dt
 from typing import Any
 
 import plotly.graph_objects as go
 
-from ui.charts._style import add_weekend_shading, style_fig
+from ui.charts._style import GRID, style_fig
 
 
 def _empty_fig() -> go.Figure:
     fig = go.Figure()
     fig.add_annotation(text="No forecast data", showarrow=False, font={"size": 16})
-    return fig
+    return style_fig(fig, height=220)
 
 
 def _score_color(score: float) -> str:
@@ -37,17 +39,26 @@ def _score_color(score: float) -> str:
     return "#d73027"  # very poor — red
 
 
+def _daylight(rows: list[dict] | None) -> list[dict]:
+    """Recommendation pool: daylight rows only (flag-absent = daylight)."""
+    return [r for r in rows or [] if isinstance(r, dict) and r.get("daylight", True)]
+
+
 def best_window(scored: list[dict]) -> dict | None:
-    """Return the single highest-scoring hour, or None when empty."""
-    if not scored:
+    """Highest-scoring *daylight* hour (the ★ pick), or None when empty.
+
+    Night hours stay on the chart but never win the recommendation.
+    """
+    pool = _daylight(scored)
+    if not pool:
         return None
-    return max(scored, key=lambda r: r.get("score", 0))
+    return max(pool, key=lambda r: r.get("score", 0))
 
 
 def daily_best(scored: list[dict]) -> list[dict]:
-    """Best hour per calendar date (date = first 10 chars of ``time``)."""
+    """Best daylight hour per calendar date (date = first 10 chars of ``time``)."""
     best_by_date: dict[str, dict] = {}
-    for row in scored or []:
+    for row in _daylight(scored):
         date = str(row.get("time", ""))[:10]
         if not date:
             continue
@@ -81,14 +92,16 @@ def _percentile(xs: list[float], q: float) -> float:
 
 
 def daily_summary(scored: list[dict]) -> list[dict]:
-    """Per-day consistency summary: p75 score, best hour, surfable count.
+    """Per-day consistency summary over *daylight* hours: p75, best, surfable.
 
     v2 ranks days by consistency (p75 of daylight hours), not by a single
-    peak hour. Returns ``[{date, p75, best, best_time, hours, surfable}]``
-    sorted by date, where ``surfable`` counts hours scoring >= 6.
+    peak hour, and night rows (``daylight: False``) never count. Returns
+    ``[{date, p75, best, best_time, hours, surfable}]`` sorted by date,
+    where ``hours`` is the daylight-hour count and ``surfable`` those
+    scoring >= 6.
     """
     by_date: dict[str, list[dict]] = {}
-    for row in scored or []:
+    for row in _daylight(scored):
         date = str(row.get("time", ""))[:10]
         if date:
             by_date.setdefault(date, []).append(row)
@@ -110,99 +123,24 @@ def daily_summary(scored: list[dict]) -> list[dict]:
     return out
 
 
-def _strip_layout(fig: go.Figure, height: int = 230, hide_x: bool = False) -> go.Figure:
-    """Compact shared styling so the forecast strips read as one."""
-    fig.update_layout(
-        height=height,
-        margin={"l": 48, "r": 48, "t": 60, "b": 30 if not hide_x else 8},
-        showlegend=True,
-        legend={
-            "orientation": "h",
-            "x": 1.0,
-            "y": 1.15,
-            "xanchor": "right",
-            "yanchor": "bottom",
-        },
-        hovermode="x unified",
-        plot_bgcolor="white",
-        paper_bgcolor="white",
-    )
-    # Left-align any title so it never shifts the legend row.
-    if getattr(getattr(fig.layout, "title", None), "text", None):
-        fig.update_layout(title={"x": 0.0, "xanchor": "left"})
-    fig.update_xaxes(showticklabels=not hide_x, tickangle=-30, showgrid=True)
-    fig.update_yaxes(showgrid=True)
-    return style_fig(fig, height=height)
-
-
-def add_sun_markers(fig: go.Figure, sun: dict | None) -> go.Figure:
+def add_sun_markers(fig: go.Figure, sun: dict | None,
+                    row: int | None = None, col: int | None = None) -> go.Figure:
     """Overlay sunrise (dotted gold) / sunset (dashed orange) verticals.
 
-    ``sun`` is the ``daily`` frame (``{"sunrise": [...], "sunset": [...]}``);
-    no-op when absent.
+    ``sun`` is the daily frame (``{"sunrise": [...], "sunset": [...]}``);
+    no-op when absent. ``row``/``col`` target a subplot grid cell.
     """
     if not isinstance(sun, dict):
         return fig
+    kw = {} if row is None else {"row": row, "col": col}
     for key, color, dash in (("sunrise", "#b8860b", "dot"), ("sunset", "#ff7f0e", "dash")):
         times = sun.get(key) or []
         for t in list(times)[:7]:
             try:
-                fig.add_vline(x=t, line_width=1, line_dash=dash, line_color=color)
+                fig.add_vline(x=t, line_width=1, line_dash=dash, line_color=color, **kw)
             except (TypeError, ValueError):
                 continue
     return fig
-
-
-def build_score_fig(scored: list[dict]) -> go.Figure:
-    """Bars coloured by quality (red → green); ★ marks the best hour."""
-    if not scored:
-        return _empty_fig()
-    times = [r.get("time") for r in scored]
-    scores = [float(r.get("score") or 0) for r in scored]
-    colors = [_score_color(s) for s in scores]
-    fig = go.Figure()
-    fig.add_trace(
-        go.Bar(
-            x=times,
-            y=scores,
-            marker={"color": colors, "line": {"width": 0}},
-            hovertemplate="%{x}<br>score: %{y:.1f}/10<extra></extra>",
-            name="score",
-        )
-    )
-    # Dummy entries so the top legend explains the bar colours.
-    for band_name, band_color in [
-        ("8+ excellent", "#1a9850"),
-        ("6–8 good", "#91cf60"),
-        ("4–6 fair", "#fee08b"),
-        ("2–4 poor", "#fc8d59"),
-        ("0–2 very poor", "#d73027"),
-    ]:
-        fig.add_trace(
-            go.Bar(
-                x=[None],
-                y=[None],
-                marker={"color": band_color},
-                name=band_name,
-                hoverinfo="skip",
-            )
-        )
-    best = best_window(scored)
-    if best is not None:
-        fig.add_trace(
-            go.Scatter(
-                x=[best.get("time")],
-                y=[best.get("score")],
-                mode="markers",
-                marker={"size": 13, "color": "#FFD700", "symbol": "star",
-                        "line": {"width": 1, "color": "#0b2c5c"}},
-                hovertemplate="★ best: %{y:.1f}/10 @ %{x}<extra></extra>",
-                name="best ★",
-            )
-        )
-    fig.update_layout(title="Score", yaxis={"range": [0, 10], "title": "0–10"})
-    add_weekend_shading(fig, scored)
-    return _strip_layout(fig, height=230, hide_x=True)
 
 
 def format_best(best: dict | None, label: str | None = None,
@@ -223,19 +161,29 @@ def format_best(best: dict | None, label: str | None = None,
 
 
 def format_hero(summary: list[dict], label: str | None = None) -> str:
-    """Daily-summary hero markdown (p75 consistency per day)."""
+    """Daily-summary hero as lo-fi day chips (p75 consistency per day).
+
+    Chips carry a score-coloured left border, the day's p75, and its
+    surfable-hour count; the most consistent week's peak day gets the ★.
+    """
     if not summary:
-        return "_Pick a break — its week summary lands here._"
-    lines = []
+        return "_Pick a spot — its week summary lands here._"
+    top = max((float(d.get("best") or 0)) for d in summary)
+    chips = []
     for day in summary:
-        mark = "✅" if day["surfable"] >= 3 else ("🟡" if day["surfable"] else "⬜")
-        lines.append(
-            f"{mark} **{day['date']}** — p75 {day['p75']}/10 · "
-            f"best {day['best']} @ {day['best_time']} · "
-            f"{day['surfable']}/{day['hours']} surfable hrs"
+        try:
+            day_name = _dt.date.fromisoformat(str(day["date"])).strftime("%a")
+        except ValueError:
+            day_name = str(day["date"])[5:]
+        star = " ★" if float(day.get("best") or 0) >= top else ""
+        color = _score_color(day.get("p75") or 0)
+        surf = f"{day['surfable']}/{day['hours']}h"
+        chips.append(
+            f'<span class="day-chip" style="border-left-color:{color}">'
+            f"<b>{day_name}{star}</b><i>p75 {day['p75']} · {surf}</i></span>"
         )
-    head = f"### {label} — week ahead (p75 daily consistency)\n" if label else "### week ahead (p75 daily consistency)\n"
-    return head + "\n".join(lines)
+    cap = f'<div class="hero-cap">{label}</div>' if label else ""
+    return cap + '<div class="day-chips">' + "".join(chips) + "</div>"
 
 
 def coerce_scored_hours(payload: Any) -> list[dict] | None:
@@ -253,3 +201,119 @@ def coerce_scored_hours(payload: Any) -> list[dict] | None:
     if not all(isinstance(r, dict) and "score" in r and "time" in r for r in payload):
         return None
     return payload
+
+
+def build_compare_fig(rows: list[dict], name_key: str, value_key: str,
+                      title: str, sub_keys: tuple[str, ...] = (),
+                      out_of: float | None = 10.0) -> go.Figure:
+    """Horizontal comparison bars for one agent-turn payload.
+
+    Leaderboards (rank_region_week) and similarity matches
+    (find_similar_spots) render as one traffic-light bar per row, top
+    pick starred, extra row facts (region, best_time, breakType) in
+    hover. Deterministic: straight from the typed tool rows; rows
+    missing the value drop out.
+    """
+    clean = []
+    for r in rows or []:
+        try:
+            v = float(r.get(value_key))  # type: ignore[arg-type]
+        except (TypeError, ValueError):
+            continue
+        clean.append((str(r.get(name_key) or "?"), v, r))
+    if not clean:
+        return _empty_fig()
+    clean.sort(key=lambda t: -t[1])
+    names = [n for n, _, _ in clean][::-1]  # top pick renders at the top
+    vals = [v for _, v, _ in clean][::-1]
+    hovers = []
+    for name, v, r in reversed(clean):
+        bits = [name, f"{v:.1f}" + (f"/{out_of:.0f}" if out_of else "")]
+        for k in sub_keys:
+            if r.get(k) not in (None, ""):
+                bits.append(f"{str(k).replace('_', ' ')}: {r[k]}")
+        hovers.append("<br>".join(bits) + "<extra></extra>")
+    names[-1] = f"★ {names[-1]}"
+    fig = go.Figure(
+        go.Bar(
+            x=vals, y=list(range(len(vals))), orientation="h",
+            marker={"color": [_score_color(v) for v in vals]},
+            customdata=hovers, hovertemplate="%{customdata}",
+            showlegend=False,
+        )
+    )
+    fig.update_layout(
+        title={"text": title, "font": {"size": 13}},
+        height=max(240, 44 * len(vals) + 110),
+        margin={"l": 10, "r": 30, "t": 56, "b": 40},
+        xaxis={"title": "score", "range": [0, 10], "gridcolor": GRID},
+        yaxis={"tickmode": "array", "tickvals": list(range(len(vals))),
+               "ticktext": names},
+    )
+    return style_fig(fig)
+
+
+def build_rank_fig(rows: list[dict], region: str = "") -> go.Figure:
+    """Agent leaderboard: best score per spot from a rank_region_week sweep."""
+    region_bit = f" · {region}" if region else ""
+    return build_compare_fig(
+        rows, "name", "best_score",
+        f"region sweep — best score this week{region_bit}",
+        sub_keys=("region", "best_time"),
+    )
+
+
+def build_similarity_fig(rows: list[dict], ref: str = "") -> go.Figure:
+    """Agent comparison: how like the reference spot each match is."""
+    ref_bit = f" — like {ref}" if ref else ""
+    return build_compare_fig(rows, "name", "similarity",
+                             f"similar spots{ref_bit}", sub_keys=("region", "breakType"),
+                             out_of=None)
+
+
+def build_component_fig(components: dict, spot: str = "", when: str = "",
+                        score: Any = None) -> go.Figure:
+    """Component split for one explained hour (explain_score payload).
+
+    The four scorer components (swell size / direction, wind, period) as
+    traffic-light bars on the 0–10 scale, the hour's total score in the
+    title — the WHY of a score, straight from the tool payload.
+    """
+    pretty = {"swell_size": "swell size", "swell_direction": "swell dir",
+              "wind": "wind", "period": "period"}
+    labels: list[str] = []
+    vals: list[float] = []
+    for k, v in components.items():
+        try:
+            vals.append(float(v))
+        except (TypeError, ValueError):
+            continue
+        labels.append(pretty.get(str(k), str(k).replace("_", " ")))
+    if not vals:
+        return _empty_fig()
+    sub = f"score {score}/10" if score is not None else ""
+    if when:
+        sub = f"{when} · {sub}" if sub else str(when)
+    title = "why this score — component split"
+    if spot:
+        title += f" — {spot}"
+    if sub:
+        title += f"<br><sub>{sub}</sub>"
+    fig = go.Figure(
+        go.Bar(
+            x=list(range(len(vals))), y=vals,
+            marker={"color": [_score_color(v) for v in vals]},
+            customdata=[f"{l}: {v:.1f}/10" for l, v in zip(labels, vals)],
+            hovertemplate="%{customdata}<extra></extra>", showlegend=False,
+        )
+    )
+    fig.update_layout(
+        title={"text": title, "font": {"size": 13}},
+        height=280,
+        margin={"l": 30, "r": 30, "t": 60, "b": 30},
+        yaxis={"title": "component score", "range": [0, 10], "gridcolor": GRID},
+        xaxis={"tickmode": "array", "tickvals": list(range(len(vals))),
+               "ticktext": labels},
+        bargap=0.35,
+    )
+    return style_fig(fig)

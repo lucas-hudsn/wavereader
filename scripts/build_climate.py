@@ -210,6 +210,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return p.parse_args(argv)
 
 
+def embed_catalogue(breaks_path: Path, out_dir: Path) -> int:
+    """Copy built profiles into the catalogue's embedded ``climate`` keys.
+
+    Readers (``wavereader.climate.break_climate``) prefer the embedded
+    copy, so the catalogue must track every rebuild. Keyed on the same
+    ``slugify(id or name)`` derivation the per-slug files use. Writes a
+    timestamped backup before the first change (mirrors check_coords /
+    check_coast). Returns the number of records updated.
+    """
+    data = json.loads(breaks_path.read_text(encoding="utf-8"))
+    updated = 0
+    backup: Path | None = None
+    for rec in data:
+        if not isinstance(rec, dict) or rec.get("error") is not None:
+            continue
+        slug = slugify(str(rec.get("id") or rec.get("name", "break")))
+        path = out_dir / f"{slug}.json"
+        if not path.exists():
+            continue
+        prof = json.loads(path.read_text(encoding="utf-8"))
+        if rec.get("climate") == prof:
+            continue
+        if backup is None:
+            backup = breaks_path.with_name(
+                f"{breaks_path.stem}-backup-{_dt.datetime.now():%Y%m%d-%H%M%S}{breaks_path.suffix}"
+            )
+            breaks_path.replace(backup)
+        rec["climate"] = prof
+        updated += 1
+    if updated:
+        breaks_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    print(f"embedded {updated} profiles into {breaks_path.name}")
+    return updated
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     repo = Path(__file__).resolve().parents[1]
@@ -314,6 +349,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     manifest_path.write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print(f"wrote {done} new profiles, manifest count={len(entries)}, errors={len(errors)}")
+    embed_catalogue(breaks_path, out_dir)
     return 0 if not errors else 2
 
 

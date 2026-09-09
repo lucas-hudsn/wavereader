@@ -1,161 +1,198 @@
 # wave~reader
 
-**238 Australian surf breaks, a deterministic 7-day swell score, and a surf
-agent that talks to you — all powered by open models on Hugging Face
-Inference Providers.**
+**A surf-forecasting world model for the Australian coast: 238 breaks, 168
+deterministic scores per spot, a 3D seafloor built from real GEBCO
+bathymetry — and one open model that narrates the numbers instead of
+inventing them.**
 
-> Built in a week, in September 2026, from a fresh pair of shoes: I'd just
-> moved to Berlin, I'm on a careers break, and I needed a project that was
-> about waves before it was about weights. 🌊
+wave~reader is a single-page Gradio app, built in September 2026
+as an entry for the **GTC Berlin Golden Ticket Developer Contest**. I have
+just moved to Berlin; I wanted to build something to make me enjoy ML and
+engineering again.
 
-## The stack: Hugging Face × NVIDIA
+> [Built for GTC Berlin](#built-for-the-gtc-berlin-golden-ticket-developer-contest-) —
+> NVIDIA open weights on Hugging Face rails, entry video script in
+> [`documents/VIDEO_SCRIPT.md`](documents/VIDEO_SCRIPT.md). #NVIDIAGTC
 
-Every model call in this repo goes through one door: **Hugging Face
-Inference Providers** (served by Fireworks AI), running
-[`nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16`](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16)
-— the open-weights Lightning model of NVIDIA's Nemotron 3 family. No private APIs,
-no proprietary models, one `HF_TOKEN`.
+## One rule holds the whole app together
 
-So wave~reader is, at its core, a love letter to open models on
-first-party infra: **NVIDIA's open weights, Hugging Face's inference
-fabric, open data (Open-Meteo), and a deterministic Python scoring engine
-in the middle that the LLM is contractually forbidden to touch.**
+**The LLM never owns numbers.** Every wave height, wind reading, and 0–10
+score on screen comes out of plain, deterministic Python —
+`wavereader/scoring.py`, `wavereader/openmeteo.py`, `wavereader/tools.py` —
+running over Open-Meteo marine data and the enriched break catalogue. The
+model's contract, written into its system prompt, is to interpret those
+numbers, name the tool that produced them, and never compute a forecast
+itself. The agent can _recommend_; it can't _hallucinate a swell_.
 
-Big congrats to Hugging Face on the NVIDIA acquisition 🎉 — the two halves
-of this stack just became one family, and this app got to be an early
-marriage photo.
+That split — a deterministic core with the model bolted on as an
+interpreter — is the entire architecture, and it's what makes an
+open-weights model safe to plan a surf trip around.
 
-## What it does
+## One screen, four instruments
 
-Three experiences in one Gradio app (`uv run python app.py`):
+There are no tabs. One surface, four synchronized instruments, one source
+of truth (`selected`): picking a spot re-aims everything at once.
 
-| Tab / mode | What you get |
-|---|---|
-| **break book** | All 238 breaks on a Plotly map, filterable by state / region / skill. Each pick loads a full field guide (peak type, ideal swell / wind / tide, hazards, crowd factor) plus a **5-year ERA5 swell climate rose** that audits the dataset's own claims. |
-| **swell check** | Pick a break → the deterministic engines spin up in stages: **📡 Open-Meteo feed → ⚙ scoring engine → 🌍 GEBCO world model**, each with live timings. 0–10 score for every hour of the next 7 days, score/swell/wind strips, and a **smoothed 3D seafloor model with an animated swell layer** riding the forecast's dominant period (press ▶ swell). Then an optional streamed AI write-up that *narrates the scores only*. |
-| **surf agent** | Chat: "where's it going to be good in NSW this weekend?" — a smolagents `ToolCallingAgent` on Nemotron 3.5 Lightning that finds spots, scores regions, explains score breakdowns, ranks the week, and suggests similar breaks. Every tool call shows its **latency in ms**; charts render mid-answer straight from the tool payloads. |
+| Instrument                  | What it does                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Map lens** (left)         | All 238 breaks on a Plotly map, filtered by state / region / skill. A pick loads the full field guide and re-aims the forecast, world model, and climatology.                                                                                                                                                                                                                          |
+| **Forecast story** (center) | The engines spin up in visible stages — status lines name the engine and its latency. You get a 0–10 score for every hour of the next 7 days, score / swell / wind strips with weekend shading, then a **smoothed 3D seafloor with an animated swell layer** riding the forecast's dominant period (press ▶ swell). An optional streamed narrator writes it up — from the scores only. |
+| **Intel rail** (right)      | Field guide (peak type, ideal swell / wind / tide, hazards, crowd factor), a **5-year ERA5 swell climate rose** that audits the dataset's own claims, a wetsuit hint, and nearby surf cams.                                                                                                                                                                                            |
+| **Agent bar** (full width)  | Chat: _"where's it going to be good in NSW this weekend?"_ A smolagents `ToolCallingAgent` on Nemotron 3 Ultra finds spots, ranks regions, explains score breakdowns, and suggests similar breaks. Every tool card shows its **latency in ms**; charts render mid-answer straight from tool payloads. Hard budget: 6 steps, 700 tokens a turn.                                         |
 
-## The engines — and why the spin-ups are fast
+## Machinery you can watch
 
-wave~reader makes its machinery visible. Measured on a laptop against the
-disk cache:
+The app wears its internals on its sleeve: a strip across the top shows
+every engine (🌍 world model · 📡 feeds · 🌡 climate · ⚙ scorer · 🧠 LLM ·
+🔌 MCP) with live timings, and slow work loads in stages so the charts are
+never blocked. Measured on a laptop against the disk cache:
 
-| Engine | Cold | Warm | Where |
-|---|---|---|---|
-| ⚙ scoring engine (168 hourly 0–10 scores) | ~300 ms | **0.8 ms** | `wavereader/scoring.py` |
-| 📡 Open-Meteo marine + wind feed | ~300 ms | **~1 ms** | `wavereader/openmeteo.py` |
-| 🌍 GEBCO world model (10×10 bathymetry grid) | ~1.3 s | **~1 ms** | `wavereader/seafloor.py` |
-| 🧠 agent tool call (`score_week` over MCP) | ~2 ms | **0.7 ms** | `wavereader/tools.py` |
-| Chart trio (score / swell / wind) | 12–14 ms | — | `ui/charts/` |
+| Engine                                       | Cold     | Warm       | Where                     |
+| -------------------------------------------- | -------- | ---------- | ------------------------- |
+| ⚙ scoring engine (168 hourly 0–10 scores)    | ~300 ms  | **0.8 ms** | `wavereader/scoring.py`   |
+| 📡 Open-Meteo marine + wind feed             | ~300 ms  | **~1 ms**  | `wavereader/openmeteo.py` |
+| 🌍 GEBCO world model (10×10 bathymetry grid) | ~1.3 s   | **~1 ms**  | `wavereader/seafloor.py`  |
+| 🧠 agent tool call (`score_week` over MCP)   | ~2 ms    | **0.7 ms** | `wavereader/tools.py`     |
+| Chart trio (score / swell / wind)            | 12–14 ms | —          | `ui/charts/`              |
 
-The forecast charts land in ~80 ms while the world model resolves in a
-parallel thread; caches warm themselves on load (`scripts/warm_caches.py`
-pre-fills them before a demo recording). The seafloor view bicubically
+Forecast charts land in ~80 ms while the world model resolves in a
+parallel thread. `scripts/warm_caches.py` pre-fills every cache before a
+demo, so a cold start never happens on camera. The seafloor view bicubically
 upsamples the 10×10 GEBCO grid to 41×41 and animates a translucent swell
-surface at the forecast's dominant height/period — a world model you can
-watch working.
+surface at the forecast's dominant height and period — a world model you
+can watch working. (Smoothing and animation are display-only; statistics
+always come from the raw grid.)
 
-## The rule that makes it trustworthy
+## The stack: NVIDIA open weights on Hugging Face rails
 
-**The LLM never owns numbers.** Every wave height, wind speed, and score in
-the UI comes from `wavereader/scoring.py` / `wavereader/openmeteo.py` /
-`wavereader/tools.py`
-— plain Python over Open-Meteo + the enriched break dataset. The model's
-contract (enforced by its system prompt) is to interpret, cite the tool it
-used, and never compute a forecast itself. The agent can *recommend*, but it
-can't *hallucinate a swell*.
+Every model call in the repo goes through one door — **Hugging Face
+Inference Providers**, served by DeepInfra — running
+[`nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16`](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16),
+the open-weights Ultra of NVIDIA's Nemotron 3 family. No private APIs, no
+proprietary endpoints, one `HF_TOKEN`. Around the model, everything is
+open too: Open-Meteo forecasts, ERA5 reanalysis, GEBCO 2020 bathymetry via
+OpenTopoData, and a scoring engine you can read in one sitting.
 
-That split — deterministic core, model as interpreter — is the whole
-architecture, and it's what makes an open 30B model usable for something
-you'd actually plan a surf trip around.
+With NVIDIA and Hugging Face now one family, this app got to be an early
+wedding photo. 🎉
+
+## The app is the tool: MCP built in
+
+`app.py` launches with `mcp_server=True`, so any MCP client (Claude
+Desktop, opencode, …) can drive the deterministic engines directly at
+`<space-or-local-url>/gradio_api/mcp/`. The public surface is exactly
+three typed tools — the same functions the agent calls internally:
+
+- `score_week` — hourly 0–10 scores, daily bests, best window for one break
+- `rank_region_week` — every break in a region, ranked best-first
+- `explain_score` — the size / direction / wind / period breakdown of one scored hour
+
+Verify with `curl <url>/gradio_api/mcp/schema`. Everything else in the UI
+is registered with `api_name=False` on purpose — the MCP surface stays
+clean.
 
 ## Quickstart
 
-Requires [uv](https://docs.astral.sh/uv/) and Python 3.14.
+Needs [uv](https://docs.astral.sh/uv/) and Python ≥ 3.14.
 
 ```sh
 uv sync
 cp .env.example .env   # fill in HF_TOKEN (https://huggingface.co/settings/tokens)
-uv run python app.py
+uv run app.py
 ```
 
-Or drive the agent straight from Python:
+Or skip the UI and drive the agent from Python:
 
 ```sh
 uv run python -c "from wavereader.agent import run_stream; \
   [print(e.get('text', e.get('name', '')), end='') for e in run_stream('best beginner morning this weekend in VIC?')]"
 ```
 
-`HF_TOKEN` (Inference Providers access) is needed for the agent and the
-narrator. The forecast charts, world model, and MCP tools run with no
-token and no LLM — network access to Open-Meteo / OpenTopoData, with a
-disk cache under `.cache/`.
+`HF_TOKEN` is only needed for the agent and the narrator — the forecast
+charts, world model, and MCP tools run token-free with plain network
+access to Open-Meteo / OpenTopoData and a disk cache under `.cache/`.
+On a HF Space the secret is the fallback; the agent panel's BYO-token box
+is session-only and never logged.
 
-## MCP: the app is the tool
-
-`app.py` launches with `mcp_server=True`, so any MCP client (Claude
-Desktop, opencode, …) can call the deterministic engines directly:
+## How it's laid out
 
 ```
-<space-or-local-url>/gradio_api/mcp/
-```
-
-The exposed surface is exactly three typed, deterministic tools —
-`score_week`, `rank_region_week`, `explain_score` — the same functions the
-agent calls. Verify: `curl <url>/gradio_api/mcp/schema`.
-
-## Layout
-
-```
-app.py                           # v2 entry: Gradio 6 three-panel UI + MCP server
+app.py                           # HF Space entry: single-page UI + gr.api MCP tools
 ui/                              # the front end
-  app.py                         # layout + event wiring (engines strip, cache warm-up)
-  panels/{book,swell,agent}.py   # break book / swell check / surf agent
-  charts/{score,swell,wind,seafloor,climate,map}.py   # Plotly builders
-  _compat.py                     # backend access layer (v2 core → legacy → stubs)
-wavereader/                      # pure core: typed, tested, no Gradio imports
-  breaks.py openmeteo.py climate.py scoring.py seafloor.py
+  app.py                         # layout + wiring (≤3 gr.State; Bells on load)
+  panels/{lens,story,intel,agent}.py  # map lens | forecast story | intel rail | agent bar
+  charts/{map,strip,score,seafloor,climate,_style}.py  # Plotly builders, one theme
+  contracts.py                   # SELECT/FETCH/AGENT key contracts — no output-order drift
+  _compat.py                     # backend access: v2 core → legacy.app.* → stubs
+  theme.py                       # APP_CSS — IBM Plex Mono lo-fi identity
+wavereader/                      # pure core: typed, tested, zero Gradio imports
+  breaks.py openmeteo.py scoring.py seafloor.py climate.py
   tools.py                       # the deterministic tool functions (agent + MCP)
-  agent.py                       # smolagents ToolCallingAgent + typed event stream
+  agent.py                       # smolagents ToolCallingAgent, typed event stream
   narrate.py llm.py              # streamed report writer; one InferenceClient factory
 scripts/
-  warm_caches.py                 # pre-fill forecast + seafloor caches (demo hot start)
-  build_climate.py               # ERA5 5-yr climatology builder
+  warm_caches.py                 # demo hot start: forecast + seafloor caches
+  build_climate.py               # ERA5 5-yr climatology builder (re-embeds catalogue)
+  check_coords.py check_coast.py # coordinate + GEBCO coastline maintenance
+  eval_agent.py                  # agent evaluation harness
 data/
-  australia-surf-breaks-enriched.json  # 238 schema-valid breaks
-  climate/*.json                       # per-break 5-yr swell climatology
+  australia-surf-breaks-enriched.json  # 238 schema-valid breaks, ERA5 embedded
   surf-break-schema.json               # the conformance contract
+  surf-break-example-bells.json        # prompt worked example
+  surf-cams.json                       # camera links keyed name | state | region
 documents/
   ENCYCLOPEDIA.md FORECAST.md SURFAGENT.md VIDEO_SCRIPT.md
-legacy/                          # v1 front end (main.py + app/), archived
+legacy/                          # frozen v1 front end, kept as the compat fallback
 ```
 
-## How the dataset was built
+Cheap checks: `uv run pytest -q` (offline fixtures, including an agent
+dry-run through an injected fake model) and `uv run python -c "import app"`.
 
-`scripts/` (v1 generation pipeline in `legacy/app/`) ran Nemotron 3.5
-Lightning once per break (temp 0.4, 2048 tokens, one chat call): the
-prompt carries the JSON schema + the Bells Beach worked example, and
-`extract_json()` strips fences / grabs the outermost `{...}`. Canonical
-`state` / `region` are pinned from the input list, never the model, and
-every record conforms to `data/surf-break-schema.json` (strict enums for
-swell, wind, tide, skill, hazards…). The batch runner is resumable.
+## Where the data came from
 
-## The forecast pipeline
+The break catalogue was generated by running **Nemotron 3.5 Lightning**
+once per break through the v1 pipeline (now archived in `legacy/`): one
+chat call per spot at temperature 0.4, with the JSON schema and the Bells
+Beach worked example loaded from `data/` into the prompt.
+`state` / `region` are pinned from the input list, never taken from the
+model, and every record validates against
+`data/surf-break-schema.json` with strict enums for swell, wind, tide,
+skill, and hazards. The batch runner is resumable.
 
-1. **Deterministic core:** break → `wavereader/scoring.py` →
+After the build, `scripts/build_climate.py` gave each break a **5-year
+ERA5 swell profile** (embedded in the record itself — 236 of 238; two
+duplicate Gnaraloo rows miss out) and `scripts/check_coords.py` /
+`scripts/check_coast.py` keep coordinates honest against OSM and the GEBCO
+shoreline. The climate rose in the intel rail uses those profiles to audit
+the dataset: where the model's claimed "ideal swell" disagrees with five
+years of observed reanalysis, the data wins.
+
+## The forecast pipeline, end to end
+
+1. **Deterministic core.** break → `scoring.py` →
    `openmeteo.get_forecast` (Open-Meteo marine + wind, disk-cached,
-   seaward grid-snap) → `score_week` → 168 hourly 0–10 scores →
-   Plotly score / swell / wind strips + best-window hero. The **world
-   model** fetches the GEBCO 2020 bathymetry grid around the takeoff
-   zone, classifies shelf shape, and renders depth / 3D / transects with
-   an animated swell layer.
-2. **LLM narrator (optional):** the prompt carries only the daily bests
-   (≤7 lines) + best window; Nemotron 3.5 Lightning streams a dot-point
-   write-up. It can only talk about the numbers it was handed.
+   snapped seaward to the right grid cell) → `score_week` → 168 hourly
+   scores → Plotly strips + best-window hero. In parallel, the **world
+   model** pulls the GEBCO 2020 grid around the takeoff zone, classifies
+   the shelf shape, and renders depth, 3D, and transects with the
+   animated swell layer.
+2. **Narrator (optional).** The prompt carries only the daily bests
+   (≤7 lines) plus the best window; Nemotron 3 Ultra streams a dot-point
+   write-up of exactly those numbers. Nothing more.
 
-Full detail in `documents/FORECAST.md`.
+Full detail in [`documents/FORECAST.md`](documents/FORECAST.md).
 
 ## Built for the GTC Berlin Golden Ticket Developer Contest 🎟️
 
-Entry video script: `documents/VIDEO_SCRIPT.md`. Tagging @Merve Noyan —
-thanks for the nudge. #NVIDIAGTC
+wave~reader is a contest entry: an app that could only exist because
+NVIDIA ships frontier-class open weights and Hugging Face turns them into
+one-token inference. It leans on both halves deliberately — Nemotron 3
+Ultra for language, deterministic Python for physics — and shows its work
+on screen the whole way.
+
+The 90-second entry video (shot list in
+[`documents/VIDEO_SCRIPT.md`](documents/VIDEO_SCRIPT.md)) walks the hero
+strip, the break book with its climate audit, the staged swell check with
+the animated seafloor, the agent's timed tool calls, and a live MCP call
+from an external client. Tagging @Merve Noyan — thanks for the nudge.
+#NVIDIAGTC

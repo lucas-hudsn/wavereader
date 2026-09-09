@@ -1,10 +1,24 @@
-"""Agent panel: chat with tool cards, token meter, charts from tool payloads.
+"""Agent panel: live tool-trace feed, budget meter, verdict banner, charts.
 
-Consumes typed v2 agent events (``token | tool_call | tool_result | final |
-usage``) from :func:`ui._compat.agent_run_stream`. Tool calls render as
-cards in the activity box, per-turn prompt/completion tokens render in the
-meter, and any ``score_week`` payload in a tool result is charted
-immediately (the LLM never owns numbers).
+Consumes typed v2 agent events (``token | step | tool_call | tool_result |
+final | usage``) from :func:`ui._compat.agent_run_stream`. Every tool call
+renders as a trace card — pending while running, then done with a wall-time
+ms bar scaled to the slowest call this turn and an expandable payload
+preview. The budget meter ticks live (steps / tool calls / score_week cap /
+≈tokens) against the selected depth profile, and the final answer's
+"Best: …" contract line is lifted into a verdict banner. Any ``score_week``
+payload in a tool result is charted straight into the week strip (the LLM
+never owns numbers), and **every answered turn ends with a visualisation**:
+turns without scored hours render the region-sweep leaderboard, climate
+rose, seafloor depth map, similarity bars or the explained-hour component
+split from their tool payloads, falling back to the viewed spot's own
+scored week.
+
+User controls in the bar: depth radio (quick/standard/deep → budget
+profile) and a region-focus dropdown that anchors "where should I surf"
+sweeps. Both are plain component inputs — session state stays at exactly
+three ``gr.State`` objects. Skill comes from the story panel's "score for"
+control — one skill, whole page.
 
 The BYO HF token box is session-only: the value is passed straight to the
 agent factory per turn, never stored, never logged.
@@ -12,27 +26,172 @@ agent factory per turn, never stored, never logged.
 
 from __future__ import annotations
 
+import html
 import json
+import re
 
 import gradio as gr
-import pandas as pd
 
 from ui import _compat as C
-from ui import _stubs as _stub
+from ui.charts import climate as climate_chart
+from ui.charts import seafloor as seafloor_chart
 from ui.charts import score as score_chart
-from ui.charts import swell as swell_chart
-from ui.charts import wind as wind_chart
+from ui.charts import strip as strip_chart
+from ui.contracts import AGENT_KEYS, fill
 
-_SKILLS = _stub.SKILL_ORDER
-_EMPTY_RANK = pd.DataFrame(columns=["Rank", "Spot", "Region", "Best score", "Best time"])
+_TOOL_ICONS = {
+    "score_week": "⚙", "rank_region_week": "🏆", "explain_score": "🔍",
+    "find_best_windows": "🕐", "find_spots": "🔎", "find_similar_spots": "🧭",
+    "get_spot_knowledge": "📖", "get_climate_profile": "🌡",
+    "get_seafloor_profile": "🪨", "get_session_brief": "🤿",
+    "list_regions": "🗺",
+}
+_MEDALS = ["🥇", "🥈", "🥉"]
+_VERDICT_RE = re.compile(r"Best:\s*(.+)", re.IGNORECASE)
+
+_EMPTY_TRACE = ("<div class='trace-empty'>tool calls land here live — "
+                "watch the engines work…</div>")
+_EMPTY_RANK_HTML = ("<div class='rank-empty'>leaderboard — ask "
+                    "“where should I surf in …” to rank a region.</div>")
 
 
-def _short_args(args: dict, limit: int = 160) -> str:
+def _short_args(args: dict, limit: int = 120) -> str:
     try:
         text = json.dumps(args, ensure_ascii=False)
     except (TypeError, ValueError):
         text = str(args)
     return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+def _pretty_time(value) -> str:
+    text = str(value or "")
+    return text.replace("T", " ")[:16]
+
+
+def _trace_html(cards: list[dict], ask: str = "") -> str:
+    """Render the live tool trace: cards + timing bars + payload previews."""
+    bits = []
+    if ask:
+        bits.append(f"<div class='trace-ask'>ask: {html.escape(ask[:140])}</div>")
+    if not cards:
+        bits.append(_EMPTY_TRACE)
+        return "".join(bits) if ask else _EMPTY_TRACE
+    times = [c.get("ms") for c in cards
+             if c.get("state") == "done" and isinstance(c.get("ms"), (int, float))]
+    slowest = max(times) if times else 0.0
+    parts = list(bits)
+    parts.append("<div class='trace'>")
+    for c in cards:
+        icon = _TOOL_ICONS.get(str(c.get("name")), "🔧")
+        done = c.get("state") == "done"
+        state_cls = "done" if done else "pending"
+        ms = c.get("ms")
+        ms_bit = ("<span class='trace-ms'>…running</span>" if not done
+                  else f"<span class='trace-ms'>⚡ {float(ms):.0f} ms</span>"
+                  if isinstance(ms, (int, float))
+                  else "<span class='trace-ms'>done</span>")
+        bar = ""
+        if done and isinstance(ms, (int, float)) and slowest > 0:
+            pct = max(6, int(round(100.0 * float(ms) / slowest)))
+            bar = f"<div class='trace-bar'><i style='width:{pct}%'></i></div>"
+        summary = (f"<div class='trace-summary'>{html.escape(str(c.get('summary') or ''))}</div>"
+                   if done and c.get("summary") else "")
+        details = ""
+        if done and c.get("preview"):
+            details = ("<details><summary>payload</summary>"
+                       f"<pre>{html.escape(str(c['preview']))}</pre></details>")
+        parts.append(
+            f"<div class='trace-card {state_cls}'>"
+            "<div class='trace-head'>"
+            f"<span class='trace-icon'>{icon}</span>"
+            f"<code>{html.escape(str(c.get('name', '?')))}"
+            f"({html.escape(str(c.get('args', '')))})</code>"
+            f"{ms_bit}</div>{bar}{summary}{details}</div>"
+        )
+    parts.append("</div>")
+    return "".join(parts)
+
+
+def _verdict_html(text: str) -> str:
+    """Lift the answer's contract verdict line ("Best: …") into a banner."""
+    for line in (text or "").splitlines():
+        match = _VERDICT_RE.search(line)
+        if match:
+            clean = re.sub(r"\*", "", match.group(1)).strip()
+            if clean:
+                return (f"<div class='verdict-banner'>🏆 <b>Best:</b> "
+                        f"{html.escape(clean)}</div>")
+    return ""
+
+
+def _format_rank_cards(rank: list[dict] | None) -> str:
+    if not rank:
+        return _EMPTY_RANK_HTML
+    parts = ["<div class='rank-list'>"]
+    for i, r in enumerate(rank):
+        medal = _MEDALS[i] if i < len(_MEDALS) else str(i + 1)
+        score = r.get("best_score", "")
+        score_bit = f"{score}/10" if score not in ("", None) else "—"
+        parts.append(
+            "<div class='rank-card'>"
+            f"<span class='rank-num'>{medal}</span>"
+            "<span class='rank-name'>"
+            f"<b>{html.escape(str(r.get('name', '?')))}</b> "
+            f"<i>{html.escape(str(r.get('region', '') or ''))}</i></span>"
+            f"<span class='rank-score'>{html.escape(score_bit)}</span>"
+            f"<span class='rank-time'>{html.escape(_pretty_time(r.get('best_time')))}</span>"
+            "</div>"
+        )
+    parts.append("</div>")
+    return "".join(parts)
+
+
+def _format_meter(usage: dict | None, source: str,
+                  caps: dict | None = None) -> str:
+    """Final meter after a turn: exact tokens (when known) + steps + caps."""
+    if not usage:
+        return "_Token meter — per-turn usage lands here._"
+    model = str(usage.get("model") or "").split("/")[-1]
+    profile = usage.get("profile")
+    budget = usage.get("budget") or caps or {}
+    tail = (f" · {profile} profile" if profile else "") \
+        + (f" · cap {budget.get('max_steps', '?')} steps" if budget else "") \
+        + (f" · {model}" if model else "") + f" (via {source})"
+    if usage.get("prompt_tokens") is not None or usage.get("completion_tokens") is not None:
+        p = usage.get("prompt_tokens", "?")
+        c = usage.get("completion_tokens", "?")
+        try:
+            total = int(p) + int(c)
+        except (TypeError, ValueError):
+            total = "?"
+        return f"🪙 **prompt {p} · completion {c} · total {total} tokens**{tail}"
+    steps = usage.get("steps", "?")
+    calls = usage.get("tool_calls") or {}
+    n_calls = sum(calls.values()) if isinstance(calls, dict) else "?"
+    return f"⚙️ **{steps} steps · {n_calls} tool call(s)**{tail}"
+
+
+def _live_meter(live: dict, caps: dict, source: str) -> str:
+    """Mid-turn meter: running counts against the depth profile's caps."""
+    bits = [
+        f"⚙️ steps {live.get('steps', 0)}/{caps.get('max_steps', '?')}",
+        f"🔧 {live.get('calls', 0)} call(s)",
+        f"score_week {live.get('score_week', 0)}/{caps.get('score_week_calls', '?')}",
+        f"≈{live.get('chars', 0) // 4} tokens",
+    ]
+    return " · ".join(bits) + f" — _via {source}_"
+
+
+def fresh_store() -> dict:
+    return {"spots": [], "rank": None, "usage": None}
+
+
+def _build_strip(hours: list[dict], label: str, records: list[dict]):
+    """Week strip + best-hour line for an agent-scored spot."""
+    spot_name = label.split(" (")[0]
+    match = C.find_break(records, spot_name)
+    fig = strip_chart.build_week_strip(hours, _scoring_spot(match), height=520)
+    return fig, score_chart.format_best(score_chart.best_window(hours), label)
 
 
 def _scoring_spot(break_: dict | None) -> dict | None:
@@ -58,74 +217,142 @@ def _coerce_rank_rows(payload) -> list[dict] | None:
     return payload
 
 
-def _format_rank_table(rank: list[dict] | None) -> pd.DataFrame:
-    if not rank:
-        return _EMPTY_RANK
-    rows = [(i + 1, r.get("name", "?"), r.get("region", "?"),
-             r.get("best_score", ""), r.get("best_time", ""))
-            for i, r in enumerate(rank)]
-    return pd.DataFrame(rows, columns=["Rank", "Spot", "Region", "Best score", "Best time"])
+def _viz_spot(args: dict, obs) -> tuple[str, str]:
+    """(name, region) for a tool observation, falling back to call args."""
+    info = (obs.get("spot") or {}) if isinstance(obs, dict) else {}
+    name = args.get("spot_name") or info.get("name") or ""
+    region = args.get("region") or info.get("region") or ""
+    return str(name), str(region)
 
 
-def _format_meter(usage: dict | None, source: str) -> str:
-    if not usage:
-        return f"_Token meter — per-turn usage lands here (via {source})._"
-    if usage.get("prompt_tokens") is not None or usage.get("completion_tokens") is not None:
-        p = usage.get("prompt_tokens", "?")
-        c = usage.get("completion_tokens", "?")
+def _turn_figure(viz: list[tuple[str, dict, object]], selected: dict | None,
+                 skill: str, records: list[dict]):
+    """Pick + build a chart for a turn that scored no hours.
+
+    Every agent answer ends with a visualisation. When no score_week /
+    find_best_windows payload was charted mid-turn, render one from the
+    other deterministic tool payloads — region-sweep leaderboard, climate
+    rose, seafloor depth map, similarity bars, explained-hour component
+    split — falling back to the viewed spot's own scored week. Numbers
+    come from tool/engine output only, never from the answer text.
+    Returns (figure, markdown note) or (None, "") when nothing chartable.
+    """
+    by_name: dict[str, tuple[dict, object]] = {}
+    for name, args, obs in viz:
+        by_name.setdefault(str(name), (args if isinstance(args, dict) else {}, obs))
+
+    # 1. region sweep → leaderboard bars
+    _a, obs = by_name.get("rank_region_week", ({}, None))
+    rows = _coerce_rank_rows(obs)
+    if rows:
+        region = str((obs or {}).get("region") if isinstance(obs, dict) else "") \
+            or str(_a.get("region") or "")
+        top = rows[0]
+        region_bit = f" — {region}" if region else ""
+        note = (f"region sweep{region_bit} — top pick "
+                f"**{top.get('name')}** ({top.get('best_score')}/10)")
+        return score_chart.build_rank_fig(rows, region), note
+
+    # 2. climate → 5-yr swell rose
+    _a, obs = by_name.get("get_climate_profile", ({}, None))
+    if isinstance(obs, dict):
+        rose = (obs.get("climate") or {}).get("direction_rose_pct") or {}
         try:
-            total = int(p) + int(c)
+            has_rose = any(float(v or 0) > 0 for v in rose.values())
         except (TypeError, ValueError):
-            total = "?"
-        return (f"🪙 **prompt {p} · completion {c} · total {total} tokens** "
-                f"(this turn, via {source})")
-    steps = usage.get("steps", "?")
-    calls = usage.get("tool_calls") or {}
-    n_calls = sum(calls.values()) if isinstance(calls, dict) else "?"
-    model = str(usage.get("model") or "").split("/")[-1]
-    return (f"⚙️ **{steps} steps · {n_calls} tool call(s)**"
-            + (f" · {model}" if model else "")
-            + f" (this turn, via {source})")
+            has_rose = False
+        if has_rose:
+            name, _region = _viz_spot(_a, obs)
+            rec = C.find_break(records, name)
+            ideal = (((rec or {}).get("idealSwell") or {}).get("direction")
+                     if rec else None)
+            fig = climate_chart.build_rose_fig({"rose": rose}, name=name,
+                                               ideal_dirs=ideal)
+            return fig, f"swell climate — {name} (5-yr ERA5 rose)"
 
+    # 3. seafloor → depth map from the world model
+    _a, obs = by_name.get("get_seafloor_profile", ({}, None))
+    if isinstance(obs, dict):
+        name, _region = _viz_spot(_a, obs)
+        rec = C.find_break(records, name)
+        if rec:
+            try:
+                grid = (C.get_seafloor(rec) or {}).get("grid") or {}
+                fig = seafloor_chart.build_depth_fig(grid, name)
+                return fig, f"seafloor depth map — {name}"
+            except Exception:  # noqa: BLE001 — fall through to the next viz
+                pass
 
-def fresh_store() -> dict:
-    return {"spots": [], "rank": None, "usage": None}
+    # 4. similar spots → similarity bars
+    _a, obs = by_name.get("find_similar_spots", ({}, None))
+    if (isinstance(obs, list) and obs and isinstance(obs[0], dict)
+            and "similarity" in obs[0]):
+        ref = str(_a.get("spot_name") or "")
+        return (score_chart.build_similarity_fig(obs, ref),
+                f"{len(obs)} spots like {ref} — similarity")
 
+    # 5. explain_score → component split
+    _a, obs = by_name.get("explain_score", ({}, None))
+    if (isinstance(obs, dict) and isinstance(obs.get("components"), dict)
+            and obs["components"]):
+        name, _region = _viz_spot(_a, obs)
+        when = str(obs.get("time") or "")
+        fig = score_chart.build_component_fig(obs["components"], spot=name,
+                                              when=when, score=obs.get("score"))
+        return fig, f"component split — {name} @ {when}"
 
-def _build_trio(hours: list[dict], label: str, skill: str, records: list[dict]):
-    spot_name = label.split(" (")[0]
-    match = C.find_break(records, spot_name)
-    spot = _scoring_spot(match)
-    return (score_chart.build_score_fig(hours),
-            swell_chart.build_waves_fig(hours),
-            wind_chart.build_wind_fig(hours, spot),
-            score_chart.format_best(score_chart.best_window(hours), label, skill))
+    # 6. nothing tool-chartable → the viewed spot's own scored week
+    sel = selected or {}
+    if sel.get("name"):
+        payload = C.get_scored_week(sel, skill=skill, days=7)
+        hours = payload.get("scored") or []
+        if hours:
+            label = (f"{sel.get('name')} ({sel.get('region')})"
+                     if sel.get("region") else str(sel.get("name")))
+            return _build_strip(hours, label, records)
+
+    return None, ""
 
 
 def chat_fn(message: str, history: list[dict] | None, skill: str,
             hf_token: str, selected: dict | None, store: dict | None,
-            records: list[dict]):
-    """Stream an agent turn: tool cards + meter + charts + final answer."""
+            depth: str, region: str | None, records: list[dict]):
+    """Stream an agent turn: trace cards + meter + verdict + charts."""
     history = list(history or [])
     store = dict(store or fresh_store())
-    cards: list[str] = [f"ask: {(message or '').strip()[:140]}"]
+    cards: list[dict] = []
     usage = None
+    verdict = ""
     token_source = "session token" if (hf_token or "").strip() else "space secret / env"
-    meter = _format_meter(None, token_source)
+    profiles = C.agent_profiles()
+    profile_name = (depth or "standard").strip().lower()
+    if profile_name not in profiles:
+        profile_name = "standard" if "standard" in profiles else next(iter(profiles))
+    caps = profiles[profile_name]
+    live = {"steps": 0, "calls": 0, "score_week": 0, "chars": 0}
+    meter = _live_meter(live, caps, token_source)
     spots = list(store.get("spots") or [])
     rank = store.get("rank")
-
-    def emit(status, score_fig=None, swell_fig=None, wind_fig=None,
-             spot_update=None, rank_df=None):
-        return (history, "", "\n\n".join(cards), meter, status,
-                score_fig if score_fig is not None else gr.skip(),
-                swell_fig if swell_fig is not None else gr.skip(),
-                wind_fig if wind_fig is not None else gr.skip(),
-                spot_update if spot_update is not None else gr.skip(),
-                rank_df if rank_df is not None else gr.skip(),
-                dict(store, spots=spots, rank=rank, usage=usage))
-
+    # Chat decorations injected by tool results (chart/seafloor/brief lines).
+    # The final event replaces the streamed answer, so they are kept apart
+    # and re-appended after it — otherwise they'd be wiped.
+    decorations: list[str] = []
     text = (message or "").strip()
+    # Tool observations kept for the end-of-turn visualisation (every
+    # answered turn ends with a chart), plus whether this turn already
+    # charted scored hours.
+    viz: list[tuple[str, dict, object]] = []
+    turn_charted = False
+
+    def emit(status, strip_fig=None, spot_update=None):
+        return fill(AGENT_KEYS, chatbot=history, msg="",
+                    trace_html=_trace_html(cards, ask=text), token_md=meter,
+                    agent_status=status, verdict_html=verdict,
+                    agent_strip=strip_fig if strip_fig is not None else gr.skip(),
+                    spot_dd=spot_update if spot_update is not None else gr.skip(),
+                    rank_html=_format_rank_cards(rank),
+                    agent_store=dict(store, spots=spots, rank=rank, usage=usage))
+
     if not text:
         yield emit("⚠️ Type a question first.")
         return
@@ -135,63 +362,108 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
     skill = (skill or "intermediate").strip().lower()
     try:
         stream = C.agent_run_stream(text, skill=skill, hf_token=hf_token or "",
-                                    selected_break=selected)
+                                    selected_break=selected, profile=profile_name,
+                                    region_hint=region)
         for kind, payload in stream:
             if kind == "token":
-                history[-1]["content"] += str(payload)
+                chunk = str(payload)
+                history[-1]["content"] += chunk
+                live["chars"] += len(chunk)
+                meter = _live_meter(live, caps, token_source)
                 yield emit("💬 Streaming answer…")
+            elif kind == "step":
+                try:
+                    live["steps"] = max(live["steps"], int(payload.get("n", 0)))
+                except (TypeError, ValueError):
+                    pass
+                meter = _live_meter(live, caps, token_source)
+                yield emit(f"⚙️ Step {live['steps']}/{caps.get('max_steps', '?')} — thinking…")
             elif kind == "tool_call":
                 d = payload if isinstance(payload, dict) else {"name": str(payload)}
                 name = str(d.get("name", "?"))
-                cards.append(f"🔧 `{name}({_short_args(d.get('arguments', {}))})`")
-                yield emit(f"🔧 {name} — ⚙ scorer + 🌍 world model…")
+                cards.append({"name": name, "args": _short_args(d.get("arguments", {})),
+                              "state": "pending", "ms": None, "summary": "", "preview": ""})
+                live["calls"] += 1
+                if name == "score_week":
+                    live["score_week"] += 1
+                meter = _live_meter(live, caps, token_source)
+                yield emit(f"🔧 {name} — ⚙ engines working…")
             elif kind == "tool_result":
                 d = payload if isinstance(payload, dict) else {}
                 name = str(d.get("name", "?"))
-                summary = d.get("summary") or "done"
-                ms = d.get("ms")
-                badge = f" · ⚡ {float(ms):.0f} ms" if isinstance(ms, (int, float)) else ""
-                cards.append(f"📦 `{name}` → {summary}{badge}")
+                for c in reversed(cards):
+                    if c["state"] == "pending":
+                        c["state"] = "done"
+                        c["ms"] = d.get("ms")
+                        c["summary"] = d.get("summary") or "done"
+                        c["preview"] = (d.get("preview") or "")[:4000]
+                        break
                 obs = d.get("observation")
                 hours = score_chart.coerce_scored_hours(obs)
                 if hours:
                     args = d.get("arguments") or {}
                     spot_name = args.get("spot_name")
-                    region = args.get("region")
+                    region_arg = args.get("region")
                     if isinstance(obs, dict):
                         info = obs.get("spot") or {}
                         spot_name = spot_name or info.get("name")
-                        region = region or info.get("region")
-                    label = f"{spot_name} ({region})" if spot_name and region else (spot_name or f"spot {len(spots) + 1}")
+                        region_arg = region_arg or info.get("region")
+                    label = f"{spot_name} ({region_arg})" if spot_name and region_arg else (spot_name or f"spot {len(spots) + 1}")
                     entry_skill = skill
                     if isinstance(obs, dict) and obs.get("skill"):
                         entry_skill = obs["skill"]
                     spots.append({"label": label, "hours": hours, "skill": entry_skill})
-                    seen: dict[str, int] = {}
+                    # Dedupe repeated chart labels at append time ("#2", "#3", …).
+                    counts: dict[str, int] = {}
                     for s in spots:
-                        seen[s["label"]] = seen.get(s["label"], 0) + 1
-                        if seen[s["label"]] > 1:
-                            s["label"] = f"{s['label']} #{seen[s['label']]}"
-                    s_fig, w_fig, wi_fig, best_md = _build_trio(hours, label, entry_skill, records)
-                    history[-1]["content"] += f"\n\n📊 _Charted below: {label} — {best_md}_"
+                        counts[s["label"]] = counts.get(s["label"], 0) + 1
+                        if counts[s["label"]] > 1:
+                            s["label"] = f"{label} #{counts[s['label']]}"
+                    fig, best_md = _build_strip(hours, spots[-1]["label"], records)
+                    charted = f"📊 _Charted: {spots[-1]['label']} — {best_md}_"
+                    decorations.append(charted)
+                    history[-1]["content"] += f"\n\n{charted}"
                     labels = [s["label"] for s in spots]
-                    yield emit(f"📊 Charted '{label}' — agent still thinking…",
-                               s_fig, w_fig, wi_fig,
-                               gr.update(choices=labels, value=label, visible=len(labels) > 1))
-                else:
-                    rows = _coerce_rank_rows(obs)
-                    if rows:
-                        rank = rows
-                        yield emit(f"🏆 Ranked {len(rows)} spot(s) — agent still thinking…",
-                                   rank_df=_format_rank_table(rows))
-                    else:
-                        yield emit(f"📦 {name} done — agent still thinking…")
+                    turn_charted = True
+                    yield emit(f"📊 Charted '{spots[-1]['label']}' — agent still thinking…",
+                               strip_fig=fig,
+                               spot_update=gr.update(choices=labels, value=spots[-1]["label"],
+                                                     visible=len(labels) > 1))
+                    continue
+                if isinstance(obs, (dict, list)) and not (
+                        isinstance(obs, dict) and "error" in obs):
+                    viz.append((name, d.get("arguments") or {}, obs))
+                rows = _coerce_rank_rows(obs)
+                if rows:
+                    rank = rows
+                    yield emit(f"🏆 Ranked {len(rows)} spot(s) — agent still thinking…")
+                    continue
+                if name == "get_seafloor_profile" and isinstance(obs, dict) and "error" not in obs:
+                    shelf = obs.get("shelf_class") or "shape read"
+                    channel = (" — deeper gutter(s) nearby" if obs.get("channel_hint")
+                               else "")
+                    note = f"🪨 _Seafloor: {shelf}{channel}._"
+                    decorations.append(note)
+                    history[-1]["content"] += f"\n\n{note}"
+                elif name == "get_session_brief" and isinstance(obs, dict) and "error" not in obs:
+                    wetsuit = obs.get("wetsuit") or "check the water temp"
+                    sst = obs.get("sst_c")
+                    sun = f" · sun {obs.get('sunrise', '')}–{obs.get('sunset', '')}"
+                    note = (f"🤿 _{wetsuit}"
+                            + (f" (water {sst} °C)" if sst is not None else "")
+                            + sun + "_")
+                    decorations.append(note)
+                    history[-1]["content"] += f"\n\n{note}"
+                yield emit(f"📦 {name} done — agent still thinking…")
             elif kind == "usage":
                 usage = payload if isinstance(payload, dict) else None
-                meter = _format_meter(usage, token_source)
+                meter = _format_meter(usage, token_source, caps=caps)
                 yield emit("🪙 Usage recorded — agent still thinking…")
             elif kind == "final":
-                history[-1]["content"] = str(payload) if payload else history[-1]["content"]
+                final_text = str(payload) if payload else history[-1]["content"]
+                tail = ("\n\n" + "\n\n".join(decorations)) if decorations else ""
+                history[-1]["content"] = final_text + tail
+                verdict = _verdict_html(final_text)
                 yield emit("✅ Answer complete.")
     except ValueError as e:
         if "HF_TOKEN" in str(e):
@@ -208,75 +480,132 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
         yield emit(f"❌ Agent run failed: {e}")
         return
 
+    # Every answered turn ends with a visualisation. When nothing was
+    # charted mid-turn, build one from the recorded tool payloads (or the
+    # viewed spot's week) — the status is yielded first so a slow first
+    # fetch reads as a staged spin-up, never a hang.
+    fallback_fig = None
+    if not turn_charted:
+        yield emit("📊 assembling this turn's chart…")
+        try:
+            fallback_fig, viz_note = _turn_figure(viz, selected, skill, records)
+        except Exception:  # noqa: BLE001 — a chart must never break the answer
+            fallback_fig, viz_note = None, ""
+        if fallback_fig is not None:
+            history[-1]["content"] += f"\n\n📊 _Charted: {viz_note}_"
+
     labels = [s["label"] for s in spots]
-    yield (history, "", "\n\n".join(cards), meter,
-           "✅ Answer complete." if spots or rank else "💬 No scored forecast — ask for a specific break to see charts.",
-           gr.skip(), gr.skip(), gr.skip(),
-           gr.update(choices=labels, value=(labels[0] if labels else None),
-                     visible=len(labels) > 1),
-           _format_rank_table(rank),
-           dict(store, spots=spots, rank=rank, usage=usage))
+    status = ("✅ Answer complete — chart updated." if fallback_fig is not None
+              else "✅ Answer complete." if (spots or rank)
+              else "💬 Nothing chartable this turn — pick a spot and ask again.")
+    out = dict(chatbot=history, msg="",
+               trace_html=_trace_html(cards, ask=text), token_md=meter,
+               agent_status=status, verdict_html=verdict,
+               spot_dd=gr.update(choices=labels, value=(labels[0] if labels else None),
+                                 visible=len(labels) > 1),
+               rank_html=_format_rank_cards(rank),
+               agent_store=dict(store, spots=spots, rank=rank, usage=usage))
+    if fallback_fig is not None:
+        out["agent_strip"] = fallback_fig
+    yield fill(AGENT_KEYS, **out)
 
 
 def show_spot(label: str | None, store: dict | None, records: list[dict]):
-    """Rebuild agent-tab charts for the spot picked in the dropdown."""
+    """Rebuild the week strip for the spot picked in the dropdown."""
     spots = (store or {}).get("spots") or []
     entry = next((s for s in spots if s.get("label") == label), None)
     if entry is None:
-        return gr.skip(), gr.skip(), gr.skip()
+        return gr.skip()
     try:
-        s_fig, w_fig, wi_fig, _ = _build_trio(entry["hours"], entry["label"],
-                                              entry.get("skill", "intermediate"), records)
-        return s_fig, w_fig, wi_fig
+        fig, _ = _build_strip(entry["hours"], entry["label"], records)
+        return fig
     except Exception:
-        return gr.skip(), gr.skip(), gr.skip()
+        return gr.skip()
+
+
+def ctx_line(skill: str, selected: dict | None, depth: str,
+             region: str | None) -> str:
+    """One live line showing what the agent inherits from the page."""
+    profiles = C.agent_profiles()
+    name = (selected or {}).get("name") or "no spot picked"
+    reg = (selected or {}).get("region") or ""
+    caps = profiles.get((depth or "standard").strip().lower()) or profiles.get("standard") or {}
+    focus = "auto (map pick)" if (not region or region == "auto") else str(region)
+    view = f"{name}" + (f" — {reg}" if reg else "")
+    return (f"scoring for **{skill or 'intermediate'}** · viewing **{view}** · "
+            f"focus **{focus}** · depth **{depth or 'standard'}** "
+            f"({caps.get('max_steps', '?')} steps / "
+            f"{caps.get('score_week_calls', '?')} score_week)")
 
 
 def clear_chat():
-    """Reset the agent tab (session token box is a component, untouched)."""
-    return ([], "", "", _format_meter(None, "space secret / env"), "Ask about a break — charts appear as spots are scored…",
-            None, None, None, gr.update(choices=[], value=None, visible=False),
-            _EMPTY_RANK, fresh_store())
+    """Reset the agent panel (session token box is a component, untouched)."""
+    return fill(AGENT_KEYS, chatbot=[], msg="",
+                trace_html=_trace_html([]), token_md="_Token meter — per-turn usage lands here._",
+                agent_status="Ask anything — every answer lands with a chart…",
+                verdict_html="",
+                agent_strip=None,
+                spot_dd=gr.update(choices=[], value=None, visible=False),
+                rank_html=_EMPTY_RANK_HTML, agent_store=fresh_store())
 
 
-def build_agent(selected, store, records: list[dict]) -> dict:
-    """Build the agent tab. Returns component dict for wiring."""
-    with gr.Tab("surf agent"):
-        gr.Markdown("### surf agent")
-        gr.Markdown("the agent calls the deterministic engines directly — ⚙ scoring, 🌍 GEBCO "
-                    "world model, 📡 open-meteo feeds — and the LLM (Nemotron 3.5 Lightning) "
-                    "only narrates their numbers. charts appear as spots are scored.")
-        with gr.Row():
-            skill_dd = gr.Dropdown(_SKILLS, value="intermediate", label="Skill level")
-            token_box = gr.Textbox(label="HF token (optional, session-only)", type="password",
-                                   placeholder="Defaults to the Space secret — never logged or saved.")
-        with gr.Row():
-            chip1 = gr.Button("Best in NSW this weekend (beginner)", variant="secondary")
-            chip2 = gr.Button("Bells Beach mornings?", variant="secondary")
-            chip3 = gr.Button("Quieter like Snapper?", variant="secondary")
-        chatbot = gr.Chatbot(label="Surf agent", height=420)
-        with gr.Row():
-            msg = gr.Textbox(show_label=False, placeholder="e.g. When should I surf Bells Beach this week? (Enter to send)",
-                             container=False, scale=8)
-            send_btn = gr.Button("Send", variant="primary", scale=1)
-            clear_btn = gr.Button("Clear", variant="stop", scale=1)
-        telemetry_md = gr.Markdown("_Send a question — tool calls land here live._")
-        token_md = gr.Markdown(_format_meter(None, "space secret / env"))
-        status_box = gr.Textbox(label="Status", interactive=False,
-                                placeholder="Ask about a break — charts appear as spots are scored…")
-        spot_dd = gr.Dropdown(choices=[], value=None, visible=False, label="Chart spot (multiple scored)")
-        with gr.Tabs():
-            with gr.Tab("Score"):
-                agent_score = gr.Plot(label="Score (0-10)")
-            with gr.Tab("Swell"):
-                agent_swell = gr.Plot(label="Swell")
-            with gr.Tab("Wind"):
-                agent_wind = gr.Plot(label="Wind (kt)")
-        rank_df = gr.Dataframe(headers=["Rank", "Spot", "Region", "Best score", "Best time"],
-                               label="Leaderboard", wrap=True)
+CHIP_PROMPTS = [
+    "Where should I surf in NSW this weekend as a beginner?",
+    "When are the best morning windows at Bells Beach this week?",
+    "Compare Bells Beach and Snapper Rocks this weekend.",
+    "What's the seafloor like at Bells Beach — and what wetsuit do I need?",
+    "What breaks are like Snapper Rocks but quieter?",
+]
 
-    def _chat(message, history, skill, hf_token, sel, st):
-        yield from chat_fn(message, history, skill, hf_token, sel, st, records)
+
+def build_agent(selected, store, records: list[dict], vocab: dict | None,
+                visible: bool = False) -> dict:
+    """Build the agent bar (full width, hidden until agentic mode slides on)."""
+    profiles = C.agent_profiles()
+    profile_names = C.agent_profile_names()
+    default_profile = "standard" if "standard" in profile_names else (profile_names[0] if profile_names else "standard")
+    states = list((vocab or {}).get("states") or [])
+    regions = list((vocab or {}).get("all_regions") or [])
+    region_choices = ["auto"] + states + [r for r in regions if r not in states]
+
+    with gr.Column(elem_classes=["agent-col"], visible=visible) as agent_col:
+        gr.Markdown("### 💬 ask the agent — engines compute, the llm narrates")
+        gr.Markdown("the agent calls ⚙ scoring, 🪨 the gebco world model, 🌡 era5 climate "
+                    "and 📡 open-meteo directly; nemotron 3 ultra only narrates their "
+                    "numbers. every answer lands with a chart — week strip, rose, "
+                    "depth map, leaderboard or component split.")
+        ctx_md = gr.Markdown("", elem_classes=["ctx-line"])
+        with gr.Row():
+            with gr.Column(scale=1):
+                with gr.Row(elem_classes=["agent-controls"]):
+                    depth_radio = gr.Radio(profile_names, value=default_profile,
+                                           label="agent depth", elem_classes=["depth-toggle"])
+                    region_dd = gr.Dropdown(region_choices, value="auto",
+                                            label="region focus")
+                token_box = gr.Textbox(label="HF token (optional, session-only)", type="password",
+                                       placeholder="Defaults to the Space secret — never logged or saved.")
+                chatbot = gr.Chatbot(label="Surf agent", height=460)
+                with gr.Row(elem_classes=["chat-input-row"]):
+                    msg = gr.Textbox(show_label=False,
+                                     placeholder="e.g. When should I surf Bells Beach this week? (Enter to send)",
+                                     container=False, scale=8)
+                    send_btn = gr.Button("Send", variant="primary", scale=1)
+                    clear_btn = gr.Button("Clear", variant="stop", scale=1)
+                trace_html = gr.HTML(_trace_html([]))
+            with gr.Column(scale=1):
+                verdict_html = gr.HTML("", elem_classes=["verdict-slot"])
+                chips = [gr.Button(p, variant="secondary", elem_classes=["chip-btn"])
+                         for p in CHIP_PROMPTS]
+                token_md = gr.Markdown("_Token meter — per-turn usage lands here._")
+                status_box = gr.Textbox(label="Status", interactive=False,
+                                        placeholder="Ask anything — every answer lands with a chart…")
+                spot_dd = gr.Dropdown(choices=[], value=None, visible=False, label="Chart spot (multiple scored)")
+                agent_strip = gr.Plot(label="week strip — agent-scored spot")
+                rank_html = gr.HTML(_EMPTY_RANK_HTML)
+
+    def _chat(message, history, skill, hf_token, sel, st, depth, region):
+        yield from chat_fn(message, history, skill, hf_token, sel, st,
+                           depth, region, records)
 
     def _show(label, st):
         return show_spot(label, st, records)
@@ -285,10 +614,13 @@ def build_agent(selected, store, records: list[dict]) -> dict:
         return lambda: text
 
     return {
-        "skill_dd": skill_dd, "token_box": token_box, "chatbot": chatbot, "msg": msg,
-        "send_btn": send_btn, "clear_btn": clear_btn, "telemetry_md": telemetry_md,
-        "token_md": token_md, "status_box": status_box, "spot_dd": spot_dd,
-        "agent_score": agent_score, "agent_swell": agent_swell, "agent_wind": agent_wind,
-        "rank_df": rank_df, "chips": (chip1, chip2, chip3), "chat": _chat,
-        "show_spot": _show, "clear": clear_chat, "chip_text": _chip,
+        "agent_col": agent_col,
+        "token_box": token_box, "chatbot": chatbot, "msg": msg,
+        "send_btn": send_btn, "clear_btn": clear_btn, "trace_html": trace_html,
+        "verdict_html": verdict_html, "rank_html": rank_html,
+        "token_md": token_md, "agent_status": status_box, "spot_dd": spot_dd,
+        "agent_strip": agent_strip, "chips": tuple(chips),
+        "depth_radio": depth_radio, "region_dd": region_dd, "ctx_md": ctx_md,
+        "chat": _chat, "show_spot": _show, "clear": clear_chat, "chip_text": _chip,
+        "ctx": ctx_line,
     }

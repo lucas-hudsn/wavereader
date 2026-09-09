@@ -23,7 +23,7 @@ def build() -> gr.Blocks:
         gr.Markdown("# wave~reader", elem_classes=["hero-title"])
         gr.Markdown("a guide to australian surf breaks — browse, score the week, or ask the agent.",
                     elem_classes=["hero-sub"])
-        gr.Markdown("_MCP ready — `/gradio_api/mcp/schema` · `score_week` / `rank_region_week` / `explain_score`_",
+        gr.Markdown("_MCP ready — `/gradio_api/mcp/` · `score_week` / `rank_region_week` / `explain_score`_",
                     elem_classes=["hero-sub"])
 
         selected = gr.State(None)

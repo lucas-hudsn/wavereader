@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.config import ALL, DATA_PATH, SKILL_ORDER
+from legacy.app.config import ALL, DATA_PATH, SKILL_ORDER
 
 def load_breaks(path: Path = DATA_PATH) -> pd.DataFrame:
     data = json.loads(path.read_text())

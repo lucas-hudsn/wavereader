@@ -5,10 +5,10 @@ from __future__ import annotations
 import gradio as gr
 import pandas as pd
 
-from app.break_details import _CAM_EMPTY_MD, _cam_entry, _cam_markdown, break_to_table
-from app.breaks_data import ALL_REGIONS, DF, REGIONS_BY_STATE, filter_breaks
-from app.config import AGENT_INTRO, ALL, BROWSE_INTRO, SKILL_ORDER, _NO_BREAK_HEADER
-from app.maps import build_map_with_custom
+from legacy.app.break_details import _CAM_EMPTY_MD, _cam_entry, _cam_markdown, break_to_table
+from legacy.app.breaks_data import ALL_REGIONS, DF, REGIONS_BY_STATE, filter_breaks
+from legacy.app.config import AGENT_INTRO, ALL, BROWSE_INTRO, SKILL_ORDER, _NO_BREAK_HEADER
+from legacy.app.maps import build_map_with_custom
 
 def on_mode_change(agentic: bool):
     """Toggle between browse UI and the agent-only interface (slide switch)."""

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 try:
-    from app import surf_cams as _cams_mod
+    from legacy.app import surf_cams as _cams_mod
 
     CAMS = _cams_mod.load_cams()
     CAMS_MOD = _cams_mod

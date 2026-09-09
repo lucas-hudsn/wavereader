@@ -12,15 +12,15 @@ import math
 
 import plotly.graph_objects as go
 
-from app.adapters import break_skill, enriched_to_scoring_spot, get_coords, normalize_skill
+from legacy.app.adapters import break_skill, enriched_to_scoring_spot, get_coords, normalize_skill
 
-from app.forecasts import get_forecast
-from app.scoring import SKILL_LEVELS, score_week
+from legacy.app.forecasts import get_forecast
+from legacy.app.scoring import SKILL_LEVELS, score_week
 
 # Adapter: prefer wavereader.adapters when it exists, else local fallback
 # with the same flat-15kt logic.
 try:
-    from app.adapters import (  # type: ignore
+    from legacy.app.adapters import (  # type: ignore
         break_skill,
         enriched_to_scoring_spot,
         get_coords,

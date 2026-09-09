@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from app.break_details import break_to_table
-from app.breaks_data import (
+from legacy.app.break_details import break_to_table
+from legacy.app.breaks_data import (
     ALL_REGIONS,
     DF,
     REGIONS_BY_STATE,
@@ -12,14 +12,14 @@ from app.breaks_data import (
     filter_breaks,
     load_breaks,
 )
-from app.browse_sync import on_break_pick, update_map
-from app.config import ALL
-from app.custom_break import clear_custom_break, generate_custom_break
-from app.forecast_handlers import fetch_forecast, generate_reports
-from app.maps import build_map, build_map_with_custom
-from app.seafloor_handlers import fetch_seafloor, generate_seafloor_explanation
-from app.theme import APP_CSS
-from app.ui import build_demo
+from legacy.app.browse_sync import on_break_pick, update_map
+from legacy.app.config import ALL
+from legacy.app.custom_break import clear_custom_break, generate_custom_break
+from legacy.app.forecast_handlers import fetch_forecast, generate_reports
+from legacy.app.maps import build_map, build_map_with_custom
+from legacy.app.seafloor_handlers import fetch_seafloor, generate_seafloor_explanation
+from legacy.app.theme import APP_CSS
+from legacy.app.ui import build_demo
 
 __all__ = [
     "ALL",

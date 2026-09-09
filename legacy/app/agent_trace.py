@@ -8,8 +8,8 @@ import re
 
 import pandas as pd
 
-from app.breaks_data import DF
-from app.browse_sync import _records
+from legacy.app.breaks_data import DF
+from legacy.app.browse_sync import _records
 
 def _coerce_scored_hours(payload) -> list[dict] | None:
     """Coerce a score_week tool_result payload to a list of scored hour dicts.
@@ -595,7 +595,7 @@ def _build_chart_trio(
     Same builders, same heights/titles/empty states in the forecast tab,
     the agent-tab final render, progressive updates, and the spot dropdown.
     """
-    from app import surf_forecast as mod
+    from legacy.app import surf_forecast as mod
     score_fig = mod.build_score_fig(hours)
     waves_fig = mod.build_waves_fig(hours)
     wind_fig = mod.build_wind_fig(hours, spot)
@@ -701,7 +701,7 @@ def _build_forecast_duo(hours: list[dict], spot, label: str | None = None):
     No score fig exists without scoring — callers must pass
     ``gr.skip()`` for the score output so the current score chart is kept.
     """
-    from app import surf_forecast as mod
+    from legacy.app import surf_forecast as mod
     waves_fig = mod.build_waves_fig(hours)
     wind_fig = mod.build_wind_fig(hours, spot)
     best_md = _format_forecast_best(hours, label)

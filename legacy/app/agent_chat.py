@@ -7,7 +7,7 @@ import time
 import gradio as gr
 import pandas as pd
 
-from app.agent_trace import (
+from legacy.app.agent_trace import (
     _agent_chart_data,
     _build_agent_telemetry,
     _build_chart_trio,
@@ -24,9 +24,9 @@ from app.agent_trace import (
     _resolve_spot_for_entry,
     _short_args,
 )
-from app.config import ALL, HISTORY_PREPEND_TURNS
-from app.custom_break import _telemetry
-from app.prompt_guard import sanitize_chat_message, wrap_as_data
+from legacy.app.config import ALL, HISTORY_PREPEND_TURNS
+from legacy.app.custom_break import _telemetry
+from legacy.app.prompt_guard import sanitize_chat_message, wrap_as_data
 
 def on_agent_spot_change(spot_label: str | None, charts_state: dict | None,
                          selected_break: dict | None):
@@ -36,7 +36,7 @@ def on_agent_spot_change(spot_label: str | None, charts_state: dict | None,
     if entry is None:
         return gr.skip(), gr.skip(), gr.skip(), gr.skip()
     try:
-        from app import surf_forecast as mod
+        from legacy.app import surf_forecast as mod
         scored = entry["hours"]
         spot = _resolve_spot_for_entry(entry, selected_break, mod)
         label = entry.get("label")
@@ -195,7 +195,7 @@ def chat_fn(
     yield emit("⏳ Agent thinking…")
 
     try:
-        from app import agent as agent_mod
+        from legacy.app import agent as agent_mod
     except Exception as e:  # noqa: BLE001 — sibling module not ready yet
         logs.append(f"❌ Surf agent module not available: {e}")
         history[-1]["content"] = (
@@ -323,7 +323,7 @@ def chat_fn(
                         live_spots.append(entry)
                         _dedupe_spot_labels(live_spots)
                         try:
-                            from app import surf_forecast as mod
+                            from legacy.app import surf_forecast as mod
                             spot = _resolve_spot_for_entry(
                                 entry, selected_break, mod
                             )
@@ -422,7 +422,7 @@ def chat_fn(
                         live_forecasts.append(entry)
                         _dedupe_spot_labels(live_forecasts)
                         try:
-                            from app import surf_forecast as mod
+                            from legacy.app import surf_forecast as mod
                             spot = _resolve_spot_for_entry(
                                 entry, selected_break, mod
                             )
@@ -541,7 +541,7 @@ def chat_fn(
 
     if not spots and forecasts:
         try:
-            from app import surf_forecast as mod
+            from legacy.app import surf_forecast as mod
             latest = forecasts[-1]
             spot = _resolve_spot_for_entry(latest, selected_break, mod)
             waves_fig, wind_fig, best_md = _build_forecast_duo(
@@ -592,7 +592,7 @@ def chat_fn(
         return
 
     try:
-        from app import surf_forecast as mod
+        from legacy.app import surf_forecast as mod
         first = spots[0]
         # Carry skill through when the trace payload lacks it.
         if not first.get("skill"):

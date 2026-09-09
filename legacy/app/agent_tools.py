@@ -19,7 +19,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from app import adapters, forecasts, scoring
+from legacy.app import adapters, forecasts, scoring
 
 __all__ = [
     "get_forecast",
@@ -36,7 +36,7 @@ __all__ = [
     "get_seafloor_analysis",
 ]
 
-_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "australia-surf-breaks-enriched.json"
+_DATA_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "australia-surf-breaks-enriched.json"
 
 _STATE_CODE_TO_NAME = {
     "NSW": "New South Wales",
@@ -669,7 +669,7 @@ def get_seafloor_analysis(
     shelf class, channel hint) plus a markdown read. Network-backed via
     ``app.seafloor``; the LLM narrates but never computes numbers.
     """
-    from app import seafloor as _sf
+    from legacy.app import seafloor as _sf
 
     b = _resolve_break(spot_name, region)
     if b is None:

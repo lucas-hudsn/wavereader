@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import gradio as gr
 
-from app.agent_chat import (
+from legacy.app.agent_chat import (
     chat_fn,
     clear_agent_chat,
     on_agent_spot_change,
     on_rank_select,
 )
-from app.break_details import _CAM_EMPTY_MD
-from app.breaks_data import ALL_REGIONS, DF, SKILLS, STATES
-from app.browse_sync import (
+from legacy.app.break_details import _CAM_EMPTY_MD
+from legacy.app.breaks_data import ALL_REGIONS, DF, SKILLS, STATES
+from legacy.app.browse_sync import (
     _format_pref_chip,
     _records,
     go_to_forecast,
@@ -28,7 +28,7 @@ from app.browse_sync import (
     update_map,
     update_region_choices,
 )
-from app.config import (
+from legacy.app.config import (
     AGENT_MODE_LABEL,
     ALL,
     BROWSE_INTRO,
@@ -37,10 +37,10 @@ from app.config import (
     _NO_BREAK_HEADER,
     _NO_REPORT_MD,
 )
-from app.custom_break import clear_custom_break, generate_custom_break
-from app.forecast_handlers import fetch_forecast, generate_reports
-from app.maps import build_map
-from app.seafloor_handlers import fetch_seafloor, generate_seafloor_explanation
+from legacy.app.custom_break import clear_custom_break, generate_custom_break
+from legacy.app.forecast_handlers import fetch_forecast, generate_reports
+from legacy.app.maps import build_map
+from legacy.app.seafloor_handlers import fetch_seafloor, generate_seafloor_explanation
 
 
 def build_demo() -> gr.Blocks:

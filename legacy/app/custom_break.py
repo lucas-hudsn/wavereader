@@ -7,11 +7,11 @@ import time
 import gradio as gr
 import pandas as pd
 
-from app.break_details import _CAM_EMPTY_MD, _cam_markdown, break_to_table
-from app.browse_sync import _break_list_label, _effective_names
-from app.config import ALL, _NO_BREAK_HEADER
-from app.maps import _lat, _lng, build_map, build_map_with_custom
-from app.prompt_guard import (
+from legacy.app.break_details import _CAM_EMPTY_MD, _cam_markdown, break_to_table
+from legacy.app.browse_sync import _break_list_label, _effective_names
+from legacy.app.config import ALL, _NO_BREAK_HEADER
+from legacy.app.maps import _lat, _lng, build_map, build_map_with_custom
+from legacy.app.prompt_guard import (
     MAX_BREAK_NAME_LEN,
     MAX_STATE_REGION_LEN,
     sanitize_break_field,
@@ -93,7 +93,7 @@ def generate_custom_break(
     yield emit()
 
     try:
-        from app import generate_surf_break as gen
+        from legacy.app import generate_surf_break as gen
         logs.append(
             f"🧠 [tool: generate_surf_break] InferenceClient "
             f"provider='{gen.PROVIDER}' model='{gen.MODEL_ID}' "

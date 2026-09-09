@@ -27,18 +27,39 @@ marriage photo.
 
 ## What it does
 
-Three experiences in one Gradio app (`uv run python main.py`):
+Three experiences in one Gradio app (`uv run python app.py`):
 
 | Tab / mode | What you get |
 |---|---|
-| **break book** | All 238 breaks on a Plotly map, filterable by state / region / skill. Pick a break for its full field guide (peak type, ideal swell / wind / tide, hazards, crowd factor). "Can't find your local break?" generates one live, schema-validated, session-only. |
-| **swell check** | Pick a break → deterministic 0–10 score for every hour of the next 7 days (Open-Meteo marine + wind data). Score bars, swell height + period chart, wind-arrows strip, best-window hero — then an optional streamed AI write-up that *narrates the scores only*. |
-| **agentic mode** (toggle) | Chat with a surf agent: "where's it going to be good in NSW this weekend?" — a smolagents `CodeAgent` on Nemotron 3.5 Lightning that finds spots, scores regions, explains score breakdowns, ranks the week, and suggests similar breaks. Charts render automatically from the agent's tool payloads. |
+| **break book** | All 238 breaks on a Plotly map, filterable by state / region / skill. Each pick loads a full field guide (peak type, ideal swell / wind / tide, hazards, crowd factor) plus a **5-year ERA5 swell climate rose** that audits the dataset's own claims. |
+| **swell check** | Pick a break → the deterministic engines spin up in stages: **📡 Open-Meteo feed → ⚙ scoring engine → 🌍 GEBCO world model**, each with live timings. 0–10 score for every hour of the next 7 days, score/swell/wind strips, and a **smoothed 3D seafloor model with an animated swell layer** riding the forecast's dominant period (press ▶ swell). Then an optional streamed AI write-up that *narrates the scores only*. |
+| **surf agent** | Chat: "where's it going to be good in NSW this weekend?" — a smolagents `ToolCallingAgent` on Nemotron 3.5 Lightning that finds spots, scores regions, explains score breakdowns, ranks the week, and suggests similar breaks. Every tool call shows its **latency in ms**; charts render mid-answer straight from the tool payloads. |
+
+## The engines — and why the spin-ups are fast
+
+wave~reader makes its machinery visible. Measured on a laptop against the
+disk cache:
+
+| Engine | Cold | Warm | Where |
+|---|---|---|---|
+| ⚙ scoring engine (168 hourly 0–10 scores) | ~300 ms | **0.8 ms** | `wavereader/scoring.py` |
+| 📡 Open-Meteo marine + wind feed | ~300 ms | **~1 ms** | `wavereader/openmeteo.py` |
+| 🌍 GEBCO world model (10×10 bathymetry grid) | ~1.3 s | **~1 ms** | `wavereader/seafloor.py` |
+| 🧠 agent tool call (`score_week` over MCP) | ~2 ms | **0.7 ms** | `wavereader/tools.py` |
+| Chart trio (score / swell / wind) | 12–14 ms | — | `ui/charts/` |
+
+The forecast charts land in ~80 ms while the world model resolves in a
+parallel thread; caches warm themselves on load (`scripts/warm_caches.py`
+pre-fills them before a demo recording). The seafloor view bicubically
+upsamples the 10×10 GEBCO grid to 41×41 and animates a translucent swell
+surface at the forecast's dominant height/period — a world model you can
+watch working.
 
 ## The rule that makes it trustworthy
 
 **The LLM never owns numbers.** Every wave height, wind speed, and score in
-the UI comes from `app/scoring.py` / `app/forecasts.py` / `app/agent_tools.py`
+the UI comes from `wavereader/scoring.py` / `wavereader/openmeteo.py` /
+`wavereader/tools.py`
 — plain Python over Open-Meteo + the enriched break dataset. The model's
 contract (enforced by its system prompt) is to interpret, cite the tool it
 used, and never compute a forecast itself. The agent can *recommend*, but it
@@ -55,75 +76,82 @@ Requires [uv](https://docs.astral.sh/uv/) and Python 3.14.
 ```sh
 uv sync
 cp .env.example .env   # fill in HF_TOKEN (https://huggingface.co/settings/tokens)
-uv run python main.py
+uv run python app.py
 ```
 
-Hand it to a friend?
+Or drive the agent straight from Python:
 
 ```sh
-uv run python main.py --share   # prints a public gradio.live URL
+uv run python -c "from wavereader.agent import run_stream; \
+  [print(e.get('text', e.get('name', '')), end='') for e in run_stream('best beginner morning this weekend in VIC?')]"
 ```
 
-Or drive the agent straight from the terminal:
+`HF_TOKEN` (Inference Providers access) is needed for the agent and the
+narrator. The forecast charts, world model, and MCP tools run with no
+token and no LLM — network access to Open-Meteo / OpenTopoData, with a
+disk cache under `.cache/`.
 
-```sh
-uv run python -m app.agent "best beginner morning this weekend in VIC?"
+## MCP: the app is the tool
+
+`app.py` launches with `mcp_server=True`, so any MCP client (Claude
+Desktop, opencode, …) can call the deterministic engines directly:
+
+```
+<space-or-local-url>/gradio_api/mcp/
 ```
 
-`HF_TOKEN` (Inference Providers access) is needed for the agent, the
-Stage-2 report, and custom-break generation. The Stage-1 forecast charts
-only need network access to Open-Meteo, with a disk cache under `.cache/`.
+The exposed surface is exactly three typed, deterministic tools —
+`score_week`, `rank_region_week`, `explain_score` — the same functions the
+agent calls. Verify: `curl <url>/gradio_api/mcp/schema`.
 
 ## Layout
 
 ```
-main.py                          # Gradio front end: break book / swell check / agentic mode
-app/
-  agent.py                       # smolagents CodeAgent surf agent (HF Providers, Nemotron 3.5 Lightning, streaming + trace)
-  agent_tools.py                 # 10 deterministic tools the agent may call (find / rank / score / explain)
-  surf_forecast.py               # scored-forecast service + Plotly builders
-  forecasts.py                   # Open-Meteo marine + weather client, disk cache
-  scoring.py                     # deterministic 0–10 surf-quality engine
-  adapters.py                    # enriched-break -> scoring-spot bridge
-  generate_surf_report.py        # streamed Stage-2 report (narrates scores only)
-  generate_base_data.py          # batch/resumable dataset enrichment runner
-  surf_cams.py                   # curated surf-cam link overlay (data/surf-cams.json)
+app.py                           # v2 entry: Gradio 6 three-panel UI + MCP server
+ui/                              # the front end
+  app.py                         # layout + event wiring (engines strip, cache warm-up)
+  panels/{book,swell,agent}.py   # break book / swell check / surf agent
+  charts/{score,swell,wind,seafloor,climate,map}.py   # Plotly builders
+  _compat.py                     # backend access layer (v2 core → legacy → stubs)
+wavereader/                      # pure core: typed, tested, no Gradio imports
+  breaks.py openmeteo.py climate.py scoring.py seafloor.py
+  tools.py                       # the deterministic tool functions (agent + MCP)
+  agent.py                       # smolagents ToolCallingAgent + typed event stream
+  narrate.py llm.py              # streamed report writer; one InferenceClient factory
 scripts/
-  generate_surf_break.py         # single-shot structured-JSON break generator (CLI)
+  warm_caches.py                 # pre-fill forecast + seafloor caches (demo hot start)
+  build_climate.py               # ERA5 5-yr climatology builder
 data/
-  australia-surf-breaks.json           # input: state -> region -> [names]
-  australia-surf-breaks-enriched.json  # 238 schema-valid breaks (generated by the pipeline above)
+  australia-surf-breaks-enriched.json  # 238 schema-valid breaks
+  climate/*.json                       # per-break 5-yr swell climatology
   surf-break-schema.json               # the conformance contract
-  surf-break-example-bells.json        # worked example (Bells Beach) in the prompt
-  surf-cams.json                       # cam link overlay
 documents/
-  ENCYCLOPEDIA.md                # break book deep dive
-  FORECAST.md                    # forecast pipeline deep dive
-  SURFAGENT.md                   # agent design: prompt, tools, budgets, output contract
-  VIDEO_SCRIPT.md                # demo video script (GTC entry)
+  ENCYCLOPEDIA.md FORECAST.md SURFAGENT.md VIDEO_SCRIPT.md
+legacy/                          # v1 front end (main.py + app/), archived
 ```
 
 ## How the dataset was built
 
-`scripts/generate_surf_break.py` + `app/generate_base_data.py` ran
-Nemotron 3.5 Lightning once per break (temp 0.4, 2048 tokens, one chat call):
-the prompt carries the JSON schema + the Bells Beach worked example, and
+`scripts/` (v1 generation pipeline in `legacy/app/`) ran Nemotron 3.5
+Lightning once per break (temp 0.4, 2048 tokens, one chat call): the
+prompt carries the JSON schema + the Bells Beach worked example, and
 `extract_json()` strips fences / grabs the outermost `{...}`. Canonical
 `state` / `region` are pinned from the input list, never the model, and
 every record conforms to `data/surf-break-schema.json` (strict enums for
-swell, wind, tide, skill, hazards…). The batch runner is resumable —
-skips done breaks, retries failures, saves after every write.
+swell, wind, tide, skill, hazards…). The batch runner is resumable.
 
 ## The forecast pipeline
 
-1. **Stage 1 — deterministic:** break → `adapters.enriched_to_scoring_spot`
-   → `forecasts.get_forecast` (Open-Meteo marine + wind, disk-cached) →
-   `scoring.score_week` → 168 hourly 0–10 scores → Plotly score / swell /
-   wind figures + best window.
-2. **Stage 2 — LLM narrator (optional):** the prompt carries only the daily
-    bests (≤7 lines) + best window + a one-line break summary; Nemotron 3.5
-    Lightning streams a dot-point write-up. It can only talk about the numbers
-   it was handed.
+1. **Deterministic core:** break → `wavereader/scoring.py` →
+   `openmeteo.get_forecast` (Open-Meteo marine + wind, disk-cached,
+   seaward grid-snap) → `score_week` → 168 hourly 0–10 scores →
+   Plotly score / swell / wind strips + best-window hero. The **world
+   model** fetches the GEBCO 2020 bathymetry grid around the takeoff
+   zone, classifies shelf shape, and renders depth / 3D / transects with
+   an animated swell layer.
+2. **LLM narrator (optional):** the prompt carries only the daily bests
+   (≤7 lines) + best window; Nemotron 3.5 Lightning streams a dot-point
+   write-up. It can only talk about the numbers it was handed.
 
 Full detail in `documents/FORECAST.md`.
 

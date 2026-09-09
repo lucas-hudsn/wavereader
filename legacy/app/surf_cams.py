@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
 CAMS_PATH = DATA_DIR / "surf-cams.json"
 
 NO_CAM_MD = "_No public cam linked yet for this break._"

@@ -51,7 +51,7 @@ WEATHER_DAILY_FIELDS = ("sunrise", "sunset")
 # ~0.13° is roughly 14 km — enough to move off the coast onto a marine grid point.
 _SEAWARD_OFFSET_DEG = 0.13
 
-CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache" / "forecasts"
+CACHE_DIR = Path(__file__).resolve().parent.parent.parent / ".cache" / "forecasts"
 CACHE_TTL_SECONDS = 6 * 3600
 # Bumped when the cached frame shape changes (SST/gusts/daily added) so
 # old-shape entries are never served as fresh.

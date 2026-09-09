@@ -7,8 +7,8 @@ import time
 import gradio as gr
 from plotly import graph_objects as go
 
-from app.config import _NO_REPORT_MD
-from app.custom_break import _telemetry
+from legacy.app.config import _NO_REPORT_MD
+from legacy.app.custom_break import _telemetry
 
 def _empty_forecast_fig() -> go.Figure:
     fig = go.Figure()
@@ -72,7 +72,7 @@ def fetch_forecast(
             None,
         )
 
-        from app import surf_forecast as mod
+        from legacy.app import surf_forecast as mod
         result = mod.get_scored_week(
             selected_break, skill=skill, days=days_int
         )
@@ -183,7 +183,7 @@ def generate_reports(
     yield emit("_Contacting report model… watch the telemetry box below for progress._")
 
     try:
-        from app import generate_surf_report as rep
+        from legacy.app import generate_surf_report as rep
         logs.append(
             f"🧠 [tool: generate_surf_report_stream] InferenceClient "
             f"provider='{rep.PROVIDER}' model='{rep.MODEL_ID}' "

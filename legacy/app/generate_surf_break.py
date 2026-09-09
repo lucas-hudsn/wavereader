@@ -33,7 +33,7 @@ from pathlib import Path
 from huggingface_hub import InferenceClient
 
 try:  # loaded via importlib as "surf_break_generator" — package import works from repo root
-    from app.prompt_guard import (
+    from legacy.app.prompt_guard import (
         MAX_BREAK_NAME_LEN,
         MAX_STATE_REGION_LEN,
         sanitize_break_field,
@@ -52,7 +52,7 @@ except ImportError:  # pragma: no cover — standalone fallback, same behaviour
     def wrap_as_data(text):  # type: ignore[no-redef]
         return f"<data>{text}</data>"
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
 
 MODEL_ID = "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"
 PROVIDER = "deepinfra"

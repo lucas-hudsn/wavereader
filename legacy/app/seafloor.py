@@ -25,7 +25,7 @@ OPENTOPO_URL = "https://api.opentopodata.org/v1/{dataset}"
 PRIMARY_DATASET = "gebco2020"
 FALLBACK_DATASET = "etopo1"
 
-CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache" / "seafloor"
+CACHE_DIR = Path(__file__).resolve().parent.parent.parent / ".cache" / "seafloor"
 CACHE_TTL_SECONDS = 30 * 24 * 3600
 CACHE_VERSION = 1
 

@@ -26,7 +26,7 @@ from smolagents.agents import ActionOutput, ToolOutput
 from smolagents.memory import ActionStep, FinalAnswerStep, ToolCall as SmolToolCall
 from smolagents.models import ChatMessageStreamDelta
 
-from app.agent_tools import (
+from legacy.app.agent_tools import (
     explain_score_breakdown,
     find_best_windows,
     find_similar_spots,
@@ -40,7 +40,7 @@ from app.agent_tools import (
     score_region_week,
     score_week,
 )
-from app.prompt_guard import DATA_ONLY_REMINDER, sanitize_chat_message, wrap_as_data
+from legacy.app.prompt_guard import DATA_ONLY_REMINDER, sanitize_chat_message, wrap_as_data
 
 SYSTEM_PROMPT = """You are a surf forecasting assistant for Australian breaks.
 

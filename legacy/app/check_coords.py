@@ -46,7 +46,7 @@ from pathlib import Path
 from huggingface_hub import InferenceClient
 
 try:  # package import from repo root
-    from app.generate_surf_break import MODEL_ID, PROVIDER, extract_json
+    from legacy.app.generate_surf_break import MODEL_ID, PROVIDER, extract_json
 except ImportError:  # pragma: no cover — standalone fallback
     MODEL_ID = "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"
     PROVIDER = "deepinfra"
@@ -61,7 +61,7 @@ except ImportError:  # pragma: no cover — standalone fallback
             text = brace.group(0)
         return json.loads(text)
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
 ENRICHED_FILE = DATA_DIR / "australia-surf-breaks-enriched.json"
 
 REQUEST_DELAY = 1.0  # seconds between inference calls
@@ -254,6 +254,7 @@ def osm_match(
     state: str,
     anchor: tuple[float, float] | None,
     current: tuple[float, float] | None,
+    hard_fail: bool,
 ) -> tuple[float, float, str] | None:
     """Geocode one break against OSM. Returns (lat, lng, display_name) of the
     chosen candidate, or None to keep the existing coordinates.
@@ -267,6 +268,9 @@ def osm_match(
       is the sole viable candidate or the existing point is the one far from
       the cluster — never when it just happens to be the nearest hit;
     - highways, roads, viewpoints and council centroids are never accepted.
+
+    ``hard_fail``: the existing point failed a hard check (invalid/outside
+    Australia/wrong state) — it is untrusted, so the G2 veto does not apply.
     """
     name = str(break_.get("name", ""))
     base, inner = name, ""
@@ -276,22 +280,18 @@ def osm_match(
 
     # Query variants: parenthetical locality first, then the raw name, then
     # any parts of a slashed name ("Agnes Water / 1770" -> "Agnes Water").
-    cores = []
-    for part in name.split("/"):
-        part = part.strip()
-        if part:
-            cores.append(part)
+    cores = [p.strip() for p in name.split("/") if p.strip()]
     cores.append(base)
 
     box = STATE_BOXES.get(state)
     d_old = _haversine_km(current, anchor) if (anchor and current) else None
 
-    physical: list[tuple[float, float, str]] = []
-    places: list[tuple[float, float, str]] = []
+    physical: list[tuple[float, float, float, str]] = []  # (score, lat, lng, dn)
+    places: list[tuple[float, float, float, str]] = []
     seen: set[tuple[float, float]] = set()
     for query in dict.fromkeys(
-        [f"{base}, {inner}, {state}, Australia"] if inner else []
-        + [f"{c}, {state}, Australia" for c in cores]
+        ([f"{base}, {inner}, {state}, Australia"] if inner else [])
+        + [f"{c}, {state}, Australia" for c in dict.fromkeys(cores)]
         + [f"{base}, Australia"]
     ):
         try:
@@ -299,7 +299,7 @@ def osm_match(
         except Exception as e:  # noqa: BLE001
             print(f"    ! Nominatim error for {query!r}: {e}")
             continue
-        core = base if inner else (cores[0] if cores else name)
+        core = base if inner else cores[0]
         for cand in hits:
             if _norm(core) not in _norm(cand.get("display_name", "")):
                 continue
@@ -315,7 +315,7 @@ def osm_match(
             if kind is None:
                 continue
             seen.add((round(lat, 3), round(lng, 3)))
-            entry = (lat, lng, cand.get("display_name", ""))
+            entry = (_candidate_score(cand, anchor), lat, lng, cand.get("display_name", ""))
             (physical if kind == "physical" else places).append(entry)
         if physical:
             break  # a physical match is the best we will get
@@ -323,36 +323,27 @@ def osm_match(
     # Cluster-distance gate (G2): if the existing point sits clearly closer
     # to the trusted region cluster than the OSM candidate, trust the cluster.
     def veto(point: tuple[float, float]) -> bool:
-        if anchor is None or d_old is None or current is None:
-            return False
-        if any(r in ("invalid", "out_of_australia", "wrong_state") for r in _break_hard_fail(break_)):
+        if hard_fail or anchor is None or d_old is None or current is None:
             return False
         return d_old + 20.0 <= _haversine_km(point, anchor)
 
     if physical:
-        physical.sort(key=lambda p: -_haversine_km(p[:2], anchor) if anchor else 0)
+        physical.sort(key=lambda e: -e[0])  # best score first (type + anchor proximity)
         best = physical[0]
-        if veto(best[:2]):
+        if veto((best[1], best[2])):
             print("  -> candidate farther from region cluster than existing point")
             return None
-        return best
-    if len(places) == 1 and not veto(places[0][:2]):
-        return places[0]
-    if len(places) > 1 and d_old is not None:
+        return (best[1], best[2], best[3])
+    if len(places) == 1 and not veto((places[0][1], places[0][2])):
+        return (places[0][1], places[0][2], places[0][3])
+    if len(places) > 1 and d_old is not None and anchor is not None:
         # Several settlement hits: accept only if the existing point is the outlier.
-        supported = [p for p in places if _haversine_km(p[:2], anchor) + 20.0 <= d_old]
+        supported = [p for p in places if _haversine_km((p[1], p[2]), anchor) + 20.0 <= d_old]
         if supported:
-            supported.sort(key=lambda p: _haversine_km(p[:2], anchor) if anchor else 0)
-            if not veto(supported[0][:2]):
-                return supported[0]
+            supported.sort(key=lambda p: _haversine_km((p[1], p[2]), anchor))
+            if not veto((supported[0][1], supported[0][2])):
+                return (supported[0][1], supported[0][2], supported[0][3])
     return None
-
-
-def _break_hard_fail(break_: dict) -> list[str]:
-    # Re-derived cheaply: a hard-failed existing point is untrusted, so G2
-    # must not protect it. (Flag reasons are passed through item['reasons']
-    # upstream; this keeps the signature of osm_match small.)
-    return getattr(break_, "_flag_reasons", [])  # type: ignore[attr-defined]
 
 
 def build_coord_prompt(break_: dict, current) -> str:

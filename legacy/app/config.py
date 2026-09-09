@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-DATA_PATH = Path(__file__).parent.parent / "data" / "australia-surf-breaks-enriched.json"
+DATA_PATH = Path(__file__).parent.parent.parent / "data" / "australia-surf-breaks-enriched.json"
 
 ALL = "All"
 

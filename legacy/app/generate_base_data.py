@@ -54,9 +54,9 @@ import json
 import time
 from pathlib import Path
 
-from app.generate_surf_break import generate_surf_break
+from legacy.app.generate_surf_break import generate_surf_break
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent.parent.parent / "data"
 
 INPUT_LIST = DATA_DIR / "australia-surf-breaks.json"
 OUTPUT_FILE = DATA_DIR / "australia-surf-breaks-enriched.json"

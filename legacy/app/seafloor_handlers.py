@@ -7,8 +7,8 @@ import time
 import gradio as gr
 from plotly import graph_objects as go
 
-from app.adapters import get_coords
-from app.custom_break import _telemetry
+from legacy.app.adapters import get_coords
+from legacy.app.custom_break import _telemetry
 
 _NO_SEAFLOOR_MD = "_Pick a break — its seafloor model loads automatically._"
 _NO_EXPLAIN_MD = "_Press “Explain seafloor ✨” for a plain-language read (free-tier model)._"
@@ -64,7 +64,7 @@ def fetch_seafloor(
         progress(0.2, desc="Fetching seafloor grid…")
         yield emit("⏳ Fetching seafloor grid…", *empty, "_Loading seafloor model…_")
 
-        from app import seafloor as mod
+        from legacy.app import seafloor as mod
 
         progress(0.5, desc="Analyzing shape…")
         res = mod.get_seafloor(lat, lng, radius_km=radius)
@@ -123,7 +123,7 @@ def generate_seafloor_explanation(
     except (TypeError, ValueError):
         radius = 1.2
     try:
-        from app import seafloor as mod
+        from legacy.app import seafloor as mod
 
         name = selected_break.get("name", "?")
         logs.append(
@@ -135,7 +135,7 @@ def generate_seafloor_explanation(
         res = mod.get_seafloor(lat, lng, radius_km=radius)
         stats, analysis_md = res["stats"], res["analysis"]
 
-        from app import generate_seafloor_report as rep
+        from legacy.app import generate_seafloor_report as rep
 
         logs.append(
             f"🧠 [tool: generate_seafloor_explanation_stream] InferenceClient "

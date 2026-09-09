@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from plotly import graph_objects as go
 
-from app.config import (
+from legacy.app.config import (
     AUSTRALIA_CENTER,
     AUSTRALIA_ZOOM,
     CUSTOM_MARKER_COLOR,

@@ -64,8 +64,8 @@ def list_breaks() -> list[dict]:
         except Exception:
             pass
     try:  # v1 catalogue (238 enriched breaks)
-        from app.breaks_data import _records as _rec  # type: ignore
-        from app.breaks_data import DF as _DF  # type: ignore
+        from legacy.app.breaks_data import _records as _rec  # type: ignore
+        from legacy.app.breaks_data import DF as _DF  # type: ignore
 
         return list(_rec(_DF))
     except ImportError:
@@ -177,7 +177,7 @@ def get_scored_week(break_: dict | None, skill: str = "intermediate",
     except Exception:
         pass
     try:  # v1 deterministic path (network: Open-Meteo marine + wind)
-        from app import surf_forecast as _mod  # type: ignore
+        from legacy.app import surf_forecast as _mod  # type: ignore
 
         result = _mod.get_scored_week(break_, skill=skill, days=days)
         scored = result.get("scored", []) or []
@@ -430,7 +430,7 @@ def get_seafloor(break_: dict | None, radius_km: float = 1.2) -> dict:
         except Exception:
             pass
     try:  # v1 seafloor (network: OpenTopoData)
-        from app import seafloor as _s2  # type: ignore
+        from legacy.app import seafloor as _s2  # type: ignore
 
         return dict(_s2.get_seafloor(lat, lng, radius_km=radius_km))
     except ImportError:
@@ -490,7 +490,7 @@ def narrate_stream(payload: dict | None, hf_token: str = "") -> Iterator[str]:
     except Exception:
         pass
     try:  # v1 report streamer (InferenceClient, token from env)
-        from app import generate_surf_report as _rep  # type: ignore
+        from legacy.app import generate_surf_report as _rep  # type: ignore
 
         for chunk in _rep.generate_surf_report_stream(
                 break_=payload.get("break") or {}, skill=payload.get("skill", "intermediate"),
@@ -555,7 +555,7 @@ def _real_agent_stream(question: str, hf_token: str) -> Iterator[tuple[str, Any]
 def _v1_agent_stream(message: str, skill: str, hf_token: str,
                      selected_break: dict | None) -> Iterator[tuple[str, Any]]:
     """Adapt the v1 CodeAgent stream (app/agent.py) to typed v2 events."""
-    from app import agent as _am  # type: ignore
+    from legacy.app import agent as _am  # type: ignore
 
     agent = _am.SurfAgent(hf_token=(hf_token or "").strip() or None)
     for kind, data in agent.run_stream(message):

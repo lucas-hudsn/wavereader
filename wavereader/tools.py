@@ -57,6 +57,11 @@ except ImportError:
     _HAS_BREAKS = False
     _core_resolve_break = None  # type: ignore
 
+try:  # Worker A: wavereader/scoring.py :: enriched_to_scoring_spot
+    from wavereader.scoring import enriched_to_scoring_spot as _core_to_spot  # type: ignore
+except ImportError:
+    _core_to_spot = None  # type: ignore
+
 try:  # Worker A: wavereader/openmeteo.py :: get_forecast(lat, lon, days)
     from wavereader.openmeteo import get_forecast as _core_get_forecast  # type: ignore
     _HAS_FORECAST = True
@@ -200,17 +205,16 @@ def _coords(break_: dict) -> tuple[float | None, float | None]:
 
 
 def _real_scored(break_: dict, skill_level: str) -> list[dict]:
-    """STUB(merge): fetch + score via Worker A; raises on any failure.
-
-    Was the fake-data path before Worker A landed; now the primary path.
-    """
+    """Fetch + score via Worker A; raises on any failure (no fake fallback)."""
     if not (_HAS_SCORING and _HAS_FORECAST and _core_score_week is not None and _core_get_forecast is not None):
         raise RuntimeError("scoring/forecast backends not available")
+    if _core_to_spot is None:
+        raise RuntimeError("scoring spot adapter not available")
     lat, lng = _coords(break_)
     if lat is None or lng is None:
         raise RuntimeError(f"Spot '{break_.get('name')}' has no coordinates")
     forecast = _core_get_forecast(lat, lng, 7)
-    spot = dict(break_)
+    spot = _core_to_spot(break_)
     return _core_score_week(forecast, spot, skill_level)
 
 
@@ -257,13 +261,24 @@ def _slim_hour(row: dict) -> dict:
     )}
 
 
+def _safe_score(value) -> float:
+    try:
+        f = float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    import math as _math
+    return f if _math.isfinite(f) else 0.0
+
+
 def _daily_best(scored: list[dict]) -> list[dict]:
     best_by_date: dict[str, dict] = {}
     for row in scored or []:
+        if not isinstance(row, dict):
+            continue
         date = str(row.get("time", ""))[:10]
         if not date:
             continue
-        if date not in best_by_date or float(row.get("score", 0) or 0) > float(best_by_date[date].get("score", 0) or 0):
+        if date not in best_by_date or _safe_score(row.get("score")) > _safe_score(best_by_date[date].get("score")):
             best_by_date[date] = row
     return [
         {"date": d, **_slim_hour(best_by_date[d])}

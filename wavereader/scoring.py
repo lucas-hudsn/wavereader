@@ -149,6 +149,15 @@ def _normalize_wind_type(wind_type: str | None) -> str:
     return "light/variable"
 
 
+def _safe_float(value) -> float | None:
+    """Coerce to finite float, else None (rejects None/NaN/garbage)."""
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    return f if math.isfinite(f) else None
+
+
 def enriched_to_scoring_spot(break_: dict) -> dict:
     """Convert one enriched break record to the scoring spot shape.
 
@@ -158,14 +167,16 @@ def enriched_to_scoring_spot(break_: dict) -> dict:
     swell = break_.get("idealSwell", {}) or {}
     size = swell.get("sizeRangeFt", {}) or {}
     wind = break_.get("idealWind", {}) or {}
+    size_min = _safe_float(size.get("min", 0.0))
+    size_max = _safe_float(size.get("max", 0.0))
     return {
         "name": break_.get("name", ""),
         "region": break_.get("region", ""),
         "break_type": break_.get("breakType", ""),
         "ideal_swell": {
             "direction": _join_direction(swell.get("direction")),
-            "size_ft_min": float(size.get("min", 0.0)),
-            "size_ft_max": float(size.get("max", 0.0)),
+            "size_ft_min": size_min if size_min is not None else 0.0,
+            "size_ft_max": size_max if size_max is not None else 0.0,
         },
         "ideal_wind": {
             "direction": _join_direction(wind.get("direction")),
@@ -404,6 +415,10 @@ def _daylight_windows(daily: dict | None) -> dict[str, tuple[str, str]]:
             continue
         if not (isinstance(rise, str) and isinstance(set_, str)):
             continue
+        # ISO local "YYYY-MM-DDTHH:MM" — require full length, else skip
+        # (a truncated sun string must not nuke the whole date).
+        if len(rise) < 16 or len(set_) < 16:
+            continue
         # ISO local "YYYY-MM-DDTHH:MM" — compare the HH:MM slice.
         out[str(day)[:10]] = (rise[11:16], set_[11:16])
     return out
@@ -478,8 +493,9 @@ def _pick_height(row: dict) -> float | None:
     """Prefer the swell component; fall back to the generic aggregate."""
     for key in ("swell_wave_height", "wave_height"):
         v = row.get(key)
-        if v is not None:
-            return v
+        f = _safe_float(v) if v is not None else None
+        if f is not None:
+            return f
     return None
 
 
@@ -487,8 +503,9 @@ def _pick_direction(row: dict) -> float | None:
     """Prefer the swell direction; fall back to the generic aggregate."""
     for key in ("swell_wave_direction", "wave_direction"):
         v = row.get(key)
-        if v is not None:
-            return v
+        f = _safe_float(v) if v is not None else None
+        if f is not None:
+            return f
     return None
 
 
@@ -496,8 +513,9 @@ def _pick_period(row: dict) -> float | None:
     """Prefer the swell period; fall back to the generic aggregate."""
     for key in ("swell_wave_period", "wave_period"):
         v = row.get(key)
-        if v is not None:
-            return v
+        f = _safe_float(v) if v is not None else None
+        if f is not None:
+            return f
     return None
 
 
@@ -512,42 +530,47 @@ def score_week(
     hour. Each returned hour carries its ``"time"``. Hours missing any
     required field are skipped.
     """
-    rows = forecast.get("hourly", [])
+    rows = forecast.get("hourly", []) if isinstance(forecast, dict) else []
+    if not isinstance(rows, list):
+        return []
     windows = _daylight_windows(forecast.get("daily")) if daylight_only else {}
     results = []
 
     for row in rows:
-        if daylight_only and not is_daylight(str(row.get("time", "")), windows):
+        if not isinstance(row, dict):
+            continue
+        t = row.get("time")
+        if not isinstance(t, str) or not t:
+            continue
+        if daylight_only and not is_daylight(t, windows):
             continue
         wave_height = _pick_height(row)
         wave_period = _pick_period(row)
-        wind_speed = row.get("wind_speed_10m")
-        wind_dir = row.get("wind_direction_10m")
+        wind_speed = _safe_float(row.get("wind_speed_10m"))
+        wind_dir = _safe_float(row.get("wind_direction_10m"))
 
         if None in (wave_height, wave_period, wind_speed, wind_dir):
             continue
 
-        gust_raw = row.get("wind_gusts_10m")
-        try:
-            gust_kt = float(gust_raw) * 0.539957 if gust_raw is not None else None
-        except (TypeError, ValueError):
-            gust_kt = None
+        gust_kt = _safe_float(row.get("wind_gusts_10m"))
+        if gust_kt is not None:
+            gust_kt = gust_kt * 0.539957
 
-        scored = score_hour(
-            wave_height_m=float(wave_height),
-            wave_period_s=float(wave_period),
-            wind_speed_kt=float(wind_speed) * 0.539957,  # km/h to knots conversion
-            wind_direction_deg=float(wind_dir),
-            spot=spot,
-            wave_direction_deg=(
-                float(_pick_direction(row))
-                if _pick_direction(row) is not None
-                else None
-            ),
-            skill_level=skill_level,
-            gust_kt=gust_kt,
-        )
-        scored["time"] = row["time"]
+        try:
+            scored = score_hour(
+                wave_height_m=float(wave_height),
+                wave_period_s=float(wave_period),
+                wind_speed_kt=float(wind_speed) * 0.539957,  # km/h to knots conversion
+                wind_direction_deg=float(wind_dir),
+                spot=spot,
+                wave_direction_deg=_pick_direction(row),
+                skill_level=skill_level,
+                gust_kt=gust_kt,
+            )
+        except (ValueError, TypeError, KeyError):
+            # One bad spot field or hour must not abort the whole week.
+            continue
+        scored["time"] = t
         results.append(scored)
 
     return results
@@ -575,12 +598,16 @@ def daily_summary(scored_hours: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     by_date: dict[str, list[float]] = {}
     for h in scored_hours:
+        if not isinstance(h, dict):
+            continue
         t = h.get("time")
         if not isinstance(t, str):
             continue
         try:
             score = float(h["score"])
         except (KeyError, TypeError, ValueError):
+            continue
+        if not math.isfinite(score):
             continue
         by_date.setdefault(t[:10], []).append(score)
 

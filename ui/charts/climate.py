@@ -53,12 +53,22 @@ def build_rose_fig(profile: dict | None, name: str = ""):
 
 
 def format_findings(findings: list[dict] | None) -> str:
-    """Format audit findings as lo-fi chips (one line each, emoji severity)."""
+    """Format audit findings as lo-fi chips (HTML pills + emoji severity)."""
     if not findings:
         return "_No climate audit yet — pick a break._"
     icon = {"ok": "✅", "info": "ℹ️", "warn": "⚠️", "error": "❌"}
-    lines = []
-    for f in findings:
-        level = str((f or {}).get("level", "info")).lower()
-        lines.append(f"{icon.get(level, 'ℹ️')} {(f or {}).get('message', '')}")
-    return "\n\n".join(lines)
+    chips = []
+    for f in findings or []:
+        if not isinstance(f, dict):
+            continue
+        level = str(f.get("level", "info")).lower()
+        if level not in ("ok", "info", "warn", "error"):
+            level = "info"
+        msg = str(f.get("message", "")).replace("<", "&lt;").replace(">", "&gt;")
+        chips.append(
+            f"<span class=\"audit-chip audit-{level}\">"
+            f"{icon.get(level, 'ℹ️')} {msg}</span>"
+        )
+    if not chips:
+        return "_No climate audit yet — pick a break._"
+    return "<div class=\"audit-chips\">" + " ".join(chips) + "</div>"

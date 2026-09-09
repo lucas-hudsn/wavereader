@@ -222,7 +222,7 @@ def get_forecast(lat: float, lon: float, days: int = 7) -> dict:
 
     try:
         merged = _fetch_open_meteo(rlat, rlon, days)
-    except (httpx.HTTPError, KeyError, ValueError):
+    except (httpx.HTTPError, KeyError, ValueError, TypeError, AttributeError):
         if cached is not None:
             return cached[0]
         raise

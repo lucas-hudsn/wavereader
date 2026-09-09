@@ -23,6 +23,8 @@ def build() -> gr.Blocks:
         gr.Markdown("# wave~reader", elem_classes=["hero-title"])
         gr.Markdown("a guide to australian surf breaks — browse, score the week, or ask the agent.",
                     elem_classes=["hero-sub"])
+        gr.Markdown("_MCP ready — `/gradio_api/mcp/schema` · `score_week` / `rank_region_week` / `explain_score`_",
+                    elem_classes=["hero-sub"])
 
         selected = gr.State(None)
         scored = gr.State(None)
@@ -41,20 +43,22 @@ def build() -> gr.Blocks:
                          a["status_box"], a["agent_score"], a["agent_swell"],
                          a["agent_wind"], a["spot_dd"], a["rank_df"], agent_store]
 
-        # -- book: one-way filters --
+        # -- book: one-way filters (also reset details on empty result) --
+        _filter_outputs = [b["map_plot"], b["break_radio"], b["details_df"],
+                           b["rose_plot"], b["audit_md"], b["pick_header"]]
         b["state_dd"].change(
             b["state_regions"], inputs=b["state_dd"], outputs=b["region_dd"],
         ).then(
             b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
-            outputs=[b["map_plot"], b["break_radio"]],
+            outputs=_filter_outputs,
         )
         b["region_dd"].change(
             b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
-            outputs=[b["map_plot"], b["break_radio"]],
+            outputs=_filter_outputs,
         )
         b["skill_dd"].change(
             b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
-            outputs=[b["map_plot"], b["break_radio"]],
+            outputs=_filter_outputs,
         )
         # -- book pick → details + climate + shared pick → swell fetch --
         b["break_radio"].change(
@@ -63,20 +67,25 @@ def build() -> gr.Blocks:
                      b["pick_header"], selected],
         ).then(
             s["fetch_forecast"], inputs=[selected, s["skill_dd"]], outputs=swell_outputs,
+            show_progress="full",
         )
         # -- swell: skill change refetches; narrate streams markdown --
         s["skill_dd"].change(
             s["fetch_forecast"], inputs=[selected, s["skill_dd"]], outputs=swell_outputs,
+            show_progress="full",
         )
-        s["narrate_btn"].click(s["narrate"], inputs=scored, outputs=s["report_md"])
+        s["narrate_btn"].click(s["narrate"], inputs=scored, outputs=s["report_md"],
+                               show_progress="minimal")
         # -- agent: chat streams tool cards + meter + charts --
         a["send_btn"].click(
             a["chat"], inputs=[a["msg"], a["chatbot"], a["skill_dd"], a["token_box"],
                                selected, agent_store], outputs=agent_outputs,
+            show_progress="minimal",
         )
         a["msg"].submit(
             a["chat"], inputs=[a["msg"], a["chatbot"], a["skill_dd"], a["token_box"],
                                selected, agent_store], outputs=agent_outputs,
+            show_progress="minimal",
         )
         a["spot_dd"].change(
             a["show_spot"], inputs=[a["spot_dd"], agent_store],

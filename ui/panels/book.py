@@ -73,7 +73,12 @@ def build_book(records: list[dict], vocab: dict, selected) -> dict:
         fnames = [r.get("name", "?") for r in filtered]
         picker = gr.update(choices=fnames, value=None,
                            label=f"Breaks (pick one for details) — {len(fnames)} spot(s)")
-        return fig, picker
+        if not fnames:
+            # Empty result: reset stale details panel (pick_changed can't fire).
+            return (fig, picker, _EMPTY_DETAILS, climate_chart.build_rose_fig(None),
+                    "_No spots match these filters — loosen a filter._",
+                    "### no break selected")
+        return (fig, picker, gr.skip(), gr.skip(), gr.skip(), gr.skip())
 
     def pick_changed(label: str | None):
         """Details + climate rose + audit chips for the picked break."""

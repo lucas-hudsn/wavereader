@@ -55,6 +55,19 @@ button.primary:hover, button.lg.primary:hover {
     color: #ffffff !important;
 }
 .break-list { max-height: 210px; overflow-y: auto; border: 1px solid #0b2c5c; border-radius: 8px; padding: 4px; background: #eef6fd !important; }
+/* climate audit chips: lo-fi pills per severity */
+.audit-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.audit-chip { display: inline-block; border: 2px solid #0b2c5c; border-radius: 999px; padding: 3px 10px; font-size: 0.8em; background: #ffffff; color: #0b2c5c; }
+.audit-ok { background: #e6f4ea !important; }
+.audit-info { background: #eef6fd !important; }
+.audit-warn { background: #fef7e0 !important; }
+.audit-error { background: #fce8e6 !important; }
+/* mobile: stack columns, shrink map */
+@media (max-width: 700px) {
+  .gradio-container .gr-row { flex-wrap: wrap !important; }
+  .gradio-container .gr-column { min-width: 100% !important; }
+  .hero-title { font-size: 1.6em !important; }
+}
 /* selected break dot -> dark blue (radio circle fill + border) */
 .break-list input[type="radio"]:checked,
 .break-list input[type="checkbox"]:checked {

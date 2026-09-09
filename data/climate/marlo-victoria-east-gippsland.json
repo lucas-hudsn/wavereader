@@ -1,0 +1,110 @@
+{
+ "slug": "marlo-victoria-east-gippsland",
+ "break_id": "Marlo | Victoria | East Gippsland",
+ "name": "Marlo",
+ "latitude": -37.8,
+ "longitude": 148.65,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.0,
+  "ENE": 0.0,
+  "E": 0.06,
+  "ESE": 5.09,
+  "SE": 14.11,
+  "SSE": 38.08,
+  "S": 11.98,
+  "SSW": 17.91,
+  "SW": 12.76,
+  "WSW": 0.0,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 0.96,
+   "median_swell_period_s": 7.375,
+   "days_in_ideal_window": 107,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 0.98,
+   "median_swell_period_s": 8.05,
+   "days_in_ideal_window": 99,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 1.01,
+   "median_swell_period_s": 8.7,
+   "days_in_ideal_window": 100,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 1.12,
+   "median_swell_period_s": 9.05,
+   "days_in_ideal_window": 99,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 1.0,
+   "median_swell_period_s": 8.725,
+   "days_in_ideal_window": 96,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 1.19,
+   "median_swell_period_s": 8.3,
+   "days_in_ideal_window": 89,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 1.15,
+   "median_swell_period_s": 8.775,
+   "days_in_ideal_window": 103,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 0.94,
+   "median_swell_period_s": 8.375,
+   "days_in_ideal_window": 97,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 1.06,
+   "median_swell_period_s": 8.4,
+   "days_in_ideal_window": 109,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 1.18,
+   "median_swell_period_s": 8.45,
+   "days_in_ideal_window": 146,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 1.05,
+   "median_swell_period_s": 8.15,
+   "days_in_ideal_window": 133,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 1.16,
+   "median_swell_period_s": 7.9,
+   "days_in_ideal_window": 128,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 8.0
+ }
+}

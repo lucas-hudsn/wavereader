@@ -1,0 +1,110 @@
+{
+ "slug": "peregian-beach-queensland-sunshine-coast",
+ "break_id": "Peregian Beach | Queensland | Sunshine Coast",
+ "name": "Peregian Beach",
+ "latitude": -26.48,
+ "longitude": 153.23,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 1.48,
+  "NE": 3.67,
+  "ENE": 10.31,
+  "E": 39.56,
+  "ESE": 27.84,
+  "SE": 16.43,
+  "SSE": 0.71,
+  "S": 0.0,
+  "SSW": 0.0,
+  "SW": 0.0,
+  "WSW": 0.0,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.11,
+   "median_swell_period_s": 7.3,
+   "days_in_ideal_window": 118,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 1.42,
+   "median_swell_period_s": 7.25,
+   "days_in_ideal_window": 113,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 1.24,
+   "median_swell_period_s": 7.324999999999999,
+   "days_in_ideal_window": 111,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 1.23,
+   "median_swell_period_s": 7.975,
+   "days_in_ideal_window": 113,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 1.27,
+   "median_swell_period_s": 8.05,
+   "days_in_ideal_window": 114,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 0.74,
+   "median_swell_period_s": 8.425,
+   "days_in_ideal_window": 87,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 0.98,
+   "median_swell_period_s": 8.05,
+   "days_in_ideal_window": 92,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 0.95,
+   "median_swell_period_s": 7.8,
+   "days_in_ideal_window": 107,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 0.88,
+   "median_swell_period_s": 7.45,
+   "days_in_ideal_window": 95,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 0.88,
+   "median_swell_period_s": 7.525,
+   "days_in_ideal_window": 131,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 0.84,
+   "median_swell_period_s": 6.975,
+   "days_in_ideal_window": 125,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 0.92,
+   "median_swell_period_s": 7.1,
+   "days_in_ideal_window": 132,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 8.0
+ }
+}

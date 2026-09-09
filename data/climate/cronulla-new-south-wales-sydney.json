@@ -1,0 +1,110 @@
+{
+ "slug": "cronulla-new-south-wales-sydney",
+ "break_id": "Cronulla | New South Wales | Sydney",
+ "name": "Cronulla",
+ "latitude": -34.06,
+ "longitude": 151.29,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.13,
+  "ENE": 5.73,
+  "E": 12.82,
+  "ESE": 9.86,
+  "SE": 14.88,
+  "SSE": 41.95,
+  "S": 14.63,
+  "SSW": 0.0,
+  "SW": 0.0,
+  "WSW": 0.0,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.27,
+   "median_swell_period_s": 8.075,
+   "days_in_ideal_window": 123,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 1.38,
+   "median_swell_period_s": 8.4,
+   "days_in_ideal_window": 103,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 1.38,
+   "median_swell_period_s": 9.325,
+   "days_in_ideal_window": 106,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 1.58,
+   "median_swell_period_s": 9.3,
+   "days_in_ideal_window": 103,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 1.59,
+   "median_swell_period_s": 9.175,
+   "days_in_ideal_window": 103,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 1.59,
+   "median_swell_period_s": 9.175,
+   "days_in_ideal_window": 94,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 1.6,
+   "median_swell_period_s": 9.225000000000001,
+   "days_in_ideal_window": 101,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 1.34,
+   "median_swell_period_s": 9.175,
+   "days_in_ideal_window": 111,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 1.36,
+   "median_swell_period_s": 9.2,
+   "days_in_ideal_window": 113,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 1.52,
+   "median_swell_period_s": 8.95,
+   "days_in_ideal_window": 143,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 1.3,
+   "median_swell_period_s": 8.35,
+   "days_in_ideal_window": 143,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 1.3,
+   "median_swell_period_s": 8.25,
+   "days_in_ideal_window": 140,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 8.0
+ }
+}

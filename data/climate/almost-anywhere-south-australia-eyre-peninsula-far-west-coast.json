@@ -1,0 +1,110 @@
+{
+ "slug": "almost-anywhere-south-australia-eyre-peninsula-far-west-coast",
+ "break_id": "Almost Anywhere | South Australia | Eyre Peninsula / Far West Coast",
+ "name": "Almost Anywhere",
+ "latitude": -33.23,
+ "longitude": 134.5,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.0,
+  "ENE": 0.0,
+  "E": 0.0,
+  "ESE": 0.0,
+  "SE": 0.0,
+  "SSE": 0.0,
+  "S": 0.9,
+  "SSW": 22.04,
+  "SW": 70.3,
+  "WSW": 6.77,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.63,
+   "median_swell_period_s": 10.75,
+   "days_in_ideal_window": 111,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 1.88,
+   "median_swell_period_s": 10.9,
+   "days_in_ideal_window": 97,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 2.02,
+   "median_swell_period_s": 11.275,
+   "days_in_ideal_window": 115,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 2.1500000000000004,
+   "median_swell_period_s": 11.175,
+   "days_in_ideal_window": 102,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 2.34,
+   "median_swell_period_s": 11.275,
+   "days_in_ideal_window": 85,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 2.58,
+   "median_swell_period_s": 11.524999999999999,
+   "days_in_ideal_window": 81,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 2.68,
+   "median_swell_period_s": 11.8,
+   "days_in_ideal_window": 84,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 2.62,
+   "median_swell_period_s": 11.5,
+   "days_in_ideal_window": 82,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 2.67,
+   "median_swell_period_s": 11.399999999999999,
+   "days_in_ideal_window": 78,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 2.14,
+   "median_swell_period_s": 11.125,
+   "days_in_ideal_window": 130,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 1.98,
+   "median_swell_period_s": 10.85,
+   "days_in_ideal_window": 132,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 1.84,
+   "median_swell_period_s": 10.9,
+   "days_in_ideal_window": 143,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 3.0,
+  "max": 10.0
+ }
+}

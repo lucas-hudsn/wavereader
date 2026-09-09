@@ -1,0 +1,110 @@
+{
+ "slug": "urquharts-bluff-victoria-surf-coast",
+ "break_id": "Urquharts Bluff | Victoria | Surf Coast",
+ "name": "Urquharts Bluff",
+ "latitude": -38.51,
+ "longitude": 144.19,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.0,
+  "ENE": 0.0,
+  "E": 0.0,
+  "ESE": 0.45,
+  "SE": 2.32,
+  "SSE": 1.03,
+  "S": 1.22,
+  "SSW": 11.66,
+  "SW": 82.99,
+  "WSW": 0.32,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.38,
+   "median_swell_period_s": 9.8,
+   "days_in_ideal_window": 115,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 1.64,
+   "median_swell_period_s": 10.15,
+   "days_in_ideal_window": 100,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 1.76,
+   "median_swell_period_s": 10.65,
+   "days_in_ideal_window": 112,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 1.7,
+   "median_swell_period_s": 10.7,
+   "days_in_ideal_window": 111,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 1.84,
+   "median_swell_period_s": 10.65,
+   "days_in_ideal_window": 103,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 1.5,
+   "median_swell_period_s": 10.8,
+   "days_in_ideal_window": 103,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 1.71,
+   "median_swell_period_s": 11.025,
+   "days_in_ideal_window": 109,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 1.66,
+   "median_swell_period_s": 10.925,
+   "days_in_ideal_window": 107,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 1.94,
+   "median_swell_period_s": 10.7,
+   "days_in_ideal_window": 88,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 1.7,
+   "median_swell_period_s": 10.325,
+   "days_in_ideal_window": 138,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 1.69,
+   "median_swell_period_s": 10.15,
+   "days_in_ideal_window": 125,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 1.52,
+   "median_swell_period_s": 10.0,
+   "days_in_ideal_window": 140,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 8.0
+ }
+}

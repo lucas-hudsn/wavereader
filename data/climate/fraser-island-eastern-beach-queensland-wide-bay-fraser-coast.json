@@ -1,0 +1,110 @@
+{
+ "slug": "fraser-island-eastern-beach-queensland-wide-bay-fraser-coast",
+ "break_id": "Fraser Island Eastern Beach | Queensland | Wide Bay / Fraser Coast",
+ "name": "Fraser Island Eastern Beach",
+ "latitude": -25.0,
+ "longitude": 153.43,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.58,
+  "NNE": 0.9,
+  "NE": 1.16,
+  "ENE": 4.19,
+  "E": 26.16,
+  "ESE": 27.71,
+  "SE": 23.39,
+  "SSE": 15.91,
+  "S": 0.0,
+  "SSW": 0.0,
+  "SW": 0.0,
+  "WSW": 0.0,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.61,
+   "median_swell_period_s": 7.5,
+   "days_in_ideal_window": 115,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 2.02,
+   "median_swell_period_s": 7.45,
+   "days_in_ideal_window": 94,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 1.66,
+   "median_swell_period_s": 7.6,
+   "days_in_ideal_window": 105,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 1.71,
+   "median_swell_period_s": 8.35,
+   "days_in_ideal_window": 96,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 1.8599999999999999,
+   "median_swell_period_s": 8.175,
+   "days_in_ideal_window": 107,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 1.24,
+   "median_swell_period_s": 8.425,
+   "days_in_ideal_window": 113,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 1.48,
+   "median_swell_period_s": 8.5,
+   "days_in_ideal_window": 116,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 1.41,
+   "median_swell_period_s": 7.9,
+   "days_in_ideal_window": 109,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 1.31,
+   "median_swell_period_s": 8.1,
+   "days_in_ideal_window": 108,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 1.24,
+   "median_swell_period_s": 8.075,
+   "days_in_ideal_window": 144,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 1.18,
+   "median_swell_period_s": 7.25,
+   "days_in_ideal_window": 141,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 1.3,
+   "median_swell_period_s": 7.45,
+   "days_in_ideal_window": 140,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 8.0
+ }
+}

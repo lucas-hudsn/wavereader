@@ -1,0 +1,110 @@
+{
+ "slug": "cremorne-tasmania-south-coast-hobart-region",
+ "break_id": "Cremorne | Tasmania | South Coast (Hobart region)",
+ "name": "Cremorne",
+ "latitude": -43.09,
+ "longitude": 147.45,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.0,
+  "ENE": 0.0,
+  "E": 1.42,
+  "ESE": 7.35,
+  "SE": 8.05,
+  "SSE": 15.98,
+  "S": 34.02,
+  "SSW": 31.06,
+  "SW": 2.06,
+  "WSW": 0.0,
+  "W": 0.06,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 0.52,
+   "median_swell_period_s": 8.975,
+   "days_in_ideal_window": 40,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 0.6,
+   "median_swell_period_s": 9.3,
+   "days_in_ideal_window": 55,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 0.72,
+   "median_swell_period_s": 9.8,
+   "days_in_ideal_window": 79,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 0.73,
+   "median_swell_period_s": 10.075,
+   "days_in_ideal_window": 88,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 0.74,
+   "median_swell_period_s": 10.425,
+   "days_in_ideal_window": 81,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 0.73,
+   "median_swell_period_s": 9.8,
+   "days_in_ideal_window": 65,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 0.63,
+   "median_swell_period_s": 9.725000000000001,
+   "days_in_ideal_window": 65,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 0.62,
+   "median_swell_period_s": 10.025,
+   "days_in_ideal_window": 63,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 0.72,
+   "median_swell_period_s": 9.95,
+   "days_in_ideal_window": 73,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 0.78,
+   "median_swell_period_s": 9.35,
+   "days_in_ideal_window": 103,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 0.66,
+   "median_swell_period_s": 9.2,
+   "days_in_ideal_window": 86,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 0.58,
+   "median_swell_period_s": 8.75,
+   "days_in_ideal_window": 71,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 6.0
+ }
+}

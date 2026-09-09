@@ -1,0 +1,110 @@
+{
+ "slug": "the-entrance-new-south-wales-central-coast",
+ "break_id": "The Entrance | New South Wales | Central Coast",
+ "name": "The Entrance",
+ "latitude": -33.35,
+ "longitude": 151.63,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.13,
+  "ENE": 8.89,
+  "E": 15.34,
+  "ESE": 11.34,
+  "SE": 13.4,
+  "SSE": 35.37,
+  "S": 15.53,
+  "SSW": 0.0,
+  "SW": 0.0,
+  "WSW": 0.0,
+  "W": 0.0,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.31,
+   "median_swell_period_s": 8.075,
+   "days_in_ideal_window": 121,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 1.34,
+   "median_swell_period_s": 8.3,
+   "days_in_ideal_window": 103,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 1.48,
+   "median_swell_period_s": 9.05,
+   "days_in_ideal_window": 107,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 1.64,
+   "median_swell_period_s": 9.375,
+   "days_in_ideal_window": 101,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 1.59,
+   "median_swell_period_s": 8.975,
+   "days_in_ideal_window": 104,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 1.64,
+   "median_swell_period_s": 9.225,
+   "days_in_ideal_window": 94,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 1.71,
+   "median_swell_period_s": 9.475,
+   "days_in_ideal_window": 99,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 1.33,
+   "median_swell_period_s": 9.125,
+   "days_in_ideal_window": 108,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 1.31,
+   "median_swell_period_s": 9.375,
+   "days_in_ideal_window": 110,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 1.54,
+   "median_swell_period_s": 9.025,
+   "days_in_ideal_window": 144,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 1.36,
+   "median_swell_period_s": 8.2,
+   "days_in_ideal_window": 144,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 1.28,
+   "median_swell_period_s": 8.15,
+   "days_in_ideal_window": 144,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 2.0,
+  "max": 8.0
+ }
+}

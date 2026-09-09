@@ -1,0 +1,1271 @@
+{
+ "generated_at": "2026-09-09T12:44:16.748501+00:00",
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "count": 126,
+ "breaks": [
+  {
+   "slug": "alexandra-headland-queensland-sunshine-coast",
+   "id": "Alexandra Headland | Queensland | Sunshine Coast",
+   "name": "Alexandra Headland",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "almost-anywhere-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Almost Anywhere | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Almost Anywhere",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "angourie-new-south-wales-north-coast",
+   "id": "Angourie | New South Wales | North Coast",
+   "name": "Angourie",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "aslings-beach-new-south-wales-far-south-coast",
+   "id": "Aslings Beach | New South Wales | Far South Coast",
+   "name": "Aslings Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "austinmer-new-south-wales-illawarra-south-coast",
+   "id": "Austinmer | New South Wales | Illawarra / South Coast",
+   "name": "Austinmer",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "avoca-beach-new-south-wales-central-coast",
+   "id": "Avoca Beach | New South Wales | Central Coast",
+   "name": "Avoca Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "baird-bay-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Baird Bay | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Baird Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "ballina-lighthouse-beach-new-south-wales-north-coast",
+   "id": "Ballina (Lighthouse Beach) | New South Wales | North Coast",
+   "name": "Ballina (Lighthouse Beach)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "bastion-point-mallacoota-victoria-east-gippsland",
+   "id": "Bastion Point (Mallacoota) | Victoria | East Gippsland",
+   "name": "Bastion Point (Mallacoota)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "bemm-river-victoria-east-gippsland",
+   "id": "Bemm River | Victoria | East Gippsland",
+   "name": "Bemm River",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "bermagui-new-south-wales-far-south-coast",
+   "id": "Bermagui | New South Wales | Far South Coast",
+   "name": "Bermagui",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "blacks-beach-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Blacks Beach | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Blacks Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "bondi-beach-new-south-wales-sydney",
+   "id": "Bondi Beach | New South Wales | Sydney",
+   "name": "Bondi Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "broken-head-new-south-wales-north-coast",
+   "id": "Broken Head | New South Wales | North Coast",
+   "name": "Broken Head",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "bronte-beach-new-south-wales-sydney",
+   "id": "Bronte Beach | New South Wales | Sydney",
+   "name": "Bronte Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "broulee-new-south-wales-far-south-coast",
+   "id": "Broulee | New South Wales | Far South Coast",
+   "name": "Broulee",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "burleigh-heads-queensland-gold-coast",
+   "id": "Burleigh Heads | Queensland | Gold Coast",
+   "name": "Burleigh Heads",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "byron-bay-the-pass-new-south-wales-north-coast",
+   "id": "Byron Bay (The Pass) | New South Wales | North Coast",
+   "name": "Byron Bay (The Pass)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cabarita-beach-new-south-wales-north-coast",
+   "id": "Cabarita Beach | New South Wales | North Coast",
+   "name": "Cabarita Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cable-beach-broome-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Cable Beach (Broome) | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Cable Beach (Broome)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cactus-beach-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Cactus Beach | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Cactus Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cape-conran-victoria-east-gippsland",
+   "id": "Cape Conran | Victoria | East Gippsland",
+   "name": "Cape Conran",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "carnarvon-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Carnarvon | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Gnaraloo",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cave-beach-jervis-bay-new-south-wales-illawarra-south-coast",
+   "id": "Cave Beach (Jervis Bay) | New South Wales | Illawarra / South Coast",
+   "name": "Cave Beach (Jervis Bay)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "city-beach-western-australia-perth-metro",
+   "id": "City Beach | Western Australia | Perth Metro",
+   "name": "City Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "clifton-beach-tasmania-south-coast-hobart-region",
+   "id": "Clifton Beach | Tasmania | South Coast (Hobart region)",
+   "name": "Clifton Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cloudy-bay-bruny-island-tasmania-south-coast-hobart-region",
+   "id": "Cloudy Bay (Bruny Island) | Tasmania | South Coast (Hobart region)",
+   "name": "Cloudy Bay (Bruny Island)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "coolum-beach-queensland-sunshine-coast",
+   "id": "Coolum Beach | Queensland | Sunshine Coast",
+   "name": "Coolum Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "copacabana-new-south-wales-central-coast",
+   "id": "Copacabana | New South Wales | Central Coast",
+   "name": "Copacabana",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "coral-bay-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Coral Bay | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Coral Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cottesloe-beach-western-australia-perth-metro",
+   "id": "Cottesloe Beach | Western Australia | Perth Metro",
+   "name": "Cottesloe Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cremorne-tasmania-south-coast-hobart-region",
+   "id": "Cremorne | Tasmania | South Coast (Hobart region)",
+   "name": "Cremorne",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "crescent-head-new-south-wales-mid-north-coast",
+   "id": "Crescent Head | New South Wales | Mid North Coast",
+   "name": "Crescent Head",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "cronulla-new-south-wales-sydney",
+   "id": "Cronulla | New South Wales | Sydney",
+   "name": "Cronulla",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "curl-curl-new-south-wales-sydney",
+   "id": "Curl Curl | New South Wales | Sydney",
+   "name": "Curl Curl",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "currumbin-alley-queensland-gold-coast",
+   "id": "Currumbin Alley | Queensland | Gold Coast",
+   "name": "Currumbin Alley",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "diggers-beach-coffs-harbour-new-south-wales-mid-north-coast",
+   "id": "Diggers Beach (Coffs Harbour) | New South Wales | Mid North Coast",
+   "name": "Diggers Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "duranbah-queensland-gold-coast",
+   "id": "Duranbah | Queensland | Gold Coast",
+   "name": "Duranbah",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "elliston-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Elliston | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Elliston",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "emerald-beach-new-south-wales-mid-north-coast",
+   "id": "Emerald Beach | New South Wales | Mid North Coast",
+   "name": "Emerald Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "exmouth-gulf-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Exmouth Gulf | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Gnaraloo",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "first-point-noosa-queensland-sunshine-coast",
+   "id": "First Point (Noosa) | Queensland | Sunshine Coast",
+   "name": "First Point (Noosa)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "fishery-bay-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Fishery Bay | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Fishery Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "fraser-island-eastern-beach-queensland-wide-bay-fraser-coast",
+   "id": "Fraser Island Eastern Beach | Queensland | Wide Bay / Fraser Coast",
+   "name": "Fraser Island Eastern Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "freshwater-new-south-wales-sydney",
+   "id": "Freshwater | New South Wales | Sydney",
+   "name": "Freshwater",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "gerroa-new-south-wales-illawarra-south-coast",
+   "id": "Gerroa | New South Wales | Illawarra / South Coast",
+   "name": "Gerroa",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "gnaraloo-bay-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Gnaraloo Bay | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Gnaraloo Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "goats-beach-tasmania-south-coast-hobart-region",
+   "id": "Goats Beach | Tasmania | South Coast (Hobart region)",
+   "name": "Goats Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "golden-beach-victoria-east-gippsland",
+   "id": "Golden Beach | Victoria | East Gippsland",
+   "name": "Golden Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "greenly-beach-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Greenly Beach | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Greenly Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "greenmount-queensland-gold-coast",
+   "id": "Greenmount | Queensland | Gold Coast",
+   "name": "Greenmount",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "hat-head-new-south-wales-mid-north-coast",
+   "id": "Hat Head | New South Wales | Mid North Coast",
+   "name": "Hat Head",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "inskip-point-queensland-wide-bay-fraser-coast",
+   "id": "Inskip Point | Queensland | Wide Bay / Fraser Coast",
+   "name": "Inskip Point",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "kings-beach-caloundra-queensland-sunshine-coast",
+   "id": "Kings Beach (Caloundra) | Queensland | Sunshine Coast",
+   "name": "Kings Beach (Caloundra)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "kingscliff-new-south-wales-north-coast",
+   "id": "Kingscliff | New South Wales | North Coast",
+   "name": "Kingscliff",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "kirra-queensland-gold-coast",
+   "id": "Kirra | Queensland | Gold Coast",
+   "name": "Kirra",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "lakes-entrance-victoria-east-gippsland",
+   "id": "Lakes Entrance | Victoria | East Gippsland",
+   "name": "Lakes Entrance",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "leighton-beach-western-australia-perth-metro",
+   "id": "Leighton Beach | Western Australia | Perth Metro",
+   "name": "Leighton Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "lennox-head-new-south-wales-north-coast",
+   "id": "Lennox Head | New South Wales | North Coast",
+   "name": "Lennox Head",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "loch-sport-victoria-east-gippsland",
+   "id": "Loch Sport | Victoria | East Gippsland",
+   "name": "Loch Sport",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "macmasters-beach-new-south-wales-central-coast",
+   "id": "MacMasters Beach | New South Wales | Central Coast",
+   "name": "MacMasters Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "malua-bay-new-south-wales-far-south-coast",
+   "id": "Malua Bay | New South Wales | Far South Coast",
+   "name": "Malua Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "manly-beach-new-south-wales-sydney",
+   "id": "Manly Beach | New South Wales | Sydney",
+   "name": "Manly Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "marcus-beach-queensland-sunshine-coast",
+   "id": "Marcus Beach | Queensland | Sunshine Coast",
+   "name": "Marcus Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "marion-bay-tasmania-south-coast-hobart-region",
+   "id": "Marion Bay | Tasmania | South Coast (Hobart region)",
+   "name": "Marion Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "marlo-victoria-east-gippsland",
+   "id": "Marlo | Victoria | East Gippsland",
+   "name": "Marlo",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "maroubra-beach-new-south-wales-sydney",
+   "id": "Maroubra Beach | New South Wales | Sydney",
+   "name": "Maroubra Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "merimbula-new-south-wales-far-south-coast",
+   "id": "Merimbula | New South Wales | Far South Coast",
+   "name": "Merimbula",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "mollymook-new-south-wales-illawarra-south-coast",
+   "id": "Mollymook | New South Wales | Illawarra / South Coast",
+   "name": "Mollymook",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "mooloolaba-queensland-sunshine-coast",
+   "id": "Mooloolaba | Queensland | Sunshine Coast",
+   "name": "Mooloolaba",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "moore-park-beach-queensland-wide-bay-fraser-coast",
+   "id": "Moore Park Beach | Queensland | Wide Bay / Fraser Coast",
+   "name": "Moore Park Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "moruya-new-south-wales-far-south-coast",
+   "id": "Moruya | New South Wales | Far South Coast",
+   "name": "Moruya Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "nambucca-heads-new-south-wales-mid-north-coast",
+   "id": "Nambucca Heads | New South Wales | Mid North Coast",
+   "name": "Nambucca Heads",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "narooma-new-south-wales-far-south-coast",
+   "id": "Narooma | New South Wales | Far South Coast",
+   "name": "Narooma",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "narrabeen-new-south-wales-sydney",
+   "id": "Narrabeen | New South Wales | Sydney",
+   "name": "Narrabeen",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "norah-head-new-south-wales-central-coast",
+   "id": "Norah Head | New South Wales | Central Coast",
+   "name": "Norah Head",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "north-avalon-new-south-wales-sydney",
+   "id": "North Avalon | New South Wales | Sydney",
+   "name": "North Avalon",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "norwest-reef-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Norwest Reef | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Norwest Reef",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "palm-beach-new-south-wales-sydney",
+   "id": "Palm Beach | New South Wales | Sydney",
+   "name": "Palm Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "pambula-new-south-wales-far-south-coast",
+   "id": "Pambula | New South Wales | Far South Coast",
+   "name": "Pambula Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "park-beach-tasmania-south-coast-hobart-region",
+   "id": "Park Beach | Tasmania | South Coast (Hobart region)",
+   "name": "Park Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "pedro-point-new-south-wales-far-south-coast",
+   "id": "Pedro Point | New South Wales | Far South Coast",
+   "name": "Pedro Point",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "peregian-beach-queensland-sunshine-coast",
+   "id": "Peregian Beach | Queensland | Sunshine Coast",
+   "name": "Peregian Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "point-lookout-north-stradbroke-island-queensland-gold-coast",
+   "id": "Point Lookout (North Stradbroke Island) | Queensland | Gold Coast",
+   "name": "Point Lookout",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "point-quobba-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Point Quobba | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Point Quobba",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "port-kenny-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Port Kenny | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Port Kenny",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "quobba-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Quobba | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Quobba",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "rainbow-bay-queensland-gold-coast",
+   "id": "Rainbow Bay | Queensland | Gold Coast",
+   "name": "Rainbow Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "rainbow-beach-queensland-wide-bay-fraser-coast",
+   "id": "Rainbow Beach | Queensland | Wide Bay / Fraser Coast",
+   "name": "Rainbow Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "red-bluff-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Red Bluff | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Red Bluff",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "roches-beach-tasmania-south-coast-hobart-region",
+   "id": "Roches Beach | Tasmania | South Coast (Hobart region)",
+   "name": "Roches Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "sandon-point-new-south-wales-illawarra-south-coast",
+   "id": "Sandon Point | New South Wales | Illawarra / South Coast",
+   "name": "Sandon Point",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "sawtell-new-south-wales-mid-north-coast",
+   "id": "Sawtell | New South Wales | Mid North Coast",
+   "name": "Sawtell",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "scotts-head-new-south-wales-mid-north-coast",
+   "id": "Scotts Head | New South Wales | Mid North Coast",
+   "name": "Scotts Head",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "seven-mile-beach-new-south-wales-illawarra-south-coast",
+   "id": "Seven Mile Beach | New South Wales | Illawarra / South Coast",
+   "name": "Seven Mile Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "sharpes-beach-new-south-wales-north-coast",
+   "id": "Sharpes Beach | New South Wales | North Coast",
+   "name": "Sharpes Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "shellharbour-new-south-wales-illawarra-south-coast",
+   "id": "Shellharbour | New South Wales | Illawarra / South Coast",
+   "name": "Shellharbour",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "shelly-beach-new-south-wales-central-coast",
+   "id": "Shelly Beach | New South Wales | Central Coast",
+   "name": "Shelly Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "sheringa-beach-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Sheringa Beach | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Sheringa Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "shipstern-bluff-tasmania-south-coast-hobart-region",
+   "id": "Shipstern Bluff | Tasmania | South Coast (Hobart region)",
+   "name": "Shipstern Bluff",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "snapper-rocks-queensland-gold-coast",
+   "id": "Snapper Rocks | Queensland | Gold Coast",
+   "name": "Snapper Rocks",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "soldiers-beach-new-south-wales-central-coast",
+   "id": "Soldiers Beach | New South Wales | Central Coast",
+   "name": "Soldiers Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "south-arm-tasmania-south-coast-hobart-region",
+   "id": "South Arm | Tasmania | South Coast (Hobart region)",
+   "name": "South Arm",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "south-stradbroke-island-queensland-gold-coast",
+   "id": "South Stradbroke Island | Queensland | Gold Coast",
+   "name": "South Stradbroke Island",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "south-west-rocks-new-south-wales-mid-north-coast",
+   "id": "South West Rocks | New South Wales | Mid North Coast",
+   "name": "South West Rocks",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "southside-victoria-surf-coast",
+   "id": "Southside | Victoria | Surf Coast",
+   "name": "Southside",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "streaky-bay-south-australia-eyre-peninsula-far-west-coast",
+   "id": "Streaky Bay | South Australia | Eyre Peninsula / Far West Coast",
+   "name": "Streaky Bay",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "sunshine-beach-queensland-sunshine-coast",
+   "id": "Sunshine Beach | Queensland | Sunshine Coast",
+   "name": "Sunshine Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "tallow-beach-new-south-wales-north-coast",
+   "id": "Tallow Beach | New South Wales | North Coast",
+   "name": "Tallow Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "tantabiddi-western-australia-north-west-gnaraloo-exmouth-broome",
+   "id": "Tantabiddi | Western Australia | North West (Gnaraloo - Exmouth - Broome)",
+   "name": "Tantabiddi",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "tathra-new-south-wales-far-south-coast",
+   "id": "Tathra | New South Wales | Far South Coast",
+   "name": "Tathra",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "teewah-beach-queensland-wide-bay-fraser-coast",
+   "id": "Teewah Beach | Queensland | Wide Bay / Fraser Coast",
+   "name": "Teewah Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "terrigal-new-south-wales-central-coast",
+   "id": "Terrigal | New South Wales | Central Coast",
+   "name": "Terrigal",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "the-entrance-new-south-wales-central-coast",
+   "id": "The Entrance | New South Wales | Central Coast",
+   "name": "The Entrance",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "thirroul-new-south-wales-illawarra-south-coast",
+   "id": "Thirroul | New South Wales | Illawarra / South Coast",
+   "name": "Thirroul",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "town-beach-port-macquarie-new-south-wales-mid-north-coast",
+   "id": "Town Beach (Port Macquarie) | New South Wales | Mid North Coast",
+   "name": "Town Beach (Port Macquarie)",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "tugun-queensland-gold-coast",
+   "id": "Tugun | Queensland | Gold Coast",
+   "name": "Tugun",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "ulladulla-new-south-wales-illawarra-south-coast",
+   "id": "Ulladulla | New South Wales | Illawarra / South Coast",
+   "name": "Ulladulla Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "urquharts-bluff-victoria-surf-coast",
+   "id": "Urquharts Bluff | Victoria | Surf Coast",
+   "name": "Urquharts Bluff",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "winkipop-victoria-surf-coast",
+   "id": "Winkipop | Victoria | Surf Coast",
+   "name": "Winkipop",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "wollongong-city-beach-new-south-wales-illawarra-south-coast",
+   "id": "Wollongong City Beach | New South Wales | Illawarra / South Coast",
+   "name": "Wollongong City Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "woodgate-beach-queensland-wide-bay-fraser-coast",
+   "id": "Woodgate Beach | Queensland | Wide Bay / Fraser Coast",
+   "name": "Woodgate Beach",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "woolgoolga-new-south-wales-mid-north-coast",
+   "id": "Woolgoolga | New South Wales | Mid North Coast",
+   "name": "Woolgoolga",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "wooli-new-south-wales-north-coast",
+   "id": "Wooli | New South Wales | North Coast",
+   "name": "Wooli",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "wurtulla-queensland-sunshine-coast",
+   "id": "Wurtulla | Queensland | Sunshine Coast",
+   "name": "Wurtulla",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  },
+  {
+   "slug": "yaroomba-queensland-sunshine-coast",
+   "id": "Yaroomba | Queensland | Sunshine Coast",
+   "name": "Yaroomba",
+   "n_days": 1826,
+   "period": {
+    "start": "2021-01-01",
+    "end": "2025-12-31"
+   }
+  }
+ ],
+ "errors": []
+}

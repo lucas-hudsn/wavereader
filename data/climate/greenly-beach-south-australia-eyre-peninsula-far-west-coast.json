@@ -1,0 +1,110 @@
+{
+ "slug": "greenly-beach-south-australia-eyre-peninsula-far-west-coast",
+ "break_id": "Greenly Beach | South Australia | Eyre Peninsula / Far West Coast",
+ "name": "Greenly Beach",
+ "latitude": -34.68,
+ "longitude": 135.3,
+ "period": {
+  "start": "2021-01-01",
+  "end": "2025-12-31"
+ },
+ "n_days": 1826,
+ "n_valid_direction": 1552,
+ "n_valid_height": 1553,
+ "direction_rose_pct": {
+  "N": 0.0,
+  "NNE": 0.0,
+  "NE": 0.0,
+  "ENE": 0.0,
+  "E": 0.0,
+  "ESE": 0.0,
+  "SE": 0.0,
+  "SSE": 1.35,
+  "S": 3.8,
+  "SSW": 27.58,
+  "SW": 58.7,
+  "WSW": 8.31,
+  "W": 0.26,
+  "WNW": 0.0,
+  "NW": 0.0,
+  "NNW": 0.0
+ },
+ "monthly": {
+  "1": {
+   "median_swell_height_m": 1.81,
+   "median_swell_period_s": 10.525,
+   "days_in_ideal_window": 100,
+   "n_days": 155
+  },
+  "2": {
+   "median_swell_height_m": 2.14,
+   "median_swell_period_s": 10.65,
+   "days_in_ideal_window": 73,
+   "n_days": 141
+  },
+  "3": {
+   "median_swell_height_m": 2.22,
+   "median_swell_period_s": 11.175,
+   "days_in_ideal_window": 81,
+   "n_days": 155
+  },
+  "4": {
+   "median_swell_height_m": 2.4,
+   "median_swell_period_s": 10.85,
+   "days_in_ideal_window": 62,
+   "n_days": 150
+  },
+  "5": {
+   "median_swell_height_m": 2.56,
+   "median_swell_period_s": 11.125,
+   "days_in_ideal_window": 59,
+   "n_days": 155
+  },
+  "6": {
+   "median_swell_height_m": 2.6100000000000003,
+   "median_swell_period_s": 11.05,
+   "days_in_ideal_window": 50,
+   "n_days": 150
+  },
+  "7": {
+   "median_swell_height_m": 2.7,
+   "median_swell_period_s": 11.6,
+   "days_in_ideal_window": 51,
+   "n_days": 155
+  },
+  "8": {
+   "median_swell_height_m": 2.71,
+   "median_swell_period_s": 11.25,
+   "days_in_ideal_window": 46,
+   "n_days": 155
+  },
+  "9": {
+   "median_swell_height_m": 2.79,
+   "median_swell_period_s": 11.125,
+   "days_in_ideal_window": 41,
+   "n_days": 150
+  },
+  "10": {
+   "median_swell_height_m": 2.3,
+   "median_swell_period_s": 10.925,
+   "days_in_ideal_window": 87,
+   "n_days": 155
+  },
+  "11": {
+   "median_swell_height_m": 2.1900000000000004,
+   "median_swell_period_s": 10.65,
+   "days_in_ideal_window": 98,
+   "n_days": 150
+  },
+  "12": {
+   "median_swell_height_m": 2.1,
+   "median_swell_period_s": 10.65,
+   "days_in_ideal_window": 104,
+   "n_days": 155
+  }
+ },
+ "ideal_window_ft": {
+  "min": 3.0,
+  "max": 8.0
+ }
+}

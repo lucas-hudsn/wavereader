@@ -1,12 +1,12 @@
 # Encyclopedia tab
 
-The `encyclopedia` tab in `main.py:build_demo()` is the break browser.
+The `encyclopedia` tab in `app/ui.py:build_demo()` is the break browser.
 It reads the generated knowledge base, filters it, plots it, and feeds
 the selected break to the `surf forecast` tab via shared `gr.State`.
 
 ## Data source
 
-- `data/australia-surf-breaks-enriched.json` → `load_breaks()` (`main.py`)
+- `data/australia-surf-breaks-enriched.json` → `load_breaks()` (`app/breaks_data.py`)
   into `DF`. Legacy `{"name | state | region": {...}}` dict format is
   accepted; rows with an `error` column are dropped.
 - Derived at import time: `STATES`, `REGIONS_BY_STATE`, `ALL_REGIONS`,
@@ -57,9 +57,9 @@ details)`. Unfiltered view frames the whole of Australia
 
 ## Session-only custom break
 
-- `generate_custom_break()` streams `(telemetry, details, map, dropdown,
-  state)` tuples via `yield`. Loads `app/generate_surf_break.py` with
-  `_load_generator()` (`importlib`, no package import).
+- `generate_custom_break()` (in `app/custom_break.py`) streams `(telemetry, details, map, dropdown,
+  state)` tuples via `yield`. Lazy `from app import generate_surf_break`
+  (direct package import, no `importlib` shims).
 - Empty custom state/region fields fall back to the main map filters;
   explicit values win. Exactly one custom break per session (`gr.State`,
   never written to disk); regeneration replaces it.

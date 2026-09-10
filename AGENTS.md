@@ -1,90 +1,74 @@
 # AGENTS.md
 
 Guidance for AI coding agents working in this repo. The active surface is
-`main.py` + `app/` + `data/`. `wavereader/` is legacy-kept, to reimplement.
+`app.py` + `ui/` + `wavereader/` + `data/` (the v2 rebuild). `legacy/`
+holds the frozen v1 front end (`main.py` + `app/`) — don't extend it; it
+survives only as the fallback layer in `ui/_compat.py`.
 
 ## What is live now
 
-- `main.py` — Gradio map front end. Run with `uv run python main.py`.
-- `app/generate_surf_break.py` — single-shot structured-JSON generator.
-- `app/generate_base_data.py` — batch/resumable enrichment runner.
-- `data/` — `australia-surf-breaks.json` (input list),
-  `australia-surf-breaks-enriched.json` (generated output),
-  `surf-break-schema.json` (conformance contract),
-  `surf-break-example-bells.json` (prompt worked example).
+- `app.py` — v2 entrypoint: `build()` + `gr.api` tools +
+  `demo.launch(css=APP_CSS, mcp_server=True)`. Run `uv run python app.py`.
+- `ui/` — the single-page front end (no tabs): `app.py` (layout + wiring,
+  ≤3 `gr.State`; Bells Beach auto-selected on load so there are no empty
+  states), `panels/{lens,story,intel,agent}.py` (map-lens column | forecast
+  story | intel rail | full-width agent bar), `charts/{strip,score,seafloor,climate,map,_style}.py`,
+  `contracts.py` (`SELECT_KEYS`/`FETCH_KEYS`/`AGENT_KEYS` + `fill()` —
+  handlers return via `fill(KEYS, …)` so output ordering can't drift),
+  `_compat.py` (backend access: v2 core → `legacy.app.*` → stubs; also
+  wetsuit hints, engine chips, surf cams), `theme.py` (`APP_CSS`, IBM Plex
+  Mono lo-fi identity — don't restyle without asking).
+- `wavereader/` — pure core, typed + tested, no Gradio imports:
+  `breaks.py` (catalogue, memoized `load_breaks`), `openmeteo.py`
+  (versioned/atomic disk cache, seaward grid-snap), `scoring.py` (deterministic
+  0–10 engine — the LLM never owns numbers), `seafloor.py` (GEBCO world model),
+  `climate.py` (ERA5 5-yr profiles + audit; `break_climate` reads the
+  profile embedded on each break record, per-slug file fallback), `tools.py`
+  (the typed tool functions shared by agent + MCP), `agent.py`
+  (smolagents `ToolCallingAgent`,
+  native tool calls, budget: 6 steps / 2 score_week / 700 tokens),
+  `narrate.py` + `llm.py` (one InferenceClient factory:
+  Nemotron 3 Ultra via deepinfra, `WR_*` env overrides).
+- `scripts/warm_caches.py` — pre-fill forecast + seafloor caches (demo hot
+  start). `scripts/build_climate.py` — climatology builder (re-embeds built
+  profiles into the catalogue after each run, backup first).
+- `scripts/check_coords.py` + `scripts/check_coast.py` — break-coordinate
+  maintenance: `check_coords` validates/fixes state/region/duplicate
+  placement against OSM; `check_coast` audits GEBCO elevation at every
+  break point and (`--fix`) snaps non-coastal ones to the nearest 0 m
+  shoreline crossing (both write a timestamped backup first).
+- `data/` — `australia-surf-breaks-enriched.json` (238 breaks; each record
+  embeds its ERA5 profile under `climate` — 236 of 238, the two duplicate
+  Gnaraloo rows have no profile),
+  `surf-break-schema.json` (contract), `climate/*.json` (per-slug ERA5
+  profiles — `build_climate.py` output and `break_climate`'s fallback;
+  also `index.json` manifest), `surf-cams.json` (camera links keyed
+  `"name | state | region"`), `surf-break-example-bells.json` (prompt worked
+  example).
+- `documents/VIDEO_SCRIPT.md` — the GTC entry video shot list.
 
-## `main.py` map of the code
+## Conventions that matter
 
-Entry: `build_demo()` → `main()` → `demo.launch(css=APP_CSS)`.
+- One spot drives everything: `selected` (gr.State) is the single source of
+  truth — picking a spot re-aims the map, badges, forecast strip, world
+  model and climatology together. Keep it that way.
+- Staged spin-ups: `ui/panels/story.py::fetch_forecast` is a **generator**
+  that yields stage 1 (charts, ~ms) then stage 2 (seafloor world model from
+  a parallel thread). Status lines name the engine + latency. Keep that
+  pattern for anything slow.
+- Charts: theme through `ui/charts/_style.py::style_fig`; weekend shading
+  via `add_weekend_shading`. The week strip lives in `charts/strip.py`
+  (score/swell/wind rows); window slicing (weekend/mornings/arvos) re-charts
+  from state via `filter_hours` — no refetch. Seafloor display is bicubically
+  smoothed (scipy) and its wave animation is period-driven — smoothing and
+  animation are display-only; stats stay on the raw grid.
+- MCP surface = exactly `score_week` / `rank_region_week` / `explain_score`
+  (`gr.api` in `app.py`). All event listeners are registered with
+  `api_name=False` — keep it that way.
+- The LLM never owns numbers. Scores/forecasts/analysis stay deterministic;
+  the model narrates and cites tools.
 
-- Data load (module import time): `load_breaks()` reads
-  `data/australia-surf-breaks-enriched.json` into `DF` (handles legacy
-  `{"name | state | region": {...}}` dict format too, drops `error` rows).
-  Derives `STATES`, `REGIONS_BY_STATE`, `ALL_REGIONS`, `SKILLS`.
-- Filtering: `filter_breaks(df, state, region, skill)` — `"All"`/None = no
-  filter. Case-insensitive on canonical `state` / `region` / `skillLevel`.
-- Map: `build_map(records, default_view)` — Plotly `Scattermap`
-  (`open-street-map` style), marker colour by `SKILL_COLORS`, point order ==
-  records order so the break list lines up. Auto-centers/zooms via
-  `_zoom_for_span()` unless `default_view` (unfiltered → whole Australia).
-  `build_map_with_custom()` adds the gold star marker for the session break.
-- Details: `break_to_table(break_)` flattens one record to a
-  Field/Value dataframe (name/state/region/description/skill/break+peak
-  type/coords/ideal swell+wind+tide/season/hazards/crowd).
-- Session-only custom break: `generate_custom_break()` streams
-  `(telemetry, details, map, dropdown, state)` tuples via `yield`.
-  Loads `app/generate_surf_break.py` with `_load_generator()`
-  (`importlib`, no package import). Empty custom state/region fields fall
-  back to the main map filters; explicit values win. Exactly one custom
-  break per session (`gr.State`, never written to disk); regeneration
-  replaces it. `clear_custom_break()` deletes it. `sync_custom_from_filters()`
-  pushes map State/Region into the generation form (`gr.skip()` leaves a
-  field untouched when the filter is `All`).
-- Identity: `_resolve_pick()` maps a break-list label back to its record
-  (custom break carries a `⭐ (your break)` suffix); base records match by
-  `name`. Enriched `id` is `"<name> | <state> | <region>"`.
-- Helpers `_lat()` / `_lng()` return None on missing coords (map skips
-  them for centering); `_join()` stringifies list fields.
-
-Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
-`#0b2c5c`, Courier). Don't restyle without asking. Keep callbacks wired in
-`build_demo()` (`state_dd`/`region_dd`/`skill_dd` → `update_map`;
-`break_dd` → `on_break_pick`; `generate_btn` → `generate_custom_break`;
-`clear_btn` → `clear_custom_break`).
-
-## `app/` map of the code
-
-`app/generate_surf_break.py`:
-
-- `MODEL_ID = "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"`,
-  `PROVIDER = "deepinfra"`. Swap only to a model actually served by an
-  Inference Provider you have enabled.
-- `load_prompt_parts()` reads schema + Bells example from `data/`.
-- `build_surf_break_prompt(break_name, state, region)` — rules: JSON only,
-  populate required fields, strict enums, real-world geography (not generic
-  defaults), best-estimate coords, primary takeoff zone, 2–4 sentence
-  description, copy state/region verbatim into top-level AND
-  `location.state`/`location.region`.
-- `extract_json()` tolerates ```fences, else grabs outermost`{...}`.
-- `generate_surf_break(...)` — one `InferenceClient.chat.completions.create`
-  call (temp 0.4, max_tokens 2048). Deliberately NOT a smolagents CodeAgent
-  (ReAct `<code>` format conflicts with raw-JSON instruction — see module
-  docstring). CLI: `python app/generate_surf_break.py [name] [state] [region]`.
-- Needs `HF_TOKEN` env (Inference Providers access).
-
-`app/generate_base_data.py`:
-
-- `load_break_list()` flattens `Australia_Surf_Breaks: state → region →
-[names]` into `{break_name, state, region}` in stable order.
-- `enrich_result()` merges LLM output with canonical `state`/`region` from
-  the input list + stable `id`; normalizes `location.state/region`.
-- `load_existing_results()` / `save_results()` — resume-safe; accepts legacy
-  dict format, writes sorted list by (state, region, name).
-- `generate_with_retries()` — 2 attempts, linear backoff; failures are NOT
-  persisted (missing entries retry next run).
-- `main()` saves after every break + `REQUEST_DELAY = 1.0`s between calls.
-
-## `data/` contracts
+## Data contracts
 
 - Required break fields: `name`, `state`, `region`, `location`,
   `skillLevel`, `breakType`, `peakType`, `idealSwell`, `idealWind`,
@@ -95,23 +79,16 @@ Conventions: lo-fi theme via `APP_CSS` (light blue bg `#d6e9f8`, dark blue
   model. `location.country` is `"Australia"`.
 - New prompts must load schema + example from `data/` (don't paste copies).
 
-## `wavereader/` (kept, to reimplement — do not delete)
-
-- `agent.py` (smolagents CodeAgent, HF Router, Nemotron defaults, trace
-  capture), `tools.py` (forecast/score/knowledge wrappers + Tool classes),
-  `forecasts.py` (Open-Meteo marine+weather client, disk cache),
-  `scoring.py` (deterministic 0–10 surf-quality engine).
-- They still assume the old data layout (`spots.py`, since removed). Rewire
-  them to `data/australia-surf-breaks-enriched.json` + the
-  `surf-break-schema.json` contracts and to the `main.py` UI before using
-  them in the demo path. The LLM never owns numbers — scores/forecasts stay
-  deterministic.
-
 ## Rules for edits
 
-1. `app/` is tracked in this repo (no nested git — don't re-init one).
-2. Never commit `.env`, `.venv/`, `__pycache__/`, `.DS_Store` (all ignored).
-3. Keep prompt files in `data/`; keep `main.py` free of embedded schema text.
-4. Test cheaply: `uv run python -c "from pathlib import Path; import main"` for
-   import health; full generation calls cost inference — use the single-break
-   CLI before running the batch.
+1. Everything is tracked in this repo (no nested git — don't re-init one).
+2. Never commit `.env`, `.venv/`, `__pycache__/`, `.DS_Store`, `.cache/`
+   (all ignored).
+3. Never read `.env` or print secrets/tokens. Use `.env.example` for var
+   names; check presence with `printenv HF_TOKEN | wc -c` or
+   `[ -n "$HF_TOKEN" ]` style checks that never echo the value.
+4. Keep prompt files in `data/`; keep `app.py` free of embedded schema text.
+5. Test cheaply: `uv run pytest -q` (offline fixtures) +
+   `uv run python -c "import app"` for import health. Live LLM calls cost
+   inference — dry-run the agent via the injected fake model
+   (`tests/test_agent_dryrun.py`) before any live turn.

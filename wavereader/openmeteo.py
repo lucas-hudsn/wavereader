@@ -1,24 +1,33 @@
-"""Open-Meteo Marine + weather forecast client.
+"""Open-Meteo Marine + weather forecast client (wavereader v2 core port).
+
+Ported verbatim-first from ``app/forecasts.py``. v2 changes:
+
+* marine fetch adds hourly ``swell_wave_direction`` and
+  ``swell_wave_period`` (scoring v2 prefers ``swell_wave_*`` components
+  over the generic ``wave_*`` aggregates when present);
+* ``CACHE_VERSION`` bumped 2 → 3, so old-shape cache entries (without the
+  new swell fields) are never served as fresh.
 
 Two endpoints, merged on ``time``:
 
 * ``marine-api.open-meteo.com`` — hourly ``wave_height`` (m),
   ``wave_period`` (s), ``wave_direction`` (deg), ``wind_wave_height`` (m),
-  ``swell_wave_height`` (m). Verified 2026-08-30 at Snapper Rocks: 48
-  hourly entries, no nulls, ~1.3 m @ ~6 s from ~SE. The marine endpoint
-  does NOT serve wind fields.
+  ``swell_wave_height`` (m), ``swell_wave_direction`` (deg),
+  ``swell_wave_period`` (s), ``sea_surface_temperature`` (C, when served).
 * ``api.open-meteo.com`` — hourly ``wind_speed_10m`` (km/h; convert to
-  knots for scoring) and ``wind_direction_10m`` (deg).
+  knots for scoring), ``wind_direction_10m`` (deg),
+  ``wind_gusts_10m`` (km/h, when served), plus ``daily``
+  ``sunrise``/``sunset`` (ISO local, ``timezone=auto``) used by the
+  scoring v2 daylight filter.
 
-Grid points snap ~10 km offshore of a spot's coords (Snapper Rocks
--28.173,153.556 resolved to -28.04,153.63). Fetch slightly seaward of the
-spot: east-coast breaks shift east, west-coast breaks shift west,
-south-coast breaks (SA/VIC/TAS) shift south.
+Grid points snap ~10 km offshore of a spot's coords: fetch slightly
+seaward of the spot (east-coast breaks shift east, west-coast breaks
+shift west, south-coast breaks (SA/VIC/TAS) shift south).
 
-Cache every response to disk: the demo must survive API flakiness and
-rate limits. Fresh cache (within ``CACHE_TTL_SECONDS``) is served without
-a network call; when the API fails, a stale cache entry is served as a
-fallback rather than raising. Horizon: hourly, 7 days.
+Cache every response to disk. Fresh cache (within ``CACHE_TTL_SECONDS``)
+is served without a network call; when the API fails, a stale cache
+entry is served as a fallback rather than raising. Horizon: hourly,
+7 days.
 """
 
 from __future__ import annotations
@@ -39,14 +48,22 @@ MARINE_HOURLY_FIELDS = (
     "wave_direction",
     "wind_wave_height",
     "swell_wave_height",
+    "swell_wave_direction",
+    "swell_wave_period",
+    "sea_surface_temperature",
 )
-WEATHER_HOURLY_FIELDS = ("wind_speed_10m", "wind_direction_10m")
+WEATHER_HOURLY_FIELDS = ("wind_speed_10m", "wind_direction_10m", "wind_gusts_10m")
+# Daily sun times come from the same weather endpoint (no new API/key).
+WEATHER_DAILY_FIELDS = ("sunrise", "sunset")
 
 # ~0.13° is roughly 14 km — enough to move off the coast onto a marine grid point.
 _SEAWARD_OFFSET_DEG = 0.13
 
 CACHE_DIR = Path(__file__).resolve().parent.parent / ".cache" / "forecasts"
 CACHE_TTL_SECONDS = 6 * 3600
+# Bumped when the cached frame shape changes (v3: swell_wave_direction /
+# swell_wave_period added) so old-shape entries are never served as fresh.
+CACHE_VERSION = 3
 
 
 def _seaward_offset(lat: float, lon: float) -> tuple[float, float]:
@@ -55,6 +72,9 @@ def _seaward_offset(lat: float, lon: float) -> tuple[float, float]:
     Direction is inferred from position: Tasmania and the south coast shift
     south, the east coast (lon >= 147) shifts east, the west coast
     (lon <= 125) shifts west.
+
+    Shared with the climatology builder (Worker B): reuse this instead of
+    re-implementing the offset for archive calls.
     """
     if lat <= -39.5:  # Tasmania: open ocean to the south
         dlat, dlon = -_SEAWARD_OFFSET_DEG, 0.0
@@ -74,7 +94,7 @@ def _round_coords(lat: float, lon: float) -> tuple[float, float]:
 
 def _cache_key(lat: float, lon: float, days: int) -> str:
     """Cache key from the *raw* spot coords (offset is a fetch detail only)."""
-    return f"{round(lat, 2):.2f}_{round(lon, 2):.2f}_{days}"
+    return f"v{CACHE_VERSION}_{round(lat, 2):.2f}_{round(lon, 2):.2f}_{days}"
 
 
 def _cache_path(lat: float, lon: float, days: int) -> Path:
@@ -109,7 +129,14 @@ def _save_cache(lat: float, lon: float, days: int, data: dict) -> None:
 
 
 def _build_normalized(marine: dict, weather: dict) -> dict:
-    """Merge marine + weather hourly on ``time`` into a clean frame."""
+    """Merge marine + weather hourly on ``time`` into a clean frame.
+
+    Also carries ``daily`` sun times (``{"time", "sunrise", "sunset"}``)
+    straight from the weather endpoint, plus optional per-hour
+    ``sea_surface_temperature`` (C) and ``wind_gusts_10m`` (km/h) when
+    the API serves them. Scoring ignores unknown fields, so old
+    consumers keep working.
+    """
     m = marine["hourly"]
     w = weather["hourly"]
     marine_times = m["time"]
@@ -135,7 +162,19 @@ def _build_normalized(marine: dict, weather: dict) -> dict:
                     row[field] = wr[field]
         frames.append(row)
 
-    return {"hourly": frames}
+    daily: dict = {}
+    w_daily = weather.get("daily") or {}
+    if isinstance(w_daily, dict) and w_daily.get("time"):
+        daily = {
+            k: w_daily.get(k)
+            for k in ("time", *WEATHER_DAILY_FIELDS)
+            if k in w_daily
+        }
+
+    out: dict = {"hourly": frames}
+    if daily:
+        out["daily"] = daily
+    return out
 
 
 def _fetch_open_meteo(rlat: float, rlon: float, days: int) -> dict:
@@ -150,7 +189,15 @@ def _fetch_open_meteo(rlat: float, rlon: float, days: int) -> dict:
         resp_m = client.get(MARINE_URL, params={**params, "hourly": ",".join(MARINE_HOURLY_FIELDS)})
         resp_m.raise_for_status()
         marine = resp_m.json()
-        resp_w = client.get(WEATHER_URL, params={**params, "hourly": ",".join(WEATHER_HOURLY_FIELDS)})
+        resp_w = client.get(
+            WEATHER_URL,
+            params={
+                **params,
+                "hourly": ",".join(WEATHER_HOURLY_FIELDS),
+                "daily": ",".join(WEATHER_DAILY_FIELDS),
+                "timezone": "auto",
+            },
+        )
         resp_w.raise_for_status()
         weather = resp_w.json()
 
@@ -161,10 +208,12 @@ def get_forecast(lat: float, lon: float, days: int = 7) -> dict:
     """Fetch marine + weather hourly data for a coordinate, merged on time.
 
     Returns a normalised frame: ``{"hourly": [{"time": ..., "wave_height": ...,
-    "wind_speed_10m": ..., ...}, ...]}``.  Disk-cached by rounded coords + days:
-    entries younger than ``CACHE_TTL_SECONDS`` are served directly; on a network
-    failure the most recent cache entry (however old) is served as a fallback.
-    Raises only when there is no usable data at all.
+    "swell_wave_height": ..., "wind_speed_10m": ..., ...}, ...], "daily":
+    {"time": [...], "sunrise": [...], "sunset": [...]}}``. Disk-cached by
+    rounded coords + days: entries younger than ``CACHE_TTL_SECONDS`` are
+    served directly; on a network failure the most recent cache entry
+    (however old) is served as a fallback. Raises only when there is no
+    usable data at all.
     """
     rlat, rlon = _round_coords(lat, lon)
     cached = _load_cache(lat, lon, days)
@@ -173,10 +222,23 @@ def get_forecast(lat: float, lon: float, days: int = 7) -> dict:
 
     try:
         merged = _fetch_open_meteo(rlat, rlon, days)
-    except (httpx.HTTPError, KeyError, ValueError):
+    except (httpx.HTTPError, KeyError, ValueError, TypeError, AttributeError):
         if cached is not None:
             return cached[0]
         raise
 
     _save_cache(lat, lon, days, merged)
     return merged
+
+
+__all__ = [
+    "MARINE_URL",
+    "WEATHER_URL",
+    "MARINE_HOURLY_FIELDS",
+    "WEATHER_HOURLY_FIELDS",
+    "WEATHER_DAILY_FIELDS",
+    "CACHE_TTL_SECONDS",
+    "CACHE_VERSION",
+    "_seaward_offset",
+    "get_forecast",
+]

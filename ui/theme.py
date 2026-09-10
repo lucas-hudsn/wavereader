@@ -111,6 +111,7 @@ button.primary:hover, button.lg.primary:hover {
     --checkbox-label-border-color-selected: #0b2c5c !important;
     --checkbox-label-text-color: #0b2c5c !important;
     --checkbox-label-text-color-selected: #ffffff !important;
+    --slider-color: #0b2c5c !important;
 }
 .gradio-container .gr-box, .gradio-container .gr-panel,
 .gradio-container .block, .gradio-container .form,
@@ -213,6 +214,60 @@ ul.options .item {
 .badge-link { background: #d6e9f8 !important; text-decoration: none; font-weight: 600; }
 .badge-link:hover { background: #0b2c5c !important; color: #ffffff !important; }
 
+/* intel rail: tab row styled after the story's score/swell/wind strip —
+   bare text tabs (no block chrome), one line, orange underline marks the
+   selected one (colors measured off the live strip: #f97316 selected) */
+.gradio-container .intel-tabs,
+.gradio-container form:has(.intel-tabs),
+.gradio-container .block:has(> .intel-tabs) {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.intel-tabs { margin: 0 0 4px; border-bottom: 1px solid #c9dff2; }
+.intel-tabs .wrap { display: inline-flex !important; flex-wrap: nowrap !important; gap: 0 !important; }
+.gradio-container .intel-tabs label {
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #0b2c5c !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    padding: 4px 16px 6px !important;
+    margin: 0 0 -1px !important;
+    white-space: nowrap !important;
+}
+.gradio-container .intel-tabs label.selected,
+.gradio-container .intel-tabs label:has(input[type="radio"]:checked) {
+    background: transparent !important;
+    color: #f97316 !important;
+    border-bottom: 2px solid #f97316 !important;
+}
+.gradio-container .intel-tabs label.selected span,
+.gradio-container .intel-tabs label:has(input[type="radio"]:checked) span {
+    color: #f97316 !important;
+}
+
+/* spot description: the break's own words, right under the spot name */
+.spot-desc { font-size: 0.85em; line-height: 1.55; margin: 2px 0 4px !important; }
+.spot-desc-empty { opacity: 0.55; font-style: italic; }
+
+/* page footer: the machinery line (engines + latencies) below the fold */
+.page-foot { border-top: 2px solid #c9dff2; margin-top: 10px; }
+.gradio-container .page-foot .form,
+.gradio-container .page-foot .block {
+    border: none !important; background: transparent !important;
+    padding: 0 !important; box-shadow: none !important;
+}
+.gradio-container .page-foot label span { font-size: 0.72em; opacity: 0.7; }
+.gradio-container .page-foot textarea {
+    background: transparent !important; border: none !important;
+    font-size: 0.8em !important; padding: 2px 2px !important; resize: none !important;
+}
+
 /* week hero: day chips with score-coloured left borders */
 .day-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
 .day-chip {
@@ -248,6 +303,43 @@ ul.options .item {
 .agent-controls .gr-dropdown, .agent-controls .gr-slider { flex-wrap: nowrap !important; }
 .agent-controls .wrap { flex-wrap: nowrap !important; }
 .ctx-line { font-size: 0.78em; opacity: 0.8; margin: 0 2px 4px !important; }
+
+/* max-calls slider: ink-blue instrument, no number box — the thumb is the
+   value; min/max labels bracket the track */
+.steps-slider .tab-like-container { display: none !important; }
+.steps-slider .slider_input_container { align-items: center !important; margin-top: 4px !important; }
+.steps-slider .min_value, .steps-slider .max_value {
+    font-size: 12px !important; font-weight: 600 !important;
+    color: #4a6fa5 !important; opacity: 1 !important;
+}
+.steps-slider input[type="range"] { height: 20px !important; }
+.steps-slider input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px !important; border-radius: 999px !important;
+    background: linear-gradient(to right, #0b2c5c var(--range_progress), #c9dff2 var(--range_progress)) !important;
+}
+.steps-slider input[type="range"]::-webkit-slider-thumb {
+    appearance: none !important;
+    height: 18px !important; width: 18px !important; margin-top: -5px !important;
+    background: #ffffff !important;
+    border: 2.5px solid #0b2c5c !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(11, 44, 92, 0.3) !important;
+    transition: transform 0.12s ease !important;
+}
+.steps-slider input[type="range"]:hover::-webkit-slider-thumb,
+.steps-slider input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
+.steps-slider input[type="range"]::-moz-range-track {
+    height: 8px !important; border-radius: 999px !important; background: #c9dff2 !important;
+}
+.steps-slider input[type="range"]::-moz-range-progress {
+    height: 8px !important; border-radius: 999px !important; background: #0b2c5c !important;
+}
+.steps-slider input[type="range"]::-moz-range-thumb {
+    height: 14px !important; width: 14px !important;
+    background: #ffffff !important; border: 2.5px solid #0b2c5c !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(11, 44, 92, 0.3) !important;
+}
 
 /* agent trace: live tool cards with ms timing bars + payload previews */
 .trace { display: flex; flex-direction: column; gap: 6px; }
@@ -307,7 +399,10 @@ ul.options .item {
 .mode-toggle .wrap { display: inline-flex !important; gap: 0 !important; }
 .mode-toggle input[type="radio"],
 .mode-toggle input[type="radio"] + * .circle,
-.mode-toggle span.circle { display: none !important; }
+.mode-toggle span.circle,
+.intel-tabs input[type="radio"],
+.intel-tabs input[type="radio"] + * .circle,
+.intel-tabs span.circle { display: none !important; }
 .mode-toggle label {
   border-radius: 999px !important; padding: 4px 14px !important;
   font-size: 0.78em; font-weight: 600; color: #0b2c5c; cursor: pointer;

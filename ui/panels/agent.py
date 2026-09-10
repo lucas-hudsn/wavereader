@@ -8,11 +8,13 @@ preview. The budget meter ticks live (steps / tool calls / score_week cap /
 ≈tokens) against the slider-chosen tool budget, and the final answer's
 "Best: …" contract line is lifted into a verdict banner. Any ``score_week``
 payload in a tool result is charted straight into the week strip (the LLM
-never owns numbers), and **every answered turn ends with a visualisation**:
-turns without scored hours render the region-sweep leaderboard, climate
-rose, seafloor depth map, similarity bars or the explained-hour component
-split from their tool payloads, falling back to the viewed spot's own
-scored week.
+never owns numbers), and **every answered turn ends with a visualisation
+matched to the question**: recommendation questions close on the
+recommended-scores chart — a region-sweep leaderboard, or a side-by-side
+compare when several spots were scored this turn (a deterministic engine
+sweep fills in when the agent never ranked); climate / seafloor / similar /
+explain questions get their rose, depth map, similarity bars or component
+split; anything else falls back to the viewed spot's own scored week.
 
 User controls in the bar: a "max tool calls" slider (the per-turn step
 budget; token + score_week caps scale with it) and chained State → Region
@@ -49,6 +51,37 @@ _TOOL_ICONS = {
 }
 _MEDALS = ["🥇", "🥈", "🥉"]
 _VERDICT_RE = re.compile(r"Best:\s*(.+)", re.IGNORECASE)
+
+# Query intent (deterministic, on the user's text only): which end-of-turn
+# chart matches the question. Scores charts are the house default; the
+# specialties jump the queue only when the question asks for them.
+_REC_RE = re.compile(
+    r"\bwhere\s+(?:should|to|can|shall|could)\b"
+    r"|\bbest\s+(?:spots?|breaks?|beaches?|places?)\b"
+    r"|\brecommend|\brank\w*|\btop\s*\d+"
+    r"|\bcompare|\bversus\b|\bvs\b"
+    r"|\bshould\s+i\s+(?:surf|go|paddle)\b", re.IGNORECASE)
+_CLIMATE_RE = re.compile(
+    r"\bclimate\b|\bmonthly\b|\bmonths?\b|winter|summer|autumn|spring\b"
+    r"|\bswell\s+direction\b|\bwhen\s+to\s+go\b", re.IGNORECASE)
+_SEAFLOOR_RE = re.compile(
+    r"\bseafloor\b|\bsea\s?floor\b|\bsea\s?bed\b|\bbathymetry\b|\bdepths?\b"
+    r"|\bstructure\b|\bsandbar\b|\breef\b", re.IGNORECASE)
+_SIMILAR_RE = re.compile(
+    r"\b(?:spots?|breaks?|beaches?)\s+like\b|\bsimilar\s+to\b"
+    r"|\balternatives?\s+to\b|\bquieter\b", re.IGNORECASE)
+_EXPLAIN_RE = re.compile(
+    r"\bwhy\b|\bexplain\w*|\bcomponent\w*|\bbreakdown\b", re.IGNORECASE)
+_SPECIALTY_RE = (
+    ("get_climate_profile", _CLIMATE_RE),
+    ("get_seafloor_profile", _SEAFLOOR_RE),
+    ("find_similar_spots", _SIMILAR_RE),
+    ("explain_score", _EXPLAIN_RE),
+)
+_STATE_CODES = {
+    "NSW": "New South Wales", "QLD": "Queensland", "VIC": "Victoria",
+    "WA": "Western Australia", "SA": "South Australia", "TAS": "Tasmania",
+}
 
 _EMPTY_TRACE = ("<div class='trace-empty'>tool calls land here live — "
                 "watch the engines work…</div>")
@@ -226,23 +259,164 @@ def _viz_spot(args: dict, obs) -> tuple[str, str]:
     return str(name), str(region)
 
 
-def _turn_figure(viz: list[tuple[str, dict, object]], selected: dict | None,
-                 skill: str, records: list[dict]):
-    """Pick + build a chart for a turn that scored no hours.
+def _specialty_tool(query: str) -> str | None:
+    """The tool whose chart the question explicitly asks for, if any."""
+    for tool_name, rx in _SPECIALTY_RE:
+        if rx.search(query or ""):
+            return tool_name
+    return None
 
-    Every agent answer ends with a visualisation. When no score_week /
-    find_best_windows payload was charted mid-turn, render one from the
-    other deterministic tool payloads — region-sweep leaderboard, climate
-    rose, seafloor depth map, similarity bars, explained-hour component
-    split — falling back to the viewed spot's own scored week. Numbers
-    come from tool/engine output only, never from the answer text.
+
+def _rose_chart(entry: tuple[dict, object], records: list[dict]):
+    _a, obs = entry
+    if not isinstance(obs, dict):
+        return None, ""
+    rose = (obs.get("climate") or {}).get("direction_rose_pct") or {}
+    try:
+        if not any(float(v or 0) > 0 for v in rose.values()):
+            return None, ""
+    except (TypeError, ValueError):
+        return None, ""
+    name, _region = _viz_spot(_a, obs)
+    rec = C.find_break(records, name)
+    ideal = (((rec or {}).get("idealSwell") or {}).get("direction")
+             if rec else None)
+    fig = climate_chart.build_rose_fig({"rose": rose}, name=name,
+                                       ideal_dirs=ideal)
+    return fig, f"swell climate — {name} (5-yr ERA5 rose)"
+
+
+def _depth_chart(entry: tuple[dict, object], records: list[dict]):
+    _a, obs = entry
+    if not isinstance(obs, dict):
+        return None, ""
+    name, _region = _viz_spot(_a, obs)
+    rec = C.find_break(records, name)
+    if not rec:
+        return None, ""
+    try:
+        grid = (C.get_seafloor(rec) or {}).get("grid") or {}
+        return seafloor_chart.build_depth_fig(grid, name), \
+            f"seafloor depth map — {name}"
+    except Exception:  # noqa: BLE001 — fall through to the next viz
+        return None, ""
+
+
+def _similarity_chart(entry: tuple[dict, object], records: list[dict]):
+    _a, obs = entry
+    if (isinstance(obs, list) and obs and isinstance(obs[0], dict)
+            and "similarity" in obs[0]):
+        ref = str(_a.get("spot_name") or "")
+        return (score_chart.build_similarity_fig(obs, ref),
+                f"{len(obs)} spots like {ref} — similarity")
+    return None, ""
+
+
+def _components_chart(entry: tuple[dict, object], records: list[dict]):
+    _a, obs = entry
+    if (isinstance(obs, dict) and isinstance(obs.get("components"), dict)
+            and obs["components"]):
+        name, _region = _viz_spot(_a, obs)
+        when = str(obs.get("time") or "")
+        fig = score_chart.build_component_fig(obs["components"], spot=name,
+                                              when=when, score=obs.get("score"))
+        return fig, f"component split — {name} @ {when}"
+    return None, ""
+
+
+def _specialty_figure(by_name: dict[str, tuple[dict, object]],
+                      records: list[dict],
+                      prefer: str | None = None):
+    """First buildable question-specific chart from the tool payloads.
+
+    Scans climate rose → seafloor depth map → similarity bars → component
+    split; a question-matched tool (``prefer``) is scanned first so e.g. a
+    seafloor question wins its depth map even when a rose payload exists.
+    Returns (figure, markdown note) or (None, "").
+    """
+    checks = (
+        ("get_climate_profile", _rose_chart),
+        ("get_seafloor_profile", _depth_chart),
+        ("find_similar_spots", _similarity_chart),
+        ("explain_score", _components_chart),
+    )
+    if prefer:
+        checks = tuple(sorted(checks, key=lambda c: c[0] != prefer))
+    for _tool_name, build in checks:
+        fig, note = build(by_name.get(_tool_name, ({}, None)), records)
+        if fig is not None:
+            return fig, note
+    return None, ""
+
+
+def _scored_compare_fig(scored: list[dict]):
+    """Side-by-side best-score bars for a multi-spot scored turn."""
+    rows = []
+    for s in scored or []:
+        best = score_chart.best_window(s.get("hours") or [])
+        if not best:
+            continue
+        rows.append({"name": str(s.get("label") or "?"),
+                     "region": str(s.get("region") or ""),
+                     "best_score": best.get("score"),
+                     "best_time": best.get("time")})
+    if len(rows) < 2:
+        return None, ""
+    names = " vs ".join(r["name"].split(" (")[0] for r in rows[:2])
+    fig = score_chart.build_compare_fig(
+        rows, "name", "best_score", "recommended breaks — best score this week",
+        sub_keys=("region", "best_time"))
+    return fig, f"{names} — best-score compare ({len(rows)} spots)"
+
+
+def _query_region(query: str, records: list[dict]) -> str | None:
+    """A canonical state/region named in the query (codes expanded), or None."""
+    text = f" {query or ''} ".lower()
+    vocab = sorted({str(r.get("state") or "") for r in records}
+                   | {str(r.get("region") or "") for r in records},
+                   key=len, reverse=True)
+    for name in vocab:
+        if name and re.search(rf"(?<![a-z]){re.escape(name.lower())}(?![a-z])",
+                              text):
+            return name
+    for code, name in _STATE_CODES.items():
+        if re.search(rf"(?<![a-z]){code.lower()}(?![a-z])", text):
+            return name
+    return None
+
+
+def _turn_figure(viz: list[tuple[str, dict, object]], selected: dict | None,
+                 skill: str, records: list[dict], query: str = "",
+                 focus: str | None = None, scored: list[dict] | None = None,
+                 charted: bool = False):
+    """Pick + build the end-of-turn chart, matched to the question.
+
+    The house chart is the recommended-surf-break-scores view: a
+    region-sweep leaderboard, or a side-by-side compare when several spots
+    were scored this turn. Question-specific charts (climate rose, seafloor
+    depth map, similarity bars, component split) jump the queue only when
+    the question asks for them. A recommendation question the agent answered
+    without any sweep still closes on one: a deterministic engine sweep of
+    the region named in the question (or the page's State/Region focus).
+    Numbers come from tool/engine output only, never from the answer text.
     Returns (figure, markdown note) or (None, "") when nothing chartable.
     """
     by_name: dict[str, tuple[dict, object]] = {}
     for name, args, obs in viz:
         by_name.setdefault(str(name), (args if isinstance(args, dict) else {}, obs))
+    q = str(query or "")
+    recommend = bool(_REC_RE.search(q))
+    prefer = _specialty_tool(q)
+    special = _specialty_figure(by_name, records, prefer)
 
-    # 1. region sweep → leaderboard bars
+    if charted:
+        # Multi-spot scored turn: week strips already ran mid-turn — close
+        # on the side-by-side scores, never an unrelated refetch.
+        return _scored_compare_fig(scored or [])
+    if not recommend and prefer and special[0] is not None:
+        return special
+
+    # scores first: the sweep leaderboard, then this turn's scored spots
     _a, obs = by_name.get("rank_region_week", ({}, None))
     rows = _coerce_rank_rows(obs)
     if rows:
@@ -253,56 +427,27 @@ def _turn_figure(viz: list[tuple[str, dict, object]], selected: dict | None,
         note = (f"region sweep{region_bit} — top pick "
                 f"**{top.get('name')}** ({top.get('best_score')}/10)")
         return score_chart.build_rank_fig(rows, region), note
+    compare = _scored_compare_fig(scored or [])
+    if compare[0] is not None:
+        return compare
 
-    # 2. climate → 5-yr swell rose
-    _a, obs = by_name.get("get_climate_profile", ({}, None))
-    if isinstance(obs, dict):
-        rose = (obs.get("climate") or {}).get("direction_rose_pct") or {}
-        try:
-            has_rose = any(float(v or 0) > 0 for v in rose.values())
-        except (TypeError, ValueError):
-            has_rose = False
-        if has_rose:
-            name, _region = _viz_spot(_a, obs)
-            rec = C.find_break(records, name)
-            ideal = (((rec or {}).get("idealSwell") or {}).get("direction")
-                     if rec else None)
-            fig = climate_chart.build_rose_fig({"rose": rose}, name=name,
-                                               ideal_dirs=ideal)
-            return fig, f"swell climate — {name} (5-yr ERA5 rose)"
-
-    # 3. seafloor → depth map from the world model
-    _a, obs = by_name.get("get_seafloor_profile", ({}, None))
-    if isinstance(obs, dict):
-        name, _region = _viz_spot(_a, obs)
-        rec = C.find_break(records, name)
-        if rec:
+    if recommend:
+        region = _query_region(q, records) or (str(focus) if focus else None)
+        if region:
             try:
-                grid = (C.get_seafloor(rec) or {}).get("grid") or {}
-                fig = seafloor_chart.build_depth_fig(grid, name)
-                return fig, f"seafloor depth map — {name}"
-            except Exception:  # noqa: BLE001 — fall through to the next viz
-                pass
+                rows = _coerce_rank_rows(
+                    C.api_rank_region_week(region, skill=skill))
+            except Exception:  # noqa: BLE001 — chart fallbacks never raise
+                rows = None
+            if rows:
+                top = rows[0]
+                return (score_chart.build_rank_fig(rows, region),
+                        f"recommended breaks — {region} — top pick "
+                        f"**{top.get('name')}** ({top.get('best_score')}/10)")
 
-    # 4. similar spots → similarity bars
-    _a, obs = by_name.get("find_similar_spots", ({}, None))
-    if (isinstance(obs, list) and obs and isinstance(obs[0], dict)
-            and "similarity" in obs[0]):
-        ref = str(_a.get("spot_name") or "")
-        return (score_chart.build_similarity_fig(obs, ref),
-                f"{len(obs)} spots like {ref} — similarity")
+    if special[0] is not None:
+        return special
 
-    # 5. explain_score → component split
-    _a, obs = by_name.get("explain_score", ({}, None))
-    if (isinstance(obs, dict) and isinstance(obs.get("components"), dict)
-            and obs["components"]):
-        name, _region = _viz_spot(_a, obs)
-        when = str(obs.get("time") or "")
-        fig = score_chart.build_component_fig(obs["components"], spot=name,
-                                              when=when, score=obs.get("score"))
-        return fig, f"component split — {name} @ {when}"
-
-    # 6. nothing tool-chartable → the viewed spot's own scored week
     sel = selected or {}
     if sel.get("name"):
         payload = C.get_scored_week(sel, skill=skill, days=7)
@@ -415,7 +560,9 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
                     entry_skill = skill
                     if isinstance(obs, dict) and obs.get("skill"):
                         entry_skill = obs["skill"]
-                    spots.append({"label": label, "hours": hours, "skill": entry_skill})
+                    spots.append({"label": label, "hours": hours,
+                                  "skill": entry_skill,
+                                  "region": str(region_arg or "")})
                     # Dedupe repeated chart labels at append time ("#2", "#3", …).
                     counts: dict[str, int] = {}
                     for s in spots:
@@ -483,15 +630,21 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
         yield emit(f"❌ Agent run failed: {e}")
         return
 
-    # Every answered turn ends with a visualisation. When nothing was
-    # charted mid-turn, build one from the recorded tool payloads (or the
-    # viewed spot's week) — the status is yielded first so a slow first
-    # fetch reads as a staged spin-up, never a hang.
+    # Every answered turn ends with a visualisation matched to the question,
+    # scores first. Multi-spot scored turns close on the side-by-side
+    # compare; otherwise the chain runs only when nothing was charted
+    # mid-turn. The status is yielded first so a slow fetch (e.g. a make-up
+    # region sweep) reads as a staged spin-up, never a hang.
     fallback_fig = None
-    if not turn_charted:
+    viz_note = ""
+    if (not turn_charted) or len(spots) > 1:
         yield emit("📊 assembling this turn's chart…")
         try:
-            fallback_fig, viz_note = _turn_figure(viz, selected, skill, records)
+            fallback_fig, viz_note = _turn_figure(viz, selected, skill, records,
+                                                  query=text,
+                                                  focus=_region_hint(state, region),
+                                                  scored=spots,
+                                                  charted=turn_charted)
         except Exception:  # noqa: BLE001 — a chart must never break the answer
             fallback_fig, viz_note = None, ""
         if fallback_fig is not None:
@@ -582,8 +735,9 @@ def build_agent(selected, store, records: list[dict], vocab: dict | None,
         gr.Markdown("### 💬 ask the agent — engines compute, the llm narrates")
         gr.Markdown("the agent calls ⚙ scoring, 🪨 the gebco world model, 🌡 era5 climate "
                     "and 📡 open-meteo directly; nemotron 3 ultra only narrates their "
-                    "numbers. every answer lands with a chart — week strip, rose, "
-                    "depth map, leaderboard or component split.")
+                    "numbers. every answer lands with a question-matched chart — "
+                    "recommended-scores leaderboard, week strip, rose, depth map, "
+                    "similarity bars or component split.")
         ctx_md = gr.Markdown("", elem_classes=["ctx-line"])
         with gr.Row():
             with gr.Column(scale=1):
@@ -595,7 +749,8 @@ def build_agent(selected, store, records: list[dict], vocab: dict | None,
                     steps_slider = gr.Slider(1, 12, step=1,
                                              value=_DEFAULT_STEPS,
                                              label="max calls", scale=2,
-                                             min_width=180)
+                                             min_width=180,
+                                             elem_classes=["steps-slider"])
                 token_box = gr.Textbox(label="HF token (optional, session-only)", type="password",
                                        placeholder="Defaults to the Space secret — never logged or saved.")
                 chatbot = gr.Chatbot(label="Surf agent", height=460)

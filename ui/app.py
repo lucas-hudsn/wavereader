@@ -2,7 +2,7 @@
 
 No tabs. One shared ``selected`` spot drives everything: picking it in
 the search box (or the load default) re-tells the whole page — badges,
-week strip, world model, climatology, break details — then auto-fetches
+week strip, world model, climatology — then auto-fetches
 the staged forecast, and the agent reads the same context. Exactly three
 session states: the shared pick, the scored payload, the agent store.
 Filters are one-way only.
@@ -64,8 +64,9 @@ def build() -> gr.Blocks:
             with gr.Row(elem_classes=["hero-row"]):
                 with gr.Column(scale=5, min_width=220):
                     gr.Markdown("# wave~reader", elem_classes=["hero-title"])
-                    gr.Markdown("one page from *where* to *when* — browse the map, "
-                                "pick a spot, read the week.", elem_classes=["hero-sub"])
+                    gr.Markdown("smart forecasting for australia's coast — 238 breaks scored "
+                                "hour by hour (0–10) from live marine data, real seafloor and "
+                                "each spot's ideal conditions.", elem_classes=["hero-sub"])
                 with gr.Column(scale=2, min_width=280, elem_classes=["hero-right"]):
                     mode_toggle = gr.Radio(
                         [_MODE_FORECAST, _MODE_AGENT], value=_MODE_FORECAST,
@@ -94,6 +95,11 @@ def build() -> gr.Blocks:
 
         a = agent_panel.build_agent(selected, agent_store, records, vocab, visible=False)
 
+        # Footer: the machinery line — feed/scorer/world-model latencies —
+        # lives below the fold, in both modes (outside the swapped columns).
+        with gr.Column(elem_classes=["page-foot"]):
+            f = story_panel.build_footer()
+
         def _switch_mode(mode: str):
             agentic = mode == _MODE_AGENT
             return gr.update(visible=not agentic), gr.update(visible=agentic)
@@ -104,7 +110,7 @@ def build() -> gr.Blocks:
         # Internal listeners stay off the API/MCP surface — only the three
         # typed ``gr.api`` tools (score_week / rank_region_week /
         # explain_score) are exposed.
-        comp = {**b, **s, **i, **a,
+        comp = {**b, **s, **i, **a, **f,
                 "selected": selected, "scored": scored, "agent_store": agent_store}
         select_outputs = [comp[k] for k in SELECT_KEYS]
         fetch_outputs = [comp[k] for k in FETCH_KEYS]
@@ -151,7 +157,12 @@ def build() -> gr.Blocks:
             s["fetch_forecast"], inputs=[selected, b["skill_dd"]], outputs=fetch_outputs,
             show_progress="minimal", api_name=False,
         )
-        s["narrate_btn"].click(s["narrate"], inputs=scored, outputs=s["report_md"],
+        # -- intel rail: pill tabs swap the three feature columns --
+        i["tab_picker"].change(i["pick"], inputs=i["tab_picker"],
+                               outputs=[i["report_col"], i["world_col"], i["climate_col"]],
+                               api_name=False)
+        # the report button lives in the intel rail; its handler stays story-side
+        i["narrate_btn"].click(s["narrate"], inputs=scored, outputs=i["report_md"],
                                show_progress="minimal", api_name=False)
         # -- agent: chat streams trace cards + meter + verdict + charts --
         chat_inputs = [a["msg"], a["chatbot"], b["skill_dd"], a["token_box"],

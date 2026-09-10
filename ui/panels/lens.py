@@ -9,52 +9,12 @@ records, so no extra session state is needed here.
 
 from __future__ import annotations
 
-import pandas as pd
-
 import gradio as gr
 
 from ui import _compat as C
 from ui.charts import climate as climate_chart
 from ui.charts import map as map_chart
 from ui.contracts import SELECT_KEYS, fill
-
-
-def _join(value) -> str:
-    if isinstance(value, list):
-        return ", ".join(str(v) for v in value)
-    return "" if value is None else str(value)
-
-
-def break_to_table(break_: dict) -> pd.DataFrame:
-    """Flatten one break record into a Field/Value table."""
-    loc = (break_ or {}).get("location", {}) or {}
-    coords = loc.get("coordinates", {}) or {}
-    swell = (break_ or {}).get("idealSwell", {}) or {}
-    swell_size = swell.get("sizeRangeFt", {}) or {}
-    wind = (break_ or {}).get("idealWind", {}) or {}
-    tide = (break_ or {}).get("idealTide", {}) or {}
-    rows = [
-        ("Name", break_.get("name", "")),
-        ("State", break_.get("state", "")),
-        ("Region", break_.get("region", "")),
-        ("Description", break_.get("description", "")),
-        ("Skill level", break_.get("skillLevel", "")),
-        ("Break type", break_.get("breakType", "")),
-        ("Peak type", break_.get("peakType", "")),
-        ("Latitude", coords.get("lat", "")),
-        ("Longitude", coords.get("lng", "")),
-        ("Ideal swell", _join(swell.get("direction", ""))),
-        ("Swell size (ft)", f"{swell_size.get('min', '?')}–{swell_size.get('max', '?')}"),
-        ("Ideal wind", f"{_join(wind.get('direction', ''))} ({wind.get('type', '')})"),
-        ("Ideal tide", _join(tide.get("stage", ""))),
-        ("Best season", _join(break_.get("bestSeason", ""))),
-        ("Hazards", _join(break_.get("hazards", ""))),
-        ("Crowd", break_.get("crowdFactor", "")),
-    ]
-    return pd.DataFrame(rows, columns=["Field", "Value"])
-
-
-_EMPTY_DETAILS = pd.DataFrame(columns=["Field", "Value"])
 
 
 def build_lens(records: list[dict], vocab: dict, selected):
@@ -79,8 +39,6 @@ def build_lens(records: list[dict], vocab: dict, selected):
         )
         map_plot = gr.Plot(map_chart.build_map(records, default_view=True))
         gr.HTML(map_chart.skill_legend_html())
-        with gr.Accordion("📖 break details", open=False):
-            details_df = gr.Dataframe(headers=["Field", "Value"], wrap=True)
 
     def state_regions(state: str) -> dict:
         regions = regions_by_state.get(state, all_regions) if state != C.ALL else all_regions
@@ -111,7 +69,7 @@ def build_lens(records: list[dict], vocab: dict, selected):
             profile = {}  # the stub rose would be fabricated data — stay honest
         monthly = C.get_climate_monthly(record)
         cam = C.get_surf_cam(record)
-        from ui.panels.story import format_badges
+        from ui.panels.story import format_badges, format_description
 
         fly_fig = (map_chart.build_map(filtered or [record], selected=record)
                    if fly else gr.skip())
@@ -121,6 +79,7 @@ def build_lens(records: list[dict], vocab: dict, selected):
             map_plot=fly_fig,
             spot_header=header,
             badges_md=format_badges(record, cam),
+            description_md=format_description(record),
             rose_plot=climate_chart.build_rose_fig(
                 profile, name,
                 ideal_dirs=(record.get("idealSwell") or {}).get("direction"),
@@ -129,7 +88,6 @@ def build_lens(records: list[dict], vocab: dict, selected):
                 monthly, name, window_label=profile.get("window_ft", ""),
             ),
             months_md=C.format_month_hint(monthly, profile),
-            details_df=break_to_table(record),
             selected=record,
         )
 
@@ -143,7 +101,7 @@ def build_lens(records: list[dict], vocab: dict, selected):
 
     return {
         "search_dd": search_dd, "state_dd": state_dd, "region_dd": region_dd,
-        "skill_dd": skill_dd, "map_plot": map_plot, "details_df": details_df,
+        "skill_dd": skill_dd, "map_plot": map_plot,
         "state_regions": state_regions, "filter_changed": filter_changed,
         "pick_by_name": pick_by_name, "select_spot": select_spot,
     }

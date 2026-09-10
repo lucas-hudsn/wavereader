@@ -1,11 +1,11 @@
-"""Story panel: the selected spot's week — chips, strip, report.
+"""Story panel: the selected spot's week — chips, strip (report is intel-side).
 
 ``fetch_forecast`` stays a *staged generator* so the spin-up reads as
 engines working, not a spinner: stage 1 lands the Open-Meteo fetch +
 week strip immediately (~ms warm), while the GEBCO world model resolves
 in a parallel thread and streams in as stage 2. Stage timings (feed,
-scorer, world model) land in the status line — the LLM never owns the
-numbers.
+scorer, world model) land in the page footer's status line — the LLM
+never owns the numbers.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def _join(value) -> str:
 
 
 def format_badges(record: dict | None, cam: dict | None = None) -> str:
-    """Spot identity as lo-fi chips: skill, type, tide, crowd, hazards, cam."""
+    """Spot identity as lo-fi chips: every break detail but the description."""
     b = record or {}
     if not b:
         return ""
@@ -49,10 +49,22 @@ def format_badges(record: dict | None, cam: dict | None = None) -> str:
     tide = _join((b.get("idealTide") or {}).get("stage"))
     if tide:
         parts.append(f'<span class="badge-chip">🌊 tide: {esc(tide)}</span>')
-    swell = (b.get("idealSwell") or {}).get("sizeRangeFt") or {}
-    if swell.get("min") is not None:
-        parts.append(f'<span class="badge-chip">📏 likes {swell.get("min", "?")}–'
-                     f'{swell.get("max", "?")} ft</span>')
+    swell = b.get("idealSwell") or {}
+    swell_dir = _join(swell.get("direction"))
+    if swell_dir:
+        parts.append(f'<span class="badge-chip">🧭 swell dir: {esc(swell_dir)}</span>')
+    size = swell.get("sizeRangeFt") or {}
+    if size.get("min") is not None:
+        parts.append(f'<span class="badge-chip">📏 likes {size.get("min", "?")}–'
+                     f'{size.get("max", "?")} ft</span>')
+    wind = b.get("idealWind") or {}
+    wind_bits = [_ for _ in (_join(wind.get("direction")), str(wind.get("type") or "")) if _]
+    if wind_bits:
+        parts.append(f'<span class="badge-chip">🌬 wind: {esc(", ".join(wind_bits))}</span>')
+    coords = (b.get("location") or {}).get("coordinates") or {}
+    if coords.get("lat") is not None and coords.get("lng") is not None:
+        parts.append(f'<span class="badge-chip">📍 {coords["lat"]:.3f}, '
+                     f'{coords["lng"]:.3f}</span>')
     if b.get("crowdFactor"):
         parts.append(f'<span class="badge-chip">👥 {esc(str(b["crowdFactor"]))}</span>')
     if b.get("bestSeason"):
@@ -64,6 +76,14 @@ def format_badges(record: dict | None, cam: dict | None = None) -> str:
         parts.append(f'<a class="badge-chip badge-link" href="{esc(str(cam["url"]))}" '
                      f'target="_blank" rel="noopener">📹 {label}</a>')
     return '<div class="badge-row">' + " ".join(parts) + "</div>"
+
+
+def format_description(record: dict | None) -> str:
+    """The break's own words, as a quiet paragraph under the badges."""
+    desc = html.escape((record or {}).get("description") or "").strip()
+    if not desc:
+        return "<div class='spot-desc spot-desc-empty'>no description on file for this spot</div>"
+    return f"<div class='spot-desc'>{desc}</div>"
 
 
 def _empty_seafloor():
@@ -198,12 +218,18 @@ def narrate(payload: dict | None):
 
 
 def build_story(selected, scored):
-    """Build the story column. Returns component dict for wiring."""
+    """Build the story column. Returns component dict for wiring.
+
+    The story column leads with the break itself: name, description,
+    then the detail chips and the daily ratings. The surf-report
+    feature lives in the intel
+    tabs (``ui/panels/intel.py``); the ``narrate`` handler stays here —
+    the wiring points the intel tab's button at it.
+    """
     with gr.Column(scale=4):
         spot_header = gr.Markdown("### pick a spot — search above or filter the map")
+        description_md = gr.Markdown()
         badges_md = gr.Markdown()
-        status_box = gr.Textbox(label="engines", interactive=False,
-                                placeholder="the spin-up line — feed, scorer, world model — lands here…")
         hero_md = gr.Markdown("_the week summary lands here._")
         with gr.Tabs():
             with gr.Tab("score"):
@@ -213,13 +239,23 @@ def build_story(selected, scored):
             with gr.Tab("wind"):
                 wind_plot = gr.Plot(label="wind — speed + direction")
         gr.Markdown(f"<div class='strip-caption'>{strip_chart.CAPTION}</div>")
-        narrate_btn = gr.Button("get surf report ✨", variant="secondary")
-        report_md = gr.Markdown("_no report yet — pick a spot, then get the surf report._")
 
     return {
-        "spot_header": spot_header, "badges_md": badges_md, "status_box": status_box,
-        "hero_md": hero_md, "score_plot": score_plot, "swell_plot": swell_plot,
+        "spot_header": spot_header, "badges_md": badges_md,
+        "description_md": description_md, "hero_md": hero_md,
+        "score_plot": score_plot, "swell_plot": swell_plot,
         "wind_plot": wind_plot,
-        "narrate_btn": narrate_btn, "report_md": report_md,
         "fetch_forecast": fetch_forecast, "narrate": narrate,
     }
+
+
+def build_footer():
+    """The page footer: the engines/latency line, out of the story's way.
+
+    Same component + contract key as before (``status_box`` in
+    FETCH_KEYS) — only its position on the page moved.
+    """
+    status_box = gr.Textbox(
+        label="engines", interactive=False, elem_classes=["foot-status"],
+        placeholder="idle — pick a spot and the spin-up line lands here…")
+    return {"status_box": status_box}

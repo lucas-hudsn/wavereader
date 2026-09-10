@@ -49,16 +49,20 @@ survives only as the fallback layer in `ui/_compat.py`.
 ## Deploying to HF Spaces
 
 - The Space `lucashudsn/wavereader` (public) *is* this repo — remote
-  `space`. Ship with `git push space v2:main`, then `git push origin v2`
-  to keep GitHub in sync. The Space builds from the pushed commit; watch
-  *Logs → Build* on the Space page or poll
+  `space`. Ship with `scripts/deploy_space.sh` (builds a throwaway commit
+  that prepends `space-config.yaml` to `README.md` and pushes it to
+  `space:main` — Spaces need YAML frontmatter, GitHub doesn't have to see
+  it), then `git push origin v2` to keep GitHub in sync. The Space builds
+  from the pushed commit; watch *Logs → Build* on the Space page or poll
   `HfApi().get_space_runtime("lucashudsn/wavereader")` until `RUNNING`.
-- The YAML block at the top of `README.md` is the Space config. Keep
+- `space-config.yaml` is the Space config. Keep
   `sdk_version` in lockstep with the gradio pin in `requirements.txt`
   (regenerate that file only via `uv export --no-hashes
   --format requirements-txt --no-dev -o requirements.txt` — other
   invocations can leave stray progress lines that break pip), and
   `python_version` in lockstep with `pyproject.toml`'s `requires-python`.
+  If you change Space settings via the web UI, HF rewrites the Space's
+  `README.md` — mirror anything you care about back into the yaml.
 - `HF_TOKEN` is a Space secret (set once via *Settings → Variables and
   secrets* or `HfApi().add_space_secret`); `WR_*` overrides can be added
   the same way. `.cache/` is ephemeral on the Space and rebuilds lazily —

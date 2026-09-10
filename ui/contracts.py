@@ -11,8 +11,8 @@ from __future__ import annotations
 
 # Picking a spot (search box / default on load): static story + intel.
 SELECT_KEYS = (
-    "search_dd", "map_plot", "spot_header", "badges_md", "rose_plot",
-    "year_plot", "months_md", "details_df", "selected",
+    "search_dd", "map_plot", "spot_header", "badges_md", "description_md",
+    "rose_plot", "year_plot", "months_md", "selected",
 )
 
 # The staged forecast fetch: status, hero, strip, world model, state.

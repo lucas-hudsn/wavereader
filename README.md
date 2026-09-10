@@ -1,17 +1,3 @@
----
-title: wave~reader
-emoji: 🏄
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 6.26.0
-python_version: "3.14"
-app_file: app.py
-license: mit
-pinned: false
-short_description: Surf-forecast world model for the Australian coast
----
-
 # wave~reader
 
 **A surf-forecasting world model for the Australian coast: 238 breaks, 168
@@ -130,21 +116,26 @@ is session-only and never logged.
 ## Deploying to HF Spaces
 
 The app is live at [huggingface.co/spaces/lucashudsn/wavereader](https://huggingface.co/spaces/lucashudsn/wavereader).
-The Space *is* this git repo — the `space` remote points at it — and the
-YAML block at the top of this README is the Space config: `sdk_version`
-must match the gradio pin in `requirements.txt`, and `app_file` is `app.py`.
+The Space _is_ this git repo — the `space` remote points at it. Spaces
+read their config from YAML frontmatter at the top of `README.md`, but
+GitHub renders that block as an ugly metadata table, so it lives in
+`space-config.yaml` instead and `deploy_space.sh` prepends it in a
+throwaway commit at push time. Keep `sdk_version` in lockstep with the
+gradio pin in `requirements.txt`. If you change Space settings through
+the web UI, HF commits them into the Space's `README.md` — mirror
+anything you care about back into `space-config.yaml`.
 
 ```sh
-git push space v2:main   # ship whatever is committed on v2
-git push origin v2       # keep GitHub in sync
+scripts/deploy_space.sh   # ship what's committed
+git push origin branch_name        # keep GitHub in sync
 ```
 
 The push asks for credentials: username `lucashudsn`, password = an HF
 token with write access (https://huggingface.co/settings/tokens). The
-build takes a few minutes; watch it under the Space's *Logs → Build* tab
+build takes a few minutes; watch it under the Space's _Logs → Build_ tab
 or poll `HfApi().get_space_runtime("lucashudsn/wavereader")`.
 
-Secrets live in the Space's *Settings → Variables and secrets* —
+Secrets live in the Space's _Settings → Variables and secrets_ —
 `HF_TOKEN` is already set, which is what lets the agent and narrator work
 for visitors. `WR_MODEL` / `WR_PROVIDER` / `WR_BASE_URL` can be added the
 same way if you ever want to reroute the LLM. Caches under `.cache/` are

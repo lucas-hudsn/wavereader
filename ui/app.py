@@ -65,7 +65,7 @@ def build() -> gr.Blocks:
                 with gr.Column(scale=5, min_width=220):
                     gr.Markdown("# wave~reader", elem_classes=["hero-title"])
                     gr.Markdown("smart forecasting for australia's coast — 238 breaks scored "
-                                "hour by hour (0–10) from live marine data, real seafloor and "
+                                "hour by hour (0–10) from live marine data, real seafloor data and "
                                 "each spot's ideal conditions.", elem_classes=["hero-sub"])
                 with gr.Column(scale=2, min_width=280, elem_classes=["hero-right"]):
                     mode_toggle = gr.Radio(

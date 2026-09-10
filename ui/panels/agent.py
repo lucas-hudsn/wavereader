@@ -17,8 +17,8 @@ scored week.
 User controls in the bar: depth radio (quick/standard/deep → budget
 profile) and a region-focus dropdown that anchors "where should I surf"
 sweeps. Both are plain component inputs — session state stays at exactly
-three ``gr.State`` objects. Skill comes from the story panel's "score for"
-control — one skill, whole page.
+three ``gr.State`` objects. Skill comes from the lens panel's Skill
+filter — one skill, whole page.
 
 The BYO HF token box is session-only: the value is passed straight to the
 agent factory per turn, never stored, never logged.
@@ -359,7 +359,7 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
     history = [*history, {"role": "user", "content": text}, {"role": "assistant", "content": ""}]
     yield emit("⏳ Agent thinking…")
 
-    skill = (skill or "intermediate").strip().lower()
+    skill = C.scoring_skill(skill)
     try:
         stream = C.agent_run_stream(text, skill=skill, hf_token=hf_token or "",
                                     selected_break=selected, profile=profile_name,
@@ -532,7 +532,7 @@ def ctx_line(skill: str, selected: dict | None, depth: str,
     caps = profiles.get((depth or "standard").strip().lower()) or profiles.get("standard") or {}
     focus = "auto (map pick)" if (not region or region == "auto") else str(region)
     view = f"{name}" + (f" — {reg}" if reg else "")
-    return (f"scoring for **{skill or 'intermediate'}** · viewing **{view}** · "
+    return (f"scoring for **{C.scoring_skill(skill)}** · viewing **{view}** · "
             f"focus **{focus}** · depth **{depth or 'standard'}** "
             f"({caps.get('max_steps', '?')} steps / "
             f"{caps.get('score_week_calls', '?')} score_week)")

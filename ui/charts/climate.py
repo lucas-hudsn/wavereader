@@ -24,6 +24,8 @@ hovering):
 
 from __future__ import annotations
 
+import math
+
 _DIRECTIONS_16 = [
     "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
     "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
@@ -74,18 +76,31 @@ def _dominant(rose: dict[str, float], n: int = 2) -> tuple[list[tuple[str, float
     return ranked[:n], round(sum(p for _, p in ranked[:n]), 1)
 
 
+def _radial_scale(vmax: float) -> tuple[int, list[int]]:
+    """Nice outer ring + at most 3 radial tick stops for a "% of days" axis.
+
+    Picks a coarse step (5/10/25) so the ring lands on a round number just
+    above the data max — stops the old 25%/28% label pile-up.
+    """
+    coarse = 5 if vmax <= 15 else 10 if vmax <= 60 else 25
+    rmax = math.ceil(vmax / coarse) * coarse
+    return int(rmax), list(range(coarse, int(rmax) + 1, coarse))[-3:]
+
+
 def build_rose_fig(profile: dict | None, name: str = "",
                    ideal_dirs: list[str] | None = None):
     """Polar bar rose of swell-direction frequency (%) from a climate profile.
 
     ``profile`` shape: ``{"rose": {dir: pct}, ...}``. Full ink for the top-3
-    bins, muted for the rest. A subtitle states the dominant swell in words
-    ("SW carries 63% of days"); the break's stated ideal directions (from
-    ``idealSwell.direction``) are marked ◇ so stated-vs-observed agreement
-    reads at a glance. Empty profile → placeholder.
+    bins, muted for the rest, separated by paper seams so the rose reads as
+    petals rather than a solid pie. A subtitle states the dominant swell in
+    words ("SW carries 63% of days"); the break's stated ideal directions
+    (from ``idealSwell.direction``) are marked ◇ on a ring just outside the
+    outer % gridline, so stated-vs-observed agreement reads at a glance.
+    Empty profile → placeholder.
     """
     import plotly.graph_objects as go
-    from ui.charts._style import GRID, INK, MUTED, style_fig
+    from ui.charts._style import GRID, INK, MUTED, PAPER, style_fig
 
     rose = (profile or {}).get("rose") or {}
     vals = [float(rose.get(d, 0) or 0) for d in _DIRECTIONS_16]
@@ -94,7 +109,7 @@ def build_rose_fig(profile: dict | None, name: str = "",
         fig.add_annotation(
             text="no ERA5 profile for this spot yet<br><sub>its 5-yr swell climate lands here when built</sub>",
             showarrow=False, font={"size": 13})
-        fig.update_layout(height=300, margin={"l": 30, "r": 30, "t": 50, "b": 20})
+        fig.update_layout(height=360, margin={"l": 30, "r": 30, "t": 50, "b": 20})
         return fig
     top = _top_n_indices(vals, 3)
     fig = go.Figure(
@@ -103,7 +118,7 @@ def build_rose_fig(profile: dict | None, name: str = "",
             theta=_DIRECTIONS_16,
             marker={
                 "color": [INK if i in top else MUTED for i in range(16)],
-                "line": {"width": 0.5, "color": INK},
+                "line": {"width": 1.0, "color": PAPER},
             },
             hovertemplate="%{theta}: %{r:.1f}% of days<extra></extra>",
             name="swell direction",
@@ -114,32 +129,34 @@ def build_rose_fig(profile: dict | None, name: str = "",
     dom, top_share = _dominant(rose, 2)
     subtitle = (f"dominant swell {dom[0][0]} — {dom[0][1]:.0f}% of days · "
                 f"top-2 carry {top_share:.0f}%")
+    vmax = max(vals)
+    rmax, rticks = _radial_scale(vmax)
     stated = [str(d).strip().upper() for d in (ideal_dirs or [])]
     stated = [d for d in stated if d in _DIRECTIONS_16]
-    vmax = max(vals)
     if stated:
         subtitle += " · ◇ stated ideal"
+        ring = rmax * 1.14  # the ◇ track rides just outside the outer % ring
         fig.add_trace(
             go.Scatterpolar(
-                r=[vmax * 1.08] * len(stated),
+                r=[ring] * len(stated),
                 theta=stated,
                 mode="markers",
-                marker={"symbol": "diamond-open", "size": 9,
+                marker={"symbol": "diamond", "size": 8, "color": PAPER,
                         "line": {"width": 1.5, "color": INK}},
                 hovertemplate="stated ideal: %{theta}<extra>dataset idealSwell</extra>",
                 name="stated ideal",
                 showlegend=False,
             )
         )
-    ticks = sorted({t for t in (10, 25, 50, 75) if t < vmax} | {round(vmax)})
     fig.update_layout(
         title={
             "text": (f"swell climate — {name}" if name else "swell climate")
                     + f"<br><sub>{subtitle}</sub>",
             "font": {"size": 13},
         },
-        height=340,
-        margin={"l": 30, "r": 30, "t": 70, "b": 20},
+        height=360,
+        margin={"l": 20, "r": 20, "t": 70, "b": 34},
+        showlegend=False,
         polar={
             "angularaxis": {
                 "direction": "clockwise",
@@ -148,15 +165,23 @@ def build_rose_fig(profile: dict | None, name: str = "",
                 "tickmode": "array",
                 "tickvals": _DIRECTIONS_16[::2],
                 "ticktext": _DIRECTIONS_16[::2],
+                "tickfont": {"size": 11},
                 "gridcolor": GRID,
+                "gridwidth": 1,
                 "linecolor": GRID,
             },
             "radialaxis": {
+                "range": [0, rmax * 1.28],
+                "angle": 0,  # % scale lies along east so tick text stays horizontal
+                "side": "counterclockwise",
                 "tickmode": "array",
-                "tickvals": ticks,
-                "ticktext": [f"{t}%" for t in ticks],  # ticksuffix dies in array mode
+                "tickvals": rticks,
+                "ticktext": [f"{t}%" for t in rticks],  # suffix must ride the text
+                "tickfont": {"size": 9, "color": MUTED},
                 "gridcolor": GRID,
-                "linecolor": GRID,
+                "gridwidth": 1,
+                "linecolor": "rgba(0,0,0,0)",
+                "showticklabels": True,
             },
             "bgcolor": "rgba(0,0,0,0)",
         },

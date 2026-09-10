@@ -130,11 +130,24 @@ button.primary:hover, button.lg.primary:hover {
     border-color: #0b2c5c !important;
     color: #0b2c5c !important;
 }
-/* dropdown value + its open option list: compact type — the Gradio defaults
-   (14px field, 16px inherited list) read oversized next to the 12px labels */
+/* dropdown value + its open option list: legible 14px type matching the
+   block labels. Gradio pins the open list's width to the field via an
+   inline style — widen it to fit its longest option so names like
+   "New South Wales" stay on one line instead of wrapping mid-word */
 .gradio-container .secondary-wrap input,
 ul.options .item {
-    font-size: 13px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+}
+ul.options {
+    width: fit-content !important;
+    min-width: fit-content !important;
+    max-width: min(90vw, 480px) !important;
+}
+ul.options .item {
+    width: auto !important;  /* Gradio inline-pins each row to the field width */
+    white-space: nowrap !important;
+    word-break: normal !important;
 }
 .gradio-container table, .gradio-container thead,
 .gradio-container tbody, .gradio-container th,

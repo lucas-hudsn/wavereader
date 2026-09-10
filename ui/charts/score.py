@@ -3,7 +3,7 @@
 Deterministic: pure functions over typed tool payloads (lists of scored
 hour dicts). Chart traces live in :mod:`ui.charts.strip`; this module
 owns the numbers behind them — daily bests, the p75 consistency summary,
-sunrise/sunset markers, and the hero/best markdown formatters.
+and the hero/best markdown formatters.
 """
 
 from __future__ import annotations
@@ -121,26 +121,6 @@ def daily_summary(scored: list[dict]) -> list[dict]:
             }
         )
     return out
-
-
-def add_sun_markers(fig: go.Figure, sun: dict | None,
-                    row: int | None = None, col: int | None = None) -> go.Figure:
-    """Overlay sunrise (dotted gold) / sunset (dashed orange) verticals.
-
-    ``sun`` is the daily frame (``{"sunrise": [...], "sunset": [...]}``);
-    no-op when absent. ``row``/``col`` target a subplot grid cell.
-    """
-    if not isinstance(sun, dict):
-        return fig
-    kw = {} if row is None else {"row": row, "col": col}
-    for key, color, dash in (("sunrise", "#b8860b", "dot"), ("sunset", "#ff7f0e", "dash")):
-        times = sun.get(key) or []
-        for t in list(times)[:7]:
-            try:
-                fig.add_vline(x=t, line_width=1, line_dash=dash, line_color=color, **kw)
-            except (TypeError, ValueError):
-                continue
-    return fig
 
 
 def format_best(best: dict | None, label: str | None = None,

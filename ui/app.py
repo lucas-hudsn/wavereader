@@ -117,7 +117,7 @@ def build() -> gr.Blocks:
             return b["select_spot"](record, None, fly=False)
 
         demo.load(_on_load, inputs=None, outputs=select_outputs, api_name=False).then(
-            s["fetch_forecast"], inputs=[selected, s["skill_dd"]], outputs=fetch_outputs,
+            s["fetch_forecast"], inputs=[selected, b["skill_dd"]], outputs=fetch_outputs,
             show_progress="minimal", api_name=False,
         )
 
@@ -129,29 +129,32 @@ def build() -> gr.Blocks:
             b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
             outputs=[b["map_plot"], b["search_dd"]], api_name=False,
         )
-        for dd in (b["region_dd"], b["skill_dd"]):
-            dd.change(
-                b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
-                outputs=[b["map_plot"], b["search_dd"]], api_name=False,
-            )
+        b["region_dd"].change(
+            b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
+            outputs=[b["map_plot"], b["search_dd"]], api_name=False,
+        )
+        # the Skill filter doubles as the scoring tier: refilter the map,
+        # then rescore the picked spot's week at that level
+        b["skill_dd"].change(
+            b["filter_changed"], inputs=[b["state_dd"], b["region_dd"], b["skill_dd"]],
+            outputs=[b["map_plot"], b["search_dd"]], api_name=False,
+        ).then(
+            s["fetch_forecast"], inputs=[selected, b["skill_dd"]], outputs=fetch_outputs,
+            show_progress="minimal", api_name=False,
+        )
         # -- picking a spot re-tells the page, then auto-fetches its week --
         b["search_dd"].change(
             b["pick_by_name"],
             inputs=[b["search_dd"], b["state_dd"], b["region_dd"], b["skill_dd"]],
             outputs=select_outputs, api_name=False,
         ).then(
-            s["fetch_forecast"], inputs=[selected, s["skill_dd"]], outputs=fetch_outputs,
-            show_progress="minimal", api_name=False,
-        )
-        # -- story: skill refetches the week at the new level --
-        s["skill_dd"].change(
-            s["fetch_forecast"], inputs=[selected, s["skill_dd"]], outputs=fetch_outputs,
+            s["fetch_forecast"], inputs=[selected, b["skill_dd"]], outputs=fetch_outputs,
             show_progress="minimal", api_name=False,
         )
         s["narrate_btn"].click(s["narrate"], inputs=scored, outputs=s["report_md"],
                                show_progress="minimal", api_name=False)
         # -- agent: chat streams trace cards + meter + verdict + charts --
-        chat_inputs = [a["msg"], a["chatbot"], s["skill_dd"], a["token_box"],
+        chat_inputs = [a["msg"], a["chatbot"], b["skill_dd"], a["token_box"],
                        selected, agent_store, a["depth_radio"], a["region_dd"]]
         a["send_btn"].click(
             a["chat"], inputs=chat_inputs, outputs=agent_outputs,
@@ -176,9 +179,9 @@ def build() -> gr.Blocks:
             )
         # -- agent context line: what the bar inherits from the page --
         ctx_outputs = [a["ctx_md"]]
-        for trigger in (selected, s["skill_dd"], a["depth_radio"], a["region_dd"]):
+        for trigger in (selected, b["skill_dd"], a["depth_radio"], a["region_dd"]):
             trigger.change(
-                a["ctx"], inputs=[s["skill_dd"], selected, a["depth_radio"],
+                a["ctx"], inputs=[b["skill_dd"], selected, a["depth_radio"],
                                   a["region_dd"]],
                 outputs=ctx_outputs, api_name=False,
             )

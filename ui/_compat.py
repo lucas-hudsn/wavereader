@@ -107,6 +107,19 @@ def filter_records(records: list[dict], state: str | None = None,
     return out
 
 
+DEFAULT_SKILL = "intermediate"
+
+
+def scoring_skill(skill: str | None) -> str:
+    """Map a lens Skill-filter value to a concrete scoring tier.
+
+    The filter's ``All`` (and blank) mean "no catalogue filter", but the
+    scoring engine needs a real tier — fall back to ``intermediate``.
+    """
+    s = (skill or "").strip().lower()
+    return DEFAULT_SKILL if not s or s == ALL.lower() else s
+
+
 def find_break(records: list[dict], name: str | None) -> dict | None:
     """Find a record by name (fuzzy via the real core, exact fallback)."""
     if not name:

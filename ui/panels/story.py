@@ -17,13 +17,10 @@ import time
 import gradio as gr
 
 from ui import _compat as C
-from ui import _stubs as _stub
 from ui.charts import score as score_chart
 from ui.charts import seafloor as seafloor_chart
 from ui.charts import strip as strip_chart
 from ui.contracts import FETCH_KEYS, fill
-
-_SKILLS = _stub.SKILL_ORDER
 
 
 def _fmt_ms(ms: float) -> str:
@@ -93,7 +90,7 @@ def fetch_forecast(selected: dict | None, skill: str, progress=gr.Progress()):
     period) + depth map + transects. Every stage prints its engine and
     latency to the status line.
     """
-    skill = (skill or "intermediate").strip().lower()
+    skill = C.scoring_skill(skill)
     if not selected:
         yield _fail("⚠️ Pick a spot — search above or filter the map.")
         return
@@ -124,8 +121,7 @@ def fetch_forecast(selected: dict | None, skill: str, progress=gr.Progress()):
     t1 = time.perf_counter()
     scored = payload.get("scored", []) or []
     spot = payload.get("spot", {}) or {}
-    score_fig, swell_fig, wind_fig = strip_chart.build_tabbed_figs(
-        scored, spot, payload.get("sun"))
+    score_fig, swell_fig, wind_fig = strip_chart.build_tabbed_figs(scored, spot)
     summary = score_chart.daily_summary(scored)
     hero = score_chart.format_hero(summary, selected.get("name", "?"))
     score_ms = (time.perf_counter() - t1) * 1000
@@ -204,11 +200,7 @@ def narrate(payload: dict | None):
 def build_story(selected, scored):
     """Build the story column. Returns component dict for wiring."""
     with gr.Column(scale=4):
-        with gr.Row():
-            spot_header = gr.Markdown("### pick a spot — search above or filter the map",
-                                      scale=3)
-            skill_dd = gr.Dropdown(_SKILLS, value="intermediate", label="score for",
-                                   scale=1, min_width=170)
+        spot_header = gr.Markdown("### pick a spot — search above or filter the map")
         badges_md = gr.Markdown()
         status_box = gr.Textbox(label="engines", interactive=False,
                                 placeholder="the spin-up line — feed, scorer, world model — lands here…")
@@ -219,15 +211,15 @@ def build_story(selected, scored):
             with gr.Tab("swell"):
                 swell_plot = gr.Plot(label="swell — height + period")
             with gr.Tab("wind"):
-                wind_plot = gr.Plot(label="wind — arrows (see caption)")
+                wind_plot = gr.Plot(label="wind — speed + direction")
         gr.Markdown(f"<div class='strip-caption'>{strip_chart.CAPTION}</div>")
-        narrate_btn = gr.Button("narrate the week ✨", variant="secondary")
-        report_md = gr.Markdown("_no report yet — pick a spot, then narrate the week._")
+        narrate_btn = gr.Button("get surf report ✨", variant="secondary")
+        report_md = gr.Markdown("_no report yet — pick a spot, then get the surf report._")
 
     return {
         "spot_header": spot_header, "badges_md": badges_md, "status_box": status_box,
         "hero_md": hero_md, "score_plot": score_plot, "swell_plot": swell_plot,
         "wind_plot": wind_plot,
-        "skill_dd": skill_dd, "narrate_btn": narrate_btn, "report_md": report_md,
+        "narrate_btn": narrate_btn, "report_md": report_md,
         "fetch_forecast": fetch_forecast, "narrate": narrate,
     }

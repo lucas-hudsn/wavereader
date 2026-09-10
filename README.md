@@ -1,3 +1,17 @@
+---
+title: wave~reader
+emoji: 🏄
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 6.26.0
+python_version: "3.14"
+app_file: app.py
+license: mit
+pinned: false
+short_description: Surf-forecast world model for the Australian coast
+---
+
 # wave~reader
 
 **A surf-forecasting world model for the Australian coast: 238 breaks, 168

@@ -67,6 +67,18 @@ def resolve_budget(profile: Optional[str] = None) -> tuple[str, dict[str, int]]:
     return key, BUDGETS[key]
 
 
+def budget_for_steps(steps: int) -> dict[str, int]:
+    """Derive a full budget from a step count (UI slider path).
+
+    Reproduces the named profiles exactly at their step counts
+    (4 → quick, 6 → standard, 10 → deep): 100 tokens + 100 per step,
+    one score_week call per ~3 steps.
+    """
+    s = max(1, int(steps))
+    return {"max_steps": s, "max_tokens": 100 + 100 * s,
+            "score_week_calls": max(1, round(s / 3))}
+
+
 SYSTEM_PROMPT = """You are wave~reader, a surf forecasting assistant for Australian breaks. States use full names (New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania) with codes NSW/QLD/VIC/WA/SA/TAS as aliases. Skill tiers: beginner/intermediate/advanced/expert.
 
 RULES:
@@ -175,12 +187,16 @@ def create_agent(
 
     Args:
         hf_token: HF token (falls back to ``HF_TOKEN`` env).
-        max_steps: Per-turn step cap; None uses the profile's steps.
+        max_steps: Per-turn step cap; when set, token + score_week caps
+            derive from it (:func:`budget_for_steps`), else the profile's.
         model: Optional prebuilt smolagents model (injected by dry-run/tests
             so no network or token is needed offline).
         profile: Budget profile name (quick/standard/deep).
     """
     _key, budget = resolve_budget(profile)
+    if max_steps is not None:
+        # Explicit step cap wins: derive tokens + score_week cap from it.
+        budget = budget_for_steps(max_steps)
     model_obj = model if model is not None else _llm.build_agent_model(
         hf_token, max_tokens=budget["max_tokens"], temperature=MODEL_TEMPERATURE, timeout=MODEL_TIMEOUT
     )
@@ -190,13 +206,13 @@ def create_agent(
         return CodeAgent(
             tools=tools,
             model=model_obj,
-            max_steps=max_steps if max_steps is not None else budget["max_steps"],
+            max_steps=budget["max_steps"],
         )
     return ToolCallingAgent(
         tools=tools,
         model=model_obj,
         prompt_templates=_prompt_templates(),
-        max_steps=max_steps if max_steps is not None else budget["max_steps"],
+        max_steps=budget["max_steps"],
     )
 
 
@@ -212,17 +228,22 @@ def run_stream(
     Args:
         question: User question (wrapped as untrusted <data>, never instructions).
         hf_token: HF token override.
-        max_steps: Per-turn step cap; None uses the profile's steps.
+        max_steps: Per-turn step cap; when set, token + score_week caps
+            derive from it (:func:`budget_for_steps`), else the profile's.
         model: Optional prebuilt model (dry-run/tests).
         profile: Budget profile name (quick/standard/deep).
     """
     profile_key, budget = resolve_budget(profile)
+    if max_steps is not None:
+        # Explicit step cap wins: derive tokens + score_week cap from it.
+        budget = budget_for_steps(max_steps)
+        profile_key = "custom"
     counter: dict[str, int] = {}
     model_obj = model if model is not None else _llm.build_agent_model(
         hf_token, max_tokens=budget["max_tokens"], temperature=MODEL_TEMPERATURE, timeout=MODEL_TIMEOUT
     )
     tools = build_tools(counter, score_week_cap=budget["score_week_calls"])
-    steps_cap = max_steps if max_steps is not None else budget["max_steps"]
+    steps_cap = budget["max_steps"]
     if os.environ.get("WR_AGENT", "").strip().lower() == "code":
         agent: Any = CodeAgent(tools=tools, model=model_obj, max_steps=steps_cap)
     else:

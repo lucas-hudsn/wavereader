@@ -27,29 +27,32 @@ CHATBOT = contracts.AGENT_KEYS.index("chatbot")
 _BELLS_ARGS = {"spot_name": "Bells Beach", "region": "Victoria"}
 
 
-def _fake_stream(obs, tool_name: str, args: dict, final: str):
+def _tool_events(name: str, args: dict, obs) -> list[tuple]:
+    return [("tool_call", {"name": name, "arguments": args}),
+            ("tool_result", {"name": name, "arguments": args,
+                             "observation": obs, "summary": "ok",
+                             "ms": 1.0, "preview": ""})]
+
+
+def _run(monkeypatch, events: list[tuple], final: str, query: str):
     def stream(message, **kwargs):
         yield ("step", {"n": 1})
-        yield ("tool_call", {"name": tool_name, "arguments": args})
-        yield ("tool_result", {"name": tool_name, "arguments": args,
-                               "observation": obs, "summary": "ok",
-                               "ms": 1.0, "preview": ""})
+        yield from events
         yield ("final", final)
-        yield ("usage", {"steps": 1, "tool_calls": {tool_name: 1},
-                         "profile": "standard"})
-    return stream
-
-
-def _last_emit(monkeypatch, obs, tool_name: str, args: dict,
-               final: str = "**Best: Bells Beach @ Sat am — 6/10.**"):
-    monkeypatch.setattr(C, "agent_run_stream",
-                        _fake_stream(obs, tool_name, args, final))
+        yield ("usage", {"steps": 1, "profile": "standard"})
+    monkeypatch.setattr(C, "agent_run_stream", stream)
     records = C.list_breaks()
     selected = C.find_break(records, "Bells Beach")
     assert selected is not None, "Bells Beach must resolve from the catalogue"
-    outs = list(agent_panel.chat_fn(
-        "test question", [], "intermediate", "", selected,
-        agent_panel.fresh_store(), "standard", "auto", records))
+    return list(agent_panel.chat_fn(
+        query, [], "intermediate", "", selected,
+        agent_panel.fresh_store(), "standard", C.ALL, C.ALL, records))
+
+
+def _last_emit(monkeypatch, obs, tool_name: str, args: dict,
+               final: str = "**Best: Bells Beach @ Sat am — 6/10.**",
+               query: str = "test question"):
+    outs = _run(monkeypatch, _tool_events(tool_name, args, obs), final, query)
     return outs, outs[-1]
 
 
@@ -160,3 +163,86 @@ def test_scored_turn_still_charts_strip_midway(monkeypatch):
     charted = [o[strip] for o in outs if isinstance(o[strip], go.Figure)]
     assert charted, "mid-turn week strip never rendered"
     assert not isinstance(last[strip], go.Figure) or charted[-1] is last[strip]
+
+
+def _scored_obs(spot_name: str, region: str, score: float) -> dict:
+    hours = [{"time": f"2026-09-09T{h:02d}:00", "score": score - (h % 3) * 0.5,
+              "wave_height_m": 1.2, "wave_period_s": 9.0,
+              "wind_speed_kt": 7.0, "wind_direction_deg": 220,
+              "daylight": True} for h in range(6, 18)]
+    return {"spot": {"name": spot_name, "region": region},
+            "skill": "intermediate", "scored": hours,
+            "daily": [], "best": hours[0], "stub": True}
+
+
+def test_where_query_sweeps_region_when_agent_didnt_rank(monkeypatch):
+    # A recommendation question the agent answered without a rank sweep
+    # still closes on the recommended-scores leaderboard: the panel runs a
+    # deterministic engine sweep of the region named in the question
+    # (NSW -> New South Wales), never the viewed spot's unrelated week.
+    sweep = {"region": "New South Wales", "skill": "intermediate", "count": 2,
+             "spots": [
+                 {"name": "Bondi Beach", "region": "Sydney",
+                  "best_score": 6.5, "best_time": "2026-09-12T07:00"},
+                 {"name": "Byron Bay", "region": "Northern Rivers",
+                  "best_score": 5.5, "best_time": "2026-09-12T08:00"},
+             ]}
+    monkeypatch.setattr(C, "api_rank_region_week",
+                        lambda region, skill="intermediate", limit=10: sweep)
+    monkeypatch.setattr(C, "get_scored_week", lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("viewed-spot fallback must not run when the sweep hits")))
+    obs = _tools.get_spot_knowledge(**_BELLS_ARGS)
+    assert "error" not in obs
+    _outs, last = _last_emit(
+        monkeypatch, obs, "get_spot_knowledge", _BELLS_ARGS,
+        query="Where should I surf in NSW this weekend as a beginner?")
+    fig = last[AGENT_STRIP]
+    assert isinstance(fig, go.Figure)
+    assert any(getattr(t, "orientation", None) == "h" for t in fig.data)
+    assert "recommended breaks — New South Wales" in last[CHATBOT][-1]["content"]
+
+
+def test_seafloor_query_prefers_depth_map_over_leaderboard(monkeypatch):
+    # When the question asks about the seafloor, the depth map wins even
+    # with a rank sweep payload on the table — the chart matches the
+    # question, not the tool order.
+    rank_obs = {"region": "Victoria", "skill": "intermediate", "count": 1,
+                "spots": [{"name": "Bells Beach", "region": "Surf Coast",
+                           "best_score": 7.5, "best_time": "2026-09-12T06:00"}]}
+    seafloor_obs = _tools.get_seafloor_profile(**_BELLS_ARGS)
+    assert "error" not in seafloor_obs
+    grid = {"lats": [-38.31, -38.30, -38.29], "lngs": [144.29, 144.30, 144.31],
+            "elev": [-20.0, -12.0, -6.0, -14.0, -8.0, -4.0,
+                     -10.0, -5.0, -1.0],
+            "n": 3, "center": {"lat": -38.30, "lng": 144.30}}
+    monkeypatch.setattr(C, "get_seafloor",
+                        lambda br, radius_km=1.2: {"grid": grid, "analysis": "",
+                                                   "stats": {}})
+    events = _tool_events("rank_region_week", {"region": "Victoria"}, rank_obs)
+    events += _tool_events("get_seafloor_profile", _BELLS_ARGS, seafloor_obs)
+    outs = _run(monkeypatch, events,
+                "**Best: Bells Beach @ Sat am — 6/10.**",
+                "What's the seafloor like at Bells Beach?")
+    fig = outs[-1][AGENT_STRIP]
+    assert isinstance(fig, go.Figure)
+    assert any(t.type == "heatmap" for t in fig.data)
+    assert not any(getattr(t, "orientation", None) == "h" for t in fig.data)
+
+
+def test_compare_query_charts_multi_spot_scores(monkeypatch):
+    # Two score_week calls in one turn -> the turn closes on the
+    # side-by-side best-score compare, not just the last spot's strip.
+    events = []
+    for name, region, score in (("Bells Beach", "Victoria", 7.0),
+                                ("Snapper Rocks", "Queensland", 5.0)):
+        args = {"spot_name": name, "region": region}
+        events += _tool_events("score_week", args,
+                               _scored_obs(name, region, score))
+    outs = _run(monkeypatch, events,
+                "**Best: Bells Beach @ Sun am — 7/10.**",
+                "Compare Bells Beach and Snapper Rocks this weekend.")
+    last = outs[-1]
+    fig = last[AGENT_STRIP]
+    assert isinstance(fig, go.Figure)
+    assert any(getattr(t, "orientation", None) == "h" for t in fig.data)
+    assert "best-score compare (2 spots)" in last[CHATBOT][-1]["content"]

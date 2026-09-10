@@ -24,5 +24,6 @@ jobs:
         run: |
           git config user.name "wavereader-ci"
           git config user.email "wavereader-ci@users.noreply.github.com"
-          git remote set-url space "https://lucashudsn:${HF_TOKEN}@huggingface.co/spaces/lucashudsn/wavereader.git"
+          # fresh checkout only has origin — create the space remote here
+          git remote add space "https://lucashudsn:${HF_TOKEN}@huggingface.co/spaces/lucashudsn/wavereader.git"
           scripts/deploy_space.sh main space

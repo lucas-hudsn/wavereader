@@ -162,7 +162,7 @@ ul.options .item {
     border-color: #0b2c5c !important;
     color: #0b2c5c !important;
 }
-/* radio pill row (mode toggle, agent depth): tight inline options */
+/* radio pill row (mode toggle): tight inline options */
 .gradio-container .gr-radio { gap: 6px !important; }
 .gradio-container .gr-radio label {
     border: 2px solid #0b2c5c !important;
@@ -242,9 +242,11 @@ ul.options .item {
 /* messenger-style chat: input row pinned under the chat log */
 .chat-input-row { align-items: flex-end !important; }
 
-/* agent controls row: depth radio + region focus on one tight line */
+/* agent controls row: state/region filters + max-tool-calls slider,
+   one tight line (dropdowns mirror the lens) */
 .agent-controls { align-items: flex-end !important; gap: 8px !important; }
-.agent-controls .gr-radio { flex-wrap: nowrap !important; }
+.agent-controls .gr-dropdown, .agent-controls .gr-slider { flex-wrap: nowrap !important; }
+.agent-controls .wrap { flex-wrap: nowrap !important; }
 .ctx-line { font-size: 0.78em; opacity: 0.8; margin: 0 2px 4px !important; }
 
 /* agent trace: live tool cards with ms timing bars + payload previews */

@@ -1,3 +1,17 @@
+---
+title: wave~reader
+emoji: 🏄
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 6.26.0
+python_version: "3.14"
+app_file: app.py
+license: mit
+pinned: false
+short_description: Surf-forecast world model for the Australian coast
+---
+
 # wave~reader
 
 **A surf-forecasting world model for the Australian coast: 238 breaks, 168
@@ -11,8 +25,7 @@ just moved to Berlin; I wanted to build something to make me enjoy ML and
 engineering again.
 
 > [Built for GTC Berlin](#built-for-the-gtc-berlin-golden-ticket-developer-contest-) —
-> NVIDIA open weights on Hugging Face rails, entry video script in
-> [`documents/VIDEO_SCRIPT.md`](documents/VIDEO_SCRIPT.md). #NVIDIAGTC
+> NVIDIA open weights on Hugging Face rails. #NVIDIAGTC
 
 ## One rule holds the whole app together
 
@@ -114,6 +127,30 @@ access to Open-Meteo / OpenTopoData and a disk cache under `.cache/`.
 On a HF Space the secret is the fallback; the agent panel's BYO-token box
 is session-only and never logged.
 
+## Deploying to HF Spaces
+
+The app is live at [huggingface.co/spaces/lucashudsn/wavereader](https://huggingface.co/spaces/lucashudsn/wavereader).
+The Space *is* this git repo — the `space` remote points at it — and the
+YAML block at the top of this README is the Space config: `sdk_version`
+must match the gradio pin in `requirements.txt`, and `app_file` is `app.py`.
+
+```sh
+git push space v2:main   # ship whatever is committed on v2
+git push origin v2       # keep GitHub in sync
+```
+
+The push asks for credentials: username `lucashudsn`, password = an HF
+token with write access (https://huggingface.co/settings/tokens). The
+build takes a few minutes; watch it under the Space's *Logs → Build* tab
+or poll `HfApi().get_space_runtime("lucashudsn/wavereader")`.
+
+Secrets live in the Space's *Settings → Variables and secrets* —
+`HF_TOKEN` is already set, which is what lets the agent and narrator work
+for visitors. `WR_MODEL` / `WR_PROVIDER` / `WR_BASE_URL` can be added the
+same way if you ever want to reroute the LLM. Caches under `.cache/` are
+ephemeral on the Space and rebuild lazily after a restart; nothing else
+needs doing.
+
 ## How it's laid out
 
 ```
@@ -141,7 +178,7 @@ data/
   surf-break-example-bells.json        # prompt worked example
   surf-cams.json                       # camera links keyed name | state | region
 documents/
-  ENCYCLOPEDIA.md FORECAST.md SURFAGENT.md VIDEO_SCRIPT.md
+  ENCYCLOPEDIA.md FORECAST.md SURFAGENT.md
 legacy/                          # frozen v1 front end, kept as the compat fallback
 ```
 
@@ -190,9 +227,4 @@ one-token inference. It leans on both halves deliberately — Nemotron 3
 Ultra for language, deterministic Python for physics — and shows its work
 on screen the whole way.
 
-The 90-second entry video (shot list in
-[`documents/VIDEO_SCRIPT.md`](documents/VIDEO_SCRIPT.md)) walks the hero
-strip, the break book with its climate audit, the staged swell check with
-the animated seafloor, the agent's timed tool calls, and a live MCP call
-from an external client. Tagging @Merve Noyan — thanks for the nudge.
-#NVIDIAGTC
+Tagging @Merve Noyan — thanks for the nudge. #NVIDIAGTC

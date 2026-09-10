@@ -155,7 +155,8 @@ def build() -> gr.Blocks:
                                show_progress="minimal", api_name=False)
         # -- agent: chat streams trace cards + meter + verdict + charts --
         chat_inputs = [a["msg"], a["chatbot"], b["skill_dd"], a["token_box"],
-                       selected, agent_store, a["depth_radio"], a["region_dd"]]
+                       selected, agent_store, a["steps_slider"], a["state_dd"],
+                       a["region_dd"]]
         a["send_btn"].click(
             a["chat"], inputs=chat_inputs, outputs=agent_outputs,
             show_progress="minimal", api_name=False,
@@ -177,12 +178,19 @@ def build() -> gr.Blocks:
                 a["chat"], inputs=chat_inputs, outputs=agent_outputs,
                 show_progress="minimal", api_name=False,
             )
+        # -- agent filters: page-one pattern, State rewrites Region choices --
+        a["state_dd"].change(
+            a["state_regions"], inputs=a["state_dd"], outputs=a["region_dd"],
+            api_name=False,
+        )
         # -- agent context line: what the bar inherits from the page --
         ctx_outputs = [a["ctx_md"]]
-        for trigger in (selected, b["skill_dd"], a["depth_radio"], a["region_dd"]):
+        ctx_inputs = [b["skill_dd"], selected, a["steps_slider"],
+                      a["state_dd"], a["region_dd"]]
+        for trigger in (selected, b["skill_dd"], a["steps_slider"],
+                        a["state_dd"], a["region_dd"]):
             trigger.change(
-                a["ctx"], inputs=[b["skill_dd"], selected, a["depth_radio"],
-                                  a["region_dd"]],
+                a["ctx"], inputs=ctx_inputs,
                 outputs=ctx_outputs, api_name=False,
             )
 

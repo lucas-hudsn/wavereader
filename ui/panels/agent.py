@@ -5,7 +5,7 @@ final | usage``) from :func:`ui._compat.agent_run_stream`. Every tool call
 renders as a trace card — pending while running, then done with a wall-time
 ms bar scaled to the slowest call this turn and an expandable payload
 preview. The budget meter ticks live (steps / tool calls / score_week cap /
-≈tokens) against the selected depth profile, and the final answer's
+≈tokens) against the slider-chosen tool budget, and the final answer's
 "Best: …" contract line is lifted into a verdict banner. Any ``score_week``
 payload in a tool result is charted straight into the week strip (the LLM
 never owns numbers), and **every answered turn ends with a visualisation**:
@@ -14,11 +14,12 @@ rose, seafloor depth map, similarity bars or the explained-hour component
 split from their tool payloads, falling back to the viewed spot's own
 scored week.
 
-User controls in the bar: depth radio (quick/standard/deep → budget
-profile) and a region-focus dropdown that anchors "where should I surf"
-sweeps. Both are plain component inputs — session state stays at exactly
-three ``gr.State`` objects. Skill comes from the lens panel's Skill
-filter — one skill, whole page.
+User controls in the bar: a "max tool calls" slider (the per-turn step
+budget; token + score_week caps scale with it) and chained State → Region
+dropdowns — page-one style, the State pick rewrites the Region choices —
+that anchor "where should I surf" sweeps. Both are plain component inputs —
+session state stays at exactly three ``gr.State`` objects. Skill comes
+from the lens panel's Skill filter — one skill, whole page.
 
 The BYO HF token box is session-only: the value is passed straight to the
 agent factory per turn, never stored, never logged.
@@ -316,7 +317,8 @@ def _turn_figure(viz: list[tuple[str, dict, object]], selected: dict | None,
 
 def chat_fn(message: str, history: list[dict] | None, skill: str,
             hf_token: str, selected: dict | None, store: dict | None,
-            depth: str, region: str | None, records: list[dict]):
+            steps: int | None, state: str | None, region: str | None,
+            records: list[dict]):
     """Stream an agent turn: trace cards + meter + verdict + charts."""
     history = list(history or [])
     store = dict(store or fresh_store())
@@ -324,11 +326,11 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
     usage = None
     verdict = ""
     token_source = "session token" if (hf_token or "").strip() else "space secret / env"
-    profiles = C.agent_profiles()
-    profile_name = (depth or "standard").strip().lower()
-    if profile_name not in profiles:
-        profile_name = "standard" if "standard" in profiles else next(iter(profiles))
-    caps = profiles[profile_name]
+    try:
+        steps_n = max(1, int(steps)) if steps is not None else _DEFAULT_STEPS
+    except (TypeError, ValueError):
+        steps_n = _DEFAULT_STEPS
+    caps = C.agent_budget_for_steps(steps_n)
     live = {"steps": 0, "calls": 0, "score_week": 0, "chars": 0}
     meter = _live_meter(live, caps, token_source)
     spots = list(store.get("spots") or [])
@@ -362,8 +364,9 @@ def chat_fn(message: str, history: list[dict] | None, skill: str,
     skill = C.scoring_skill(skill)
     try:
         stream = C.agent_run_stream(text, skill=skill, hf_token=hf_token or "",
-                                    selected_break=selected, profile=profile_name,
-                                    region_hint=region)
+                                    selected_break=selected,
+                                    region_hint=_region_hint(state, region),
+                                    max_steps=steps_n)
         for kind, payload in stream:
             if kind == "token":
                 chunk = str(payload)
@@ -523,19 +526,29 @@ def show_spot(label: str | None, store: dict | None, records: list[dict]):
         return gr.skip()
 
 
-def ctx_line(skill: str, selected: dict | None, depth: str,
-             region: str | None) -> str:
+_DEFAULT_STEPS = 6
+
+
+def _region_hint(state: str | None, region: str | None) -> str | None:
+    """Agent focus from the chained filters: region > state > auto (None)."""
+    for value in (region, state):
+        if value and value != C.ALL:
+            return str(value)
+    return None
+
+
+def ctx_line(skill: str, selected: dict | None, steps: int | None,
+             state: str | None, region: str | None) -> str:
     """One live line showing what the agent inherits from the page."""
-    profiles = C.agent_profiles()
+    caps = C.agent_budget_for_steps(int(steps) if steps else _DEFAULT_STEPS)
     name = (selected or {}).get("name") or "no spot picked"
     reg = (selected or {}).get("region") or ""
-    caps = profiles.get((depth or "standard").strip().lower()) or profiles.get("standard") or {}
-    focus = "auto (map pick)" if (not region or region == "auto") else str(region)
+    hint = _region_hint(state, region)
+    focus = hint or "auto (map pick)"
     view = f"{name}" + (f" — {reg}" if reg else "")
     return (f"scoring for **{C.scoring_skill(skill)}** · viewing **{view}** · "
-            f"focus **{focus}** · depth **{depth or 'standard'}** "
-            f"({caps.get('max_steps', '?')} steps / "
-            f"{caps.get('score_week_calls', '?')} score_week)")
+            f"focus **{focus}** · budget **{caps['max_steps']} steps / "
+            f"{caps['score_week_calls']} score_week / {caps['max_tokens']} tokens**")
 
 
 def clear_chat():
@@ -561,12 +574,9 @@ CHIP_PROMPTS = [
 def build_agent(selected, store, records: list[dict], vocab: dict | None,
                 visible: bool = False) -> dict:
     """Build the agent bar (full width, hidden until agentic mode slides on)."""
-    profiles = C.agent_profiles()
-    profile_names = C.agent_profile_names()
-    default_profile = "standard" if "standard" in profile_names else (profile_names[0] if profile_names else "standard")
     states = list((vocab or {}).get("states") or [])
-    regions = list((vocab or {}).get("all_regions") or [])
-    region_choices = ["auto"] + states + [r for r in regions if r not in states]
+    regions_by_state = dict((vocab or {}).get("regions_by_state") or {})
+    all_regions = list((vocab or {}).get("all_regions") or [])
 
     with gr.Column(elem_classes=["agent-col"], visible=visible) as agent_col:
         gr.Markdown("### 💬 ask the agent — engines compute, the llm narrates")
@@ -578,10 +588,14 @@ def build_agent(selected, store, records: list[dict], vocab: dict | None,
         with gr.Row():
             with gr.Column(scale=1):
                 with gr.Row(elem_classes=["agent-controls"]):
-                    depth_radio = gr.Radio(profile_names, value=default_profile,
-                                           label="agent depth", elem_classes=["depth-toggle"])
-                    region_dd = gr.Dropdown(region_choices, value="auto",
-                                            label="region focus")
+                    state_dd = gr.Dropdown([C.ALL, *states], value=C.ALL,
+                                           label="State", min_width=120)
+                    region_dd = gr.Dropdown([C.ALL, *all_regions], value=C.ALL,
+                                            label="Region", min_width=120)
+                    steps_slider = gr.Slider(1, 12, step=1,
+                                             value=_DEFAULT_STEPS,
+                                             label="max calls", scale=2,
+                                             min_width=180)
                 token_box = gr.Textbox(label="HF token (optional, session-only)", type="password",
                                        placeholder="Defaults to the Space secret — never logged or saved.")
                 chatbot = gr.Chatbot(label="Surf agent", height=460)
@@ -603,9 +617,14 @@ def build_agent(selected, store, records: list[dict], vocab: dict | None,
                 agent_strip = gr.Plot(label="week strip — agent-scored spot")
                 rank_html = gr.HTML(_EMPTY_RANK_HTML)
 
-    def _chat(message, history, skill, hf_token, sel, st, depth, region):
+    def _chat(message, history, skill, hf_token, sel, st, steps, state, region):
         yield from chat_fn(message, history, skill, hf_token, sel, st,
-                           depth, region, records)
+                           steps, state, region, records)
+
+    def agent_state_regions(state: str):
+        """Page-one pattern: the State pick rewrites the Region choices."""
+        regions = regions_by_state.get(state, all_regions) if state != C.ALL else all_regions
+        return gr.update(choices=[C.ALL, *regions], value=C.ALL)
 
     def _show(label, st):
         return show_spot(label, st, records)
@@ -620,7 +639,8 @@ def build_agent(selected, store, records: list[dict], vocab: dict | None,
         "verdict_html": verdict_html, "rank_html": rank_html,
         "token_md": token_md, "agent_status": status_box, "spot_dd": spot_dd,
         "agent_strip": agent_strip, "chips": tuple(chips),
-        "depth_radio": depth_radio, "region_dd": region_dd, "ctx_md": ctx_md,
+        "steps_slider": steps_slider, "state_dd": state_dd,
+        "region_dd": region_dd, "ctx_md": ctx_md,
         "chat": _chat, "show_spot": _show, "clear": clear_chat, "chip_text": _chip,
-        "ctx": ctx_line,
+        "ctx": ctx_line, "state_regions": agent_state_regions,
     }

@@ -163,7 +163,10 @@ def add_score_traces(fig, scored: list[dict], row: int = 1) -> go.Figure:
         go.Bar(
             x=times, y=scores,
             marker={"color": colors, "line": {"width": 0}},
-            hovertemplate="%{x}<br>score: %{y:.1f}/10<extra></extra>",
+            # unified hover: the x header already names the hour, so each
+            # trace's label stays a short one-liner (long/wide labels flood
+            # the strip)
+            hovertemplate="score: %{y:.1f}/10<extra></extra>",
             name="score",
         ),
         row=row, col=1,
@@ -192,7 +195,7 @@ def add_swell_traces(fig, scored: list[dict], row: int = 2) -> go.Figure:
             x=times, y=[r.get("wave_height_m") for r in scored],
             mode="lines", fill="tozeroy", fillcolor="rgba(31,119,180,0.25)",
             line={"color": "#1f77b4", "width": 2},
-            hovertemplate="%{x}<br>height: %{y:.1f} m<extra></extra>",
+            hovertemplate="height: %{y:.1f} m<extra></extra>",
             name="height (m)",
         ),
         row=row, col=1,
@@ -201,7 +204,7 @@ def add_swell_traces(fig, scored: list[dict], row: int = 2) -> go.Figure:
         go.Scatter(
             x=times, y=[r.get("wave_period_s") for r in scored],
             mode="lines", line={"color": "#ff7f0e", "width": 2},
-            hovertemplate="%{x}<br>period: %{y:.0f} s<extra></extra>",
+            hovertemplate="period: %{y:.0f} s<extra></extra>",
             name="period (s)",
         ),
         row=row, col=1, secondary_y=True,
@@ -282,7 +285,7 @@ def add_wind_traces(fig, scored: list[dict], spot: dict | None = None,
                       "shape": "spline", "smoothing": 0.55},
                 fill="tozeroy", fillcolor=_rgba(style["line"], style["fill_a"] * dim),
                 customdata=[f"{s:.0f} kt — {word}" for s in run["speeds"]],
-                hovertemplate="%{x}<br>%{customdata}<extra></extra>",
+                hovertemplate="%{customdata}<extra></extra>",
                 name="wind", showlegend=False,
             ),
             row=row, col=1,
@@ -315,11 +318,10 @@ def add_wind_traces(fig, scored: list[dict], spot: dict | None = None,
                     "line": {"width": 1.2, "color": INK},
                 },
                 customdata=[
-                    f"{s:.0f} kt from {_deg_to_compass(d)} ({d:.0f}°) — "
-                    "arrow points where it blows to"
+                    f"{s:.0f} kt from {_deg_to_compass(d)} ({d:.0f}°)"
                     for s, d in zip(speeds, dirs)
                 ],
-                hovertemplate="%{x}<br>%{customdata}<extra></extra>",
+                hovertemplate="%{customdata}<extra></extra>",
                 name="wind arrows", showlegend=False,
             ),
             row=row, col=1,

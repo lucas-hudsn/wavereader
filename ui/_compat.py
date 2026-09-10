@@ -698,18 +698,21 @@ def agent_profiles() -> dict[str, dict[str, int]]:
         return {k: dict(v) for k, v in _FALLBACK_PROFILES.items()}
 
 
-def agent_profile_names() -> list[str]:
-    """Ordered profile names for the depth radio."""
+def agent_budget_for_steps(steps: int) -> dict[str, int]:
+    """Full budget derived from a step count (the UI slider path)."""
     try:
-        from wavereader.agent import BUDGETS as _b  # type: ignore
+        from wavereader.agent import budget_for_steps as _bfs  # type: ignore
 
-        return list(_b.keys())
+        return _bfs(steps)
     except ImportError:
-        return list(_FALLBACK_PROFILES.keys())
+        s = max(1, int(steps))
+        return {"max_steps": s, "max_tokens": 100 + 100 * s,
+                "score_week_calls": max(1, round(s / 3))}
 
 
 def _stub_agent_stream(message: str, skill: str,
-                       selected_break: dict | None) -> Iterator[tuple[str, Any]]:
+                       selected_break: dict | None,
+                       caps: dict | None = None) -> Iterator[tuple[str, Any]]:
     """Offline agent: one stub score_week call → charts + meter + answer."""
     name = (selected_break or {}).get("name") or "Bells Beach"
     region = (selected_break or {}).get("region") or ""
@@ -726,7 +729,7 @@ def _stub_agent_stream(message: str, skill: str,
     yield ("usage", {"prompt_tokens": 1180, "completion_tokens": 210,
                      "steps": 2, "tool_calls": {"score_week": 1},
                      "profile": "standard",
-                     "budget": agent_profiles()["standard"]})
+                     "budget": caps or agent_profiles()["standard"]})
     best = payload.get("best") or {}
     yield ("final", f"**Best: {name} @ {best.get('time')} — {best.get('score')}/10.**\n\n"
                     f"{name} looks surfable — {best.get('wave_height_m')}m @ "
@@ -735,12 +738,13 @@ def _stub_agent_stream(message: str, skill: str,
 
 
 def _real_agent_stream(question: str, hf_token: str,
-                       profile: str = "standard") -> Iterator[tuple[str, Any]]:
+                       profile: str = "standard",
+                       max_steps: int | None = None) -> Iterator[tuple[str, Any]]:
     """Adapt Worker C dict events to the panel's (kind, payload) tuples."""
     from wavereader import agent as _a  # type: ignore
 
     for event in _a.run_stream(question, hf_token=(hf_token or "").strip() or None,  # type: ignore[attr-defined]
-                               profile=profile):
+                               max_steps=max_steps, profile=profile):
         kind = event.get("kind")
         if kind == "token":
             yield ("token", event.get("text", ""))
@@ -792,14 +796,16 @@ def _v1_agent_stream(message: str, skill: str, hf_token: str,
 def agent_run_stream(message: str, skill: str = "intermediate",
                      hf_token: str = "", selected_break: dict | None = None,
                      profile: str = "standard", region_hint: str | None = None,
+                     max_steps: int | None = None,
                      ) -> Iterator[tuple[str, Any]]:
     """Yield typed agent events: token | step | tool_call | tool_result | final | usage.
 
     Worker C ``wavereader/agent.py`` first (native tool calling), then the
     v1 CodeAgent adapter, then the offline stub. ``hf_token`` is session-only
-    and is never logged or persisted. ``profile`` picks the budget profile;
-    ``region_hint`` anchors "where should I surf" sweeps when the user picks
-    an explicit region focus.
+    and is never logged or persisted. ``max_steps`` caps the turn's tool
+    calls (the UI slider); ``profile`` is the fallback budget. ``region_hint``
+    anchors "where should I surf" sweeps when the user picks an explicit
+    region focus.
     """
     skill = (skill or "intermediate").strip().lower()
     sel = selected_break or {}
@@ -810,14 +816,18 @@ def agent_run_stream(message: str, skill: str = "intermediate",
         extras.append(f"user is viewing {context}")
     if region_hint and region_hint != "auto":
         extras.append(f"preferred region focus = {region_hint}")
-    budgets = agent_profiles().get(profile) or agent_profiles()["standard"]
+    if max_steps is not None:
+        budget = agent_budget_for_steps(max_steps)
+    else:
+        budget = agent_profiles().get(profile) or agent_profiles()["standard"]
     extras.append(
-        f"agent depth = {profile} (at most {budgets['max_steps']} steps, "
-        f"{budgets['score_week_calls']} score_week calls)"
+        f"tool budget = at most {budget['max_steps']} steps, "
+        f"{budget['score_week_calls']} score_week calls"
     )
     question = f"[{'; '.join(extras)}]\n{message}"
     try:  # Worker C: ToolCallingAgent with real ToolCall/ToolOutput events
-        for event in _real_agent_stream(question, hf_token, profile=profile):
+        for event in _real_agent_stream(question, hf_token, profile=profile,
+                                        max_steps=max_steps):
             yield event
         return
     except ImportError:
@@ -831,5 +841,5 @@ def agent_run_stream(message: str, skill: str = "intermediate",
         return
     except Exception:
         pass
-    for event in _stub_agent_stream(message, skill, selected_break):
+    for event in _stub_agent_stream(message, skill, selected_break, caps=budget):
         yield event

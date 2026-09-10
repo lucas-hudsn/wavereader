@@ -126,7 +126,7 @@ the web UI, HF commits them into the Space's `README.md` — mirror
 anything you care about back into `space-config.yaml`.
 
 ```sh
-scripts/deploy_space.sh   # ship what's committed on v2 (pass a ref to override)
+scripts/deploy_space.sh   # ship what's committed
 git push origin branch_name        # keep GitHub in sync
 ```
 

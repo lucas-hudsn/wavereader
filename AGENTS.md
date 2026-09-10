@@ -45,7 +45,24 @@ survives only as the fallback layer in `ui/_compat.py`.
   also `index.json` manifest), `surf-cams.json` (camera links keyed
   `"name | state | region"`), `surf-break-example-bells.json` (prompt worked
   example).
-- `documents/VIDEO_SCRIPT.md` — the GTC entry video shot list.
+
+## Deploying to HF Spaces
+
+- The Space `lucashudsn/wavereader` (public) *is* this repo — remote
+  `space`. Ship with `git push space v2:main`, then `git push origin v2`
+  to keep GitHub in sync. The Space builds from the pushed commit; watch
+  *Logs → Build* on the Space page or poll
+  `HfApi().get_space_runtime("lucashudsn/wavereader")` until `RUNNING`.
+- The YAML block at the top of `README.md` is the Space config. Keep
+  `sdk_version` in lockstep with the gradio pin in `requirements.txt`
+  (regenerate that file only via `uv export --no-hashes
+  --format requirements-txt --no-dev -o requirements.txt` — other
+  invocations can leave stray progress lines that break pip), and
+  `python_version` in lockstep with `pyproject.toml`'s `requires-python`.
+- `HF_TOKEN` is a Space secret (set once via *Settings → Variables and
+  secrets* or `HfApi().add_space_secret`); `WR_*` overrides can be added
+  the same way. `.cache/` is ephemeral on the Space and rebuilds lazily —
+  no persistent storage, no warm step.
 
 ## Conventions that matter
 

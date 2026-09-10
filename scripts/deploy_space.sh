@@ -5,10 +5,11 @@
 # space-config.yaml to the README, pushes it to the `space` remote, then
 # removes the worktree. The repo README stays clean; HF gets its config.
 #
-#   scripts/deploy_space.sh [ref] [remote]   # defaults: v2, space
+#   scripts/deploy_space.sh [ref] [remote]   # defaults: current branch, space
 set -euo pipefail
 
-ref="${1:-v2}"
+ref="${1:-$(git branch --show-current)}"
+: "${ref:=main}"   # detached HEAD has no branch name — fall back to main
 remote="${2:-space}"
 root="$(git rev-parse --show-toplevel)"
 config="$root/space-config.yaml"
@@ -16,6 +17,10 @@ tmp="$(mktemp -d)"
 trap 'git worktree remove --force "$tmp" >/dev/null 2>&1 || rm -rf "$tmp"' EXIT
 
 [ -f "$config" ] || { echo "missing $config" >&2; exit 1; }
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "warning: uncommitted changes won't ship — only committed work on $ref is deployed" >&2
+fi
 
 git worktree add --quiet --detach "$tmp" "$ref"
 { printf -- '---\n'; cat "$config"; printf -- '---\n\n'; cat "$tmp/README.md"; } > "$tmp/README.md.next"

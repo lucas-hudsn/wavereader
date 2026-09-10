@@ -119,21 +119,42 @@ The app is live at [huggingface.co/spaces/lucashudsn/wavereader](https://hugging
 The Space _is_ this git repo — the `space` remote points at it. Spaces
 read their config from YAML frontmatter at the top of `README.md`, but
 GitHub renders that block as an ugly metadata table, so it lives in
-`space-config.yaml` instead and `deploy_space.sh` prepends it in a
-throwaway commit at push time. Keep `sdk_version` in lockstep with the
-gradio pin in `requirements.txt`. If you change Space settings through
-the web UI, HF commits them into the Space's `README.md` — mirror
-anything you care about back into `space-config.yaml`.
+`space-config.yaml` instead and the deploy flow prepends it in a
+throwaway commit at push time (the repo README stays clean; HF gets its
+config). Keep `sdk_version` in lockstep with the gradio pin in
+`requirements.txt`. If you change Space settings through the web UI, HF
+commits them into the Space's `README.md` — mirror anything you care
+about back into `space-config.yaml`.
 
-```sh
-scripts/deploy_space.sh   # ship what's committed
-git push origin branch_name        # keep GitHub in sync
-```
+**Two ways to ship — deploys work from any branch, not just `main`:**
 
-The push asks for credentials: username `lucashudsn`, password = an HF
-token with write access (https://huggingface.co/settings/tokens). The
-build takes a few minutes; watch it under the Space's _Logs → Build_ tab
-or poll `HfApi().get_space_runtime("lucashudsn/wavereader")`.
+1. **Automatic, on every push to `main`.** The
+   `.github/workflows/deploy-space.yml` action deploys `main` to the
+   Space using the repo's `HF_TOKEN` Actions secret. Merge and walk
+   away; watch progress under the repo's _Actions_ tab and the Space's
+   _Logs → Build_.
+
+2. **Manual, any branch.** From a clean tree with your work committed:
+
+   ```sh
+   scripts/deploy_space.sh              # deploy the branch you're on
+   scripts/deploy_space.sh some-branch  # deploy any committed ref
+   git push origin some-branch          # keep GitHub in sync
+   ```
+
+   The script builds its throwaway commit in a temp worktree, so your
+   checkout is never touched; it force-pushes that tree to the Space's
+   `main` (deploys are throwaway commits — only the tip matters to the
+   build). The push asks for credentials: username `lucashudsn`,
+   password = an HF token with write access
+   (https://huggingface.co/settings/tokens).
+
+One-time CI setup: the Action needs `HF_TOKEN` as a **GitHub** repo
+secret (_Settings → Secrets and variables → Actions_, or
+`gh secret set HF_TOKEN`). The Space's own `HF_TOKEN` is a separate
+secret, already set. Builds take a few minutes; watch them under the
+Space's _Logs → Build_ tab or poll
+`HfApi().get_space_runtime("lucashudsn/wavereader")`.
 
 Secrets live in the Space's _Settings → Variables and secrets_ —
 `HF_TOKEN` is already set, which is what lets the agent and narrator work

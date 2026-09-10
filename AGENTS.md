@@ -49,10 +49,14 @@ survives only as the fallback layer in `ui/_compat.py`.
 ## Deploying to HF Spaces
 
 - The Space `lucashudsn/wavereader` (public) *is* this repo — remote
-  `space`. Ship with `scripts/deploy_space.sh` (builds a throwaway commit
-  that prepends `space-config.yaml` to `README.md` and pushes it to
-  `space:main` — Spaces need YAML frontmatter, GitHub doesn't have to see
-  it), then `git push origin v2` to keep GitHub in sync. The Space builds
+  `space`. Every push to `main` auto-deploys via
+  `.github/workflows/deploy-space.yml` (needs the GitHub repo secret
+  `HF_TOKEN`) — merging to main ships it; no manual step. For any other
+  branch, ship manually with `scripts/deploy_space.sh [ref]` (builds a
+  throwaway commit that prepends `space-config.yaml` to `README.md` and
+  force-pushes it to `space:main` — Spaces need YAML frontmatter, GitHub
+  doesn't have to see it; the ref defaults to your current branch), then
+  `git push origin <branch>` to keep GitHub in sync. The Space builds
   from the pushed commit; watch *Logs → Build* on the Space page or poll
   `HfApi().get_space_runtime("lucashudsn/wavereader")` until `RUNNING`.
 - `space-config.yaml` is the Space config. Keep

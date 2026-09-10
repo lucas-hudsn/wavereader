@@ -1,0 +1,28 @@
+name: Deploy to HF Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Deploys force-rewrite the Space's main — never run two at once.
+concurrency:
+  group: deploy-space
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # deploy_space.sh hangs a worktree off the ref
+
+      - name: Ship to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config user.name "wavereader-ci"
+          git config user.email "wavereader-ci@users.noreply.github.com"
+          git remote set-url space "https://lucashudsn:${HF_TOKEN}@huggingface.co/spaces/lucashudsn/wavereader.git"
+          scripts/deploy_space.sh main space
